@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+		<EnableAotAnalyzer>true</EnableAotAnalyzer>
+
+		<AssemblyVersion>1.0.0</AssemblyVersion>
+		<PackageVersion>1.0.4</PackageVersion>
+		<Description></Description>
+		<PackageTags></PackageTags>
+		<Authors>Juna Meinhold</Authors>
+		<Copyright>Copyright (c) 2023 Juna Meinhold</Copyright>
+		<PackageProjectUrl></PackageProjectUrl>
+		<RepositoryUrl></RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Hexa.NET.ImGui" Version="1.0.0" />
+		<PackageReference Include="Hexa.NET.ImGuizmo" Version="1.0.0" />
+		<PackageReference Include="Hexa.NET.ImNodes" Version="1.0.0" />
+		<PackageReference Include="Hexa.NET.ImPlot" Version="1.0.0" />
+		<PackageReference Include="HexaEngine.SPIRVCross" Version="1.1.0" />
+		<PackageReference Include="HexaEngine.Shaderc" Version="1.2.0" />
+		<PackageReference Include="HexaEngine.DirectXTex" Version="2.0.0" />
+		<PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.2" />
+		<PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.19.0" />
+		<PackageReference Include="Silk.NET.Direct3D11" Version="2.19.0" />
+		<PackageReference Include="Silk.NET.Direct3D11.Extensions.D3D11On12" Version="2.19.0" />
+		<PackageReference Include="Silk.NET.Direct3D12" Version="2.19.0" />
+		<PackageReference Include="Silk.NET.DXGI" Version="2.19.0" />
+		<PackageReference Include="Silk.NET.GLFW" Version="2.19.0" />
+		<PackageReference Include="Silk.NET.OpenAL" Version="2.19.0" />
+		<PackageReference Include="Silk.NET.OpenAL.Extensions.Enumeration" Version="2.19.0" />
+		<PackageReference Include="Silk.NET.OpenAL.Extensions.Soft" Version="2.19.0" />
+		<PackageReference Include="Silk.NET.OpenAL.Soft.Native" Version="1.21.1.2" />
+		<PackageReference Include="Silk.NET.OpenGL" Version="2.19.0" />
+		<PackageReference Include="Silk.NET.SDL" Version="2.19.0" />
+		<PackageReference Include="Silk.NET.Vulkan" Version="2.19.0" />
+		<PackageReference Include="Silk.NET.Vulkan.Extensions.KHR" Version="2.19.0" />
+		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Input\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="README.md" Pack="true" PackagePath="\" />
+		<None Update="LICENSE.txt" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+</Project>
