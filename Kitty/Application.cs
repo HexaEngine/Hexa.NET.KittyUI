@@ -24,6 +24,7 @@
 
 #nullable disable
         private static IRenderWindow mainWindow;
+        private static AppBuilder builder;
         private static IGraphicsAdapter graphicsAdapter;
         private static IGraphicsDevice graphicsDevice;
         private static IGraphicsContext graphicsContext;
@@ -82,17 +83,28 @@
 
         public static bool GraphicsDebugging { get; set; }
 
-        public static void Run(IRenderWindow mainWindow)
+        public static void Run()
         {
-            Init(mainWindow);
+            Run(new Windows.Window(), new AppBuilder());
+        }
+
+        public static void Run(AppBuilder builder)
+        {
+            Run(new Windows.Window(), builder);
+        }
+
+        public static void Run(IRenderWindow mainWindow, AppBuilder builder)
+        {
+            Init(mainWindow, builder);
             Application.mainWindow = mainWindow;
+            Application.builder = builder;
             mainWindow.Closing += MainWindow_Closing;
 
             mainWindow.Show();
             PlatformRun();
         }
 
-        private static void Init(IRenderWindow mainWindow)
+        private static void Init(IRenderWindow mainWindow, AppBuilder builder)
         {
             CrashLogger.Initialize();
             DXGIAdapterD3D11.Init(mainWindow, GraphicsDebugging);
@@ -122,7 +134,7 @@
 
             for (int i = 0; i < windows.Count; i++)
             {
-                windows[i].Initialize(audioDevice, graphicsDevice);
+                windows[i].Initialize(builder, audioDevice, graphicsDevice);
             }
 
             initialized = true;
@@ -133,7 +145,7 @@
             windows.Add(window);
             windowIdToWindow.Add(window.WindowID, window);
             if (initialized)
-                window.Initialize(audioDevice, graphicsDevice);
+                window.Initialize(builder, audioDevice, graphicsDevice);
         }
 
         private static void MainWindow_Closing(object? sender, CloseEventArgs e)

@@ -21,7 +21,7 @@
 
         Viewport RenderViewport { get; }
 
-        void Initialize(IAudioDevice audioDevice, IGraphicsDevice graphicsDevice);
+        void Initialize(AppBuilder appBuilder, IAudioDevice audioDevice, IGraphicsDevice graphicsDevice);
 
         void Render(IGraphicsContext context);
 

@@ -2,23 +2,35 @@
 {
     using Hexa.NET.ImGui;
     using Kitty.Graphics;
+    using Kitty.ImGuiBackend;
 
     public abstract class ImWindow : IImGuiWindow
     {
         protected bool IsShown;
         protected bool IsDocked;
-        private bool windowEnded;
+        protected bool windowEnded;
 
         protected abstract string Name { get; }
         protected ImGuiWindowFlags Flags;
+
+        protected bool IsEmbedded;
 
         public virtual void Init(IGraphicsDevice device)
         {
         }
 
-        public virtual void DrawWindow(IGraphicsContext context)
+        public virtual unsafe void DrawWindow(IGraphicsContext context)
         {
             if (!IsShown) return;
+
+            if (IsEmbedded)
+            {
+                ImGuiWindowClass windowClass;
+                windowClass.DockNodeFlagsOverrideSet = (ImGuiDockNodeFlags)ImGuiDockNodeFlagsPrivate.NoTabBar;
+                ImGui.SetNextWindowClass(&windowClass);
+                ImGui.SetNextWindowDockID(ImGuiManager.DockSpaceId);
+            }
+
             if (!ImGui.Begin(Name, ref IsShown, Flags))
             {
                 ImGui.End();

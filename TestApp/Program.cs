@@ -1,14 +1,28 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Hexa.NET.ImGui;
 using Kitty;
-using Kitty.Windows;
+using Kitty.Graphics;
+using Kitty.UI;
+using TestApp;
 
-Window window = new();
-window.Draw += DrawWindow;
+WidgetManager.Register<MainWindow>(show: true);
 
-static void DrawWindow(Kitty.Graphics.IGraphicsContext context)
+Application.Run();
+
+namespace TestApp
 {
-    ImGui.ShowDemoWindow();
-}
+    public class MainWindow : ImWindow
+    {
+        public MainWindow()
+        {
+            IsEmbedded = true;
+        }
 
-Application.Run(window);
+        protected override string Name => "Main Window";
+
+        public override void DrawContent(IGraphicsContext context)
+        {
+            ImGui.Text("Hello, World!");
+        }
+    }
+}

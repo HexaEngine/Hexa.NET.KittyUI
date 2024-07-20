@@ -123,7 +123,7 @@ namespace Kitty.UI.Dialogs
 
                 float widthDrives = 100 + ImGui.GetStyle().ItemSpacing.X * 2;
                 float width = ImGui.GetContentRegionAvail().X - ImGui.GetStyle().ItemSpacing.X - widthDrives;
-                if (ImGui.BeginChild(1, new Vector2(widthDrives, -footerHeightToReserve), false, ImGuiWindowFlags.HorizontalScrollbar))
+                if (ImGui.BeginChild(1, new Vector2(widthDrives, -footerHeightToReserve), 0, ImGuiWindowFlags.HorizontalScrollbar))
                 {
                     void Display(string? rel, string str)
                     {
@@ -162,7 +162,7 @@ namespace Kitty.UI.Dialogs
                 ImGui.EndChild();
 
                 ImGui.SameLine();
-                if (ImGui.BeginChild(2, new Vector2(width, -footerHeightToReserve), true, 0))
+                if (ImGui.BeginChild(2, new Vector2(width, -footerHeightToReserve), 0, 0))
                 {
                     var di = new DirectoryInfo(CurrentFolder);
                     if (di.Exists)

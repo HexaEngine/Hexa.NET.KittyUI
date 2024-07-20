@@ -1,6 +1,6 @@
 ﻿namespace Kitty.D3D11
 {
-    using HexaEngine.DirectXTex;
+    using Hexa.NET.DirectXTex;
     using Kitty.Graphics;
     using Kitty.Mathematics;
     using Silk.NET.Direct3D11;

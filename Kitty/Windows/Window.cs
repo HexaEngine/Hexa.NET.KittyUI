@@ -4,8 +4,8 @@
     using Kitty.Audio;
     using Kitty.Debugging;
     using Kitty.Graphics;
+    using Kitty.ImGuiBackend;
     using Kitty.Mathematics;
-    using Kitty.Rendering;
     using Kitty.Threading;
     using Kitty.UI;
     using Kitty.Windows.Events;
@@ -44,7 +44,7 @@
         {
         }
 
-        public virtual void Initialize(IAudioDevice audioDevice, IGraphicsDevice graphicsDevice)
+        public virtual void Initialize(AppBuilder appBuilder, IAudioDevice audioDevice, IGraphicsDevice graphicsDevice)
         {
             this.audioDevice = audioDevice;
             this.graphicsDevice = graphicsDevice;
@@ -61,7 +61,7 @@
                 PipelineManager.Initialize(graphicsDevice);
             }
 
-            imGuiRenderer = new(this, graphicsDevice, graphicsContext);
+            imGuiRenderer = new(this, appBuilder, graphicsDevice, graphicsContext);
 
             WidgetManager.Init(graphicsDevice);
 

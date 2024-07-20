@@ -1,7 +1,7 @@
 ﻿//based on https://github.com/ocornut/imgui/blob/master/examples/imgui_impl_dx11.cpp
 #nullable disable
 
-namespace Kitty.Rendering
+namespace Kitty.ImGuiBackend
 {
     using Hexa.NET.ImGui;
     using Kitty;

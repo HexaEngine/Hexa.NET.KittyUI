@@ -11,21 +11,9 @@
         {
         }
 
-        public static bool Register<T>() where T : IImGuiWindow, new()
+        public static bool Register<T>(bool show = false) where T : IImGuiWindow, new()
         {
-            if (device == null)
-            {
-                IImGuiWindow widget = new T();
-                widgets.Add(widget);
-                return false;
-            }
-            else
-            {
-                IImGuiWindow widget = new T();
-                widget.Init(device);
-                widgets.Add(widget);
-                return true;
-            }
+            return Register(new T(), show);
         }
 
         public static void Unregister<T>() where T : IImGuiWindow, new()
@@ -42,8 +30,13 @@
             }
         }
 
-        public static bool Register(IImGuiWindow widget)
+        public static bool Register(IImGuiWindow widget, bool show = false)
         {
+            if (show)
+            {
+                widget.Show();
+            }
+
             if (device == null)
             {
                 widgets.Add(widget);

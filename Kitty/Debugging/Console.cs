@@ -329,7 +329,7 @@
                 footerHeightToReserve += ImGui.GetStyle().ItemSpacing.Y;
             }
 
-            if (ImGui.BeginChild("ScrollRegion##", new Vector2(0, -footerHeightToReserve), false, 0))
+            if (ImGui.BeginChild("ScrollRegion##", new Vector2(0, -footerHeightToReserve), 0, 0))
             {
                 // Display colored command output.
                 Vector2 size = default;
@@ -400,7 +400,7 @@
 
             if (cmdSuggestions.Count > 0)
             {
-                if (ImGui.BeginChild("Suggestions", new(0, suggestionHeight), true))
+                if (ImGui.BeginChild("Suggestions", new(0, suggestionHeight), ImGuiChildFlags.Border))
                 {
                     for (int i = 0; i < cmdSuggestions.Count; i++)
                     {

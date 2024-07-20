@@ -1,18 +1,18 @@
 ﻿namespace Kitty.D3D11
 {
-    using HexaEngine.DirectXTex;
+    using Hexa.NET.DirectXTex;
     using Kitty.Graphics;
     using Kitty.Graphics.Textures;
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
     using System.IO;
-    using DDSFlags = HexaEngine.DirectXTex.DDSFlags;
+    using DDSFlags = Hexa.NET.DirectXTex.DDSFlags;
     using ResourceMiscFlag = Kitty.Graphics.ResourceMiscFlag;
     using TexCompressFlags = Kitty.Graphics.Textures.TexCompressFlags;
     using TexFilterFlags = Kitty.Graphics.Textures.TexFilterFlags;
-    using TGAFlags = HexaEngine.DirectXTex.TGAFlags;
+    using TGAFlags = Hexa.NET.DirectXTex.TGAFlags;
     using Usage = Kitty.Graphics.Usage;
-    using WICFlags = HexaEngine.DirectXTex.WICFlags;
+    using WICFlags = Hexa.NET.DirectXTex.WICFlags;
 
     public unsafe class D3DScratchImage : IScratchImage
     {
@@ -242,7 +242,7 @@
         public void SaveToMemory(Stream stream, TexFileFormat format, int flags)
         {
             ScratchImage image = scImage;
-            HexaEngine.DirectXTex.Blob blob = DirectXTex.CreateBlob();
+            Hexa.NET.DirectXTex.Blob blob = DirectXTex.CreateBlob();
 
             var meta = image.GetMetadata();
             switch (format)
