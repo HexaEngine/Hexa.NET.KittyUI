@@ -31,7 +31,6 @@
         {
             public Window* Window;
             public Renderer* Renderer;
-            public ulong Time;
             public byte* ClipboardTextData;
             public bool UseVulkan;
             public bool WantUpdateMonitors;
@@ -411,6 +410,7 @@
             bd->Window = window;
             bd->Renderer = renderer;
 
+            bd->MouseCanUseGlobalState = mouse_can_use_global_state;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 bd->MouseCanReportHoveredViewport = false;

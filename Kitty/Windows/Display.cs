@@ -79,12 +79,14 @@
 
         public static int GetPointDisplayIndex(int x, int y)
         {
-            return Sdl.GetPointDisplayIndex(new Point(x, y));
+            var point = new Point(x, y);
+            return Sdl.GetPointDisplayIndex(ref point);
         }
 
         public static int GetRectDisplayIndex(int x, int y, int width, int height)
         {
-            return Sdl.GetRectDisplayIndex(new Rectangle<int>(x, y, width, height));
+            var rect = new Rectangle<int>(x, y, width, height);
+            return Sdl.GetRectDisplayIndex(ref rect);
         }
 
         public static int GetWindowDisplayIndex(SdlWindow window)

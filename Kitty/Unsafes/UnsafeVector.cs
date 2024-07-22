@@ -6,7 +6,6 @@
     /// Represents an unsafe vector.
     /// </summary>
     /// <typeparam name="T">The type of elements in the vector.</typeparam>
-    [Obsolete("Use UnsafeList<T> instead.")]
     public unsafe struct UnsafeVector<T> : IFreeable where T : unmanaged
     {
         private const int DefaultCapacity = 4;

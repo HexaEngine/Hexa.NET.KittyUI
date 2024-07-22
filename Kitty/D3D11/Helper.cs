@@ -1811,6 +1811,7 @@
                 TexDimension.Texture1D => Hexa.NET.DirectXTex.TexDimension.Texture1D,
                 TexDimension.Texture2D => Hexa.NET.DirectXTex.TexDimension.Texture2D,
                 TexDimension.Texture3D => Hexa.NET.DirectXTex.TexDimension.Texture3D,
+                _ => throw new NotSupportedException(),
             };
         }
 

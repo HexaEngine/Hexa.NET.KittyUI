@@ -44,7 +44,7 @@
             if (!File.Exists(path))
             {
                 Trace.WriteLine($"Warning couldn't find texture {path}");
-                return default;
+                return InitFallback(TextureDimension.Texture2D);
             }
             var fs = File.OpenRead(path);
 

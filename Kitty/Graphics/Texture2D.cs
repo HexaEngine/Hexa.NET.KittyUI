@@ -32,8 +32,6 @@
         private int slicePitch;
         private byte* local;
 
-        private IGraphicsDevice device;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Texture2D"/> class using the specified <see cref="TextureFileDescription"/>.
         /// </summary>
@@ -397,20 +395,6 @@
                 srv = device.CreateShaderResourceView(texture);
                 srv.DebugName = dbgName + ".SRV";
             }
-
-            ArraySlices = new IRenderTargetView[description.ArraySize];
-
-            if ((description.BindFlags & BindFlags.RenderTarget) != 0)
-            {
-                rtv = device.CreateRenderTargetView(texture, default);
-                rtv.DebugName = dbgName + ".RTV";
-
-                for (int i = 0; i < description.ArraySize; i++)
-                {
-                    ArraySlices[i] = device.CreateRenderTargetView(texture, new RenderTargetViewDescription(texture, RenderTargetViewDimension.Texture2D, firstArraySlice: i, arraySize: 1), default);
-                    ArraySlices[i].DebugName = dbgName + $".RTV.{i}";
-                }
-            }
         }
 
 #nullable restore
@@ -523,11 +507,6 @@
         /// Gets the unordered access view associated with the texture.
         /// </summary>
         public IUnorderedAccessView? UAV => uav;
-
-        /// <summary>
-        /// Gets an array of render target views for each array slice of the texture.
-        /// </summary>
-        public IRenderTargetView[] ArraySlices;
 
         /// <summary>
         /// Gets a viewport with the dimensions of the texture.

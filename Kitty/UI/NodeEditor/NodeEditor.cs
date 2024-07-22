@@ -137,7 +137,7 @@
 
         public string SaveState()
         {
-            return Marshal.PtrToStringAnsi((nint)ImNodes.SaveEditorStateToIniString(context));
+            return Marshal.PtrToStringAnsi((nint)ImNodes.SaveEditorStateToIniString(context)) ?? string.Empty;
         }
 
         public void RestoreState(string state)

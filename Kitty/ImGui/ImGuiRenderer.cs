@@ -29,7 +29,7 @@ namespace Kitty.ImGuiBackend
         /// <summary>
         /// Renderer data
         /// </summary>
-        private struct RendererData
+        public struct RendererData
         {
             public int Dummy;
         }
@@ -456,9 +456,9 @@ float4 main(PS_INPUT input) : SV_Target
             public IRenderTargetView RTView;
         };
 
-        private struct ViewportDataHandle
+        public struct ViewportDataHandle
         {
-            private nint size;
+            public nint Size;
         }
 
         private static readonly Dictionary<Pointer<ViewportDataHandle>, ViewportData> viewportData = new();

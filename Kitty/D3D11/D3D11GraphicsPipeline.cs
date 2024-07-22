@@ -171,6 +171,12 @@
 
                 if (!CanSkipLayout(inputElements))
                 {
+                    if (inputElements is null)
+                    {
+                        valid = false;
+                        return;
+                    }
+
                     ID3D11InputLayout* il;
                     InputElementDesc* descs = AllocT<InputElementDesc>(inputElements.Length);
                     Helper.Convert(inputElements, descs);
@@ -271,11 +277,11 @@
             if (!valid) return;
 
             ComPtr<ID3D11DeviceContext3> ctx = contextd3d11.DeviceContext;
-            ctx.VSSetShader(vs, null, 0);
-            ctx.HSSetShader(hs, null, 0);
-            ctx.DSSetShader(ds, null, 0);
-            ctx.GSSetShader(gs, null, 0);
-            ctx.PSSetShader(ps, null, 0);
+            ctx.VSSetShader(vs, (ID3D11ClassInstance**)null, 0);
+            ctx.HSSetShader(hs, (ID3D11ClassInstance**)null, 0);
+            ctx.DSSetShader(ds, (ID3D11ClassInstance**)null, 0);
+            ctx.GSSetShader(gs, (ID3D11ClassInstance**)null, 0);
+            ctx.PSSetShader(ps, (ID3D11ClassInstance**)null, 0);
 
             ctx.RSSetState(rasterizerState);
 
@@ -293,11 +299,11 @@
             if (!initialized) return;
             if (!valid) return;
 
-            context.VSSetShader(vs, null, 0);
-            context.HSSetShader(hs, null, 0);
-            context.DSSetShader(ds, null, 0);
-            context.GSSetShader(gs, null, 0);
-            context.PSSetShader(ps, null, 0);
+            context.VSSetShader(vs, (ID3D11ClassInstance**)null, 0);
+            context.HSSetShader(hs, (ID3D11ClassInstance**)null, 0);
+            context.DSSetShader(ds, (ID3D11ClassInstance**)null, 0);
+            context.GSSetShader(gs, (ID3D11ClassInstance**)null, 0);
+            context.PSSetShader(ps, (ID3D11ClassInstance**)null, 0);
 
             var dViewport = Helper.Convert(viewport);
             context.RSSetViewports(1, &dViewport);
@@ -317,11 +323,11 @@
             if (!initialized) return;
             if (!valid) return;
 
-            context.VSSetShader(vs, null, 0);
-            context.HSSetShader(hs, null, 0);
-            context.DSSetShader(ds, null, 0);
-            context.GSSetShader(gs, null, 0);
-            context.PSSetShader(ps, null, 0);
+            context.VSSetShader(vs, (ID3D11ClassInstance**)null, 0);
+            context.HSSetShader(hs, (ID3D11ClassInstance**)null, 0);
+            context.DSSetShader(ds, (ID3D11ClassInstance**)null, 0);
+            context.GSSetShader(gs, (ID3D11ClassInstance**)null, 0);
+            context.PSSetShader(ps, (ID3D11ClassInstance**)null, 0);
 
             context.RSSetState(rasterizerState);
 

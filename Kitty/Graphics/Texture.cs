@@ -541,8 +541,12 @@
         {
             return Task.Factory.StartNew((state) =>
             {
-                var data = ((IGraphicsDevice, TextureFileDescription))state;
-                return new Texture(data.Item1, data.Item2);
+                if (state is not (IGraphicsDevice graphicsDevice, TextureFileDescription textureFileDescription))
+                {
+                    throw new NullReferenceException();
+                }
+
+                return new Texture(graphicsDevice, textureFileDescription);
             }, (device, description));
         }
 

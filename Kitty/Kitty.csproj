@@ -10,7 +10,7 @@
 		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 
 		<AssemblyVersion>1.0.0</AssemblyVersion>
-		<PackageVersion>1.0.4</PackageVersion>
+		<PackageVersion>1.0.8</PackageVersion>
 		<Description></Description>
 		<PackageTags></PackageTags>
 		<Authors>Juna Meinhold</Authors>
@@ -33,18 +33,13 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.Direct3D11" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.Direct3D11.Extensions.D3D11On12" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.Direct3D12" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.DXGI" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.GLFW" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.OpenAL" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.OpenAL.Extensions.Enumeration" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.OpenAL.Extensions.Soft" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.OpenAL.Soft.Native" Version="1.23.1" />
 		<PackageReference Include="Silk.NET.OpenGL" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.SDL" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.Vulkan" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.Vulkan.Extensions.KHR" Version="2.21.0" />
 		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
 		<PackageReference Include="System.Text.Json" Version="8.0.4" />
 	</ItemGroup>

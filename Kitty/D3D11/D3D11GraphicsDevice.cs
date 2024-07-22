@@ -38,12 +38,16 @@
             Compiler = new();
         }
 
+#nullable disable
+
         protected D3D11GraphicsDevice(INativeWindowSource window, DXGIAdapterD3D11 adapter)
         {
             this.adapter = adapter;
             D3D11 = D3D11.GetApi(window);
             TextureLoader = new D3D11TextureLoader(this);
         }
+
+#nullable restore
 
         [SupportedOSPlatform("windows")]
         public D3D11GraphicsDevice(INativeWindowSource window, DXGIAdapterD3D11 adapter, bool debug)

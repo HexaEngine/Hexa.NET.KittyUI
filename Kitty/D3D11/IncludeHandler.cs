@@ -24,7 +24,7 @@ namespace Kitty.D3D11
 
             paths.Push(basePath);
             var dirName = Path.GetDirectoryName(path);
-            basePath = dirName;
+            basePath = dirName ?? string.Empty;
 
             *ppData = AllocCopyT(data);
             *pBytes = (uint)data.Length;

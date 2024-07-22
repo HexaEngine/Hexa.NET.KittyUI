@@ -38,14 +38,14 @@
         {
             if (!valid) return;
             if (!initialized) return;
-            ((D3D11GraphicsContext)context).DeviceContext.CSSetShader(cs, null, 0);
+            ((D3D11GraphicsContext)context).DeviceContext.CSSetShader(cs, (ID3D11ClassInstance**)null, 0);
         }
 
         public virtual void BeginDispatch(ID3D11DeviceContext1* context)
         {
             if (!valid) return;
             if (!initialized) return;
-            context->CSSetShader(cs, null, 0);
+            context->CSSetShader(cs, (ID3D11ClassInstance**)null, 0);
         }
 
         public void Dispatch(IGraphicsContext context, int x, int y, int z)

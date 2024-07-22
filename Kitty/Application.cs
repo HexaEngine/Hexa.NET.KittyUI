@@ -108,7 +108,6 @@
         {
             CrashLogger.Initialize();
             DXGIAdapterD3D11.Init(mainWindow, GraphicsDebugging);
-            DXGIAdapterD3D11On12.Init(mainWindow, GraphicsDebugging);
             OpenALAdapter.Init();
 
 #if DEBUG

@@ -2,6 +2,7 @@
 {
     using Kitty.Logging;
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Reflection;
     using System.Runtime.InteropServices;
@@ -12,7 +13,7 @@
         /// <summary>
         /// Gets the file log writer used for crash logging.
         /// </summary>
-        public static readonly FileLogWriter FileLogWriter = new($"logs/app-{DateTime.Now:yyyy-dd-M--HH-mm-ss}.log");
+        public static readonly FileLogWriter FileLogWriter = new("logs");
 
         public static void Initialize()
         {
@@ -20,6 +21,7 @@
             Logger.Writers.Add(FileLogWriter);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Accessing TargetSite is safe as reflection information is preserved.")]
         private static void UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             if (e.IsTerminating)
@@ -33,7 +35,7 @@
                 sb.AppendLine();
                 sb.AppendLine();
 
-                sb.AppendLine($"Unhandled exception {exception.HResult} {exception.Message} at {exception.TargetSite}");
+                sb.AppendLine($"Unhandled exception {exception.HResult} {exception.Message} at {exception.TargetSite?.ToString() ?? "Unknown Method"}");
                 sb.AppendLine($"\t{Marshal.GetExceptionForHR(exception.HResult)?.Message}");
                 sb.AppendLine();
 

@@ -46,7 +46,7 @@
         /// <summary>
         /// Initializes the ImGuiConsole, registers default commands, and sets default settings.
         /// </summary>
-        public static void Initialize()
+        static ImGuiConsole()
         {
             Logger.Writers.Add(logListener);
 
@@ -65,7 +65,7 @@
             });
             RegisterCommand("info", _ =>
             {
-                WriteLine($"HexaEngine: v{Assembly.GetExecutingAssembly().GetName().Version}");
+                WriteLine($"Kitty: v{Assembly.GetExecutingAssembly().GetName().Version}");
             });
             RegisterCommand("qqq", _ =>
             {
@@ -331,6 +331,23 @@
 
             if (ImGui.BeginChild("ScrollRegion##", new Vector2(0, -footerHeightToReserve), 0, 0))
             {
+                float scrollPos = ImGui.GetScrollY();
+                float lineHeight = ImGui.GetTextLineHeightWithSpacing();
+                int startLine = (int)(scrollPos / lineHeight);
+
+                float windowHeight = ImGui.GetWindowHeight();
+                int visibleLines = (int)MathF.Ceiling(windowHeight / lineHeight);
+                int endLine = startLine + visibleLines;
+
+                endLine = Math.Min(endLine, messages.Count);
+
+                float dummyHeight = messages.Count * lineHeight;
+
+                Vector2 cursor = ImGui.GetCursorPos();
+
+                ImGui.Dummy(new(0.0f, dummyHeight));
+                ImGui.SetCursorPos(cursor + new Vector2(0, startLine * lineHeight));
+
                 // Display colored command output.
                 Vector2 size = default;
                 ImGui.CalcTextSize(ref size, "00:00:00:0000");    // Timestamp.
@@ -379,6 +396,8 @@
                         ImGui.PopStyleColor();
                     }
                 }
+
+                ImGui.SetCursorPos(cursor + new Vector2(0, dummyHeight));
 
                 // Stop wrapping since we are done displaying console items.
                 if (!timeStamps)

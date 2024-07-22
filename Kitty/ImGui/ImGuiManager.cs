@@ -13,6 +13,37 @@
         private ImGuiContextPtr guiContext;
         private ImNodesContextPtr nodesContext;
         private ImPlotContextPtr plotContext;
+        private static readonly Dictionary<string, ImFontPtr> aliasToFont = new();
+        private static int fontPushes = 0;
+
+        public static void PushFont(string name)
+        {
+            if (aliasToFont.TryGetValue(name, out ImFontPtr fontPtr))
+            {
+                ImGui.PushFont(fontPtr);
+                fontPushes++;
+            }
+        }
+
+        public static void PushFont(string name, bool condition)
+        {
+            if (condition && aliasToFont.TryGetValue(name, out ImFontPtr fontPtr))
+            {
+                ImGui.PushFont(fontPtr);
+                fontPushes++;
+            }
+        }
+
+        public static void PopFont()
+        {
+            if (fontPushes == 0)
+            {
+                return;
+            }
+
+            ImGui.PopFont();
+            fontPushes--;
+        }
 
         public unsafe ImGuiManager(SdlWindow window, AppBuilder appBuilder, IGraphicsDevice device, IGraphicsContext context, ImGuiConfigFlags flags = ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad | ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable)
         {
@@ -37,7 +68,7 @@
             io.ConfigViewportsNoAutoMerge = false;
             io.ConfigViewportsNoTaskBarIcon = false;
 
-            appBuilder.BuildFonts(io);
+            appBuilder.BuildFonts(io, aliasToFont);
 
             var style = ImGui.GetStyle();
             var colors = style.Colors;

@@ -14,12 +14,14 @@
 
     public class Window : SdlWindow, IRenderWindow
     {
+#nullable disable
         private ThreadDispatcher renderDispatcher;
         private bool firstFrame;
         private IAudioDevice audioDevice;
         private IGraphicsDevice graphicsDevice;
         private IGraphicsContext graphicsContext;
         private ISwapChain swapChain;
+#nullable restore
         private bool resize = false;
         private ImGuiManager? imGuiRenderer;
 
@@ -33,10 +35,7 @@
 
         public ISwapChain SwapChain => swapChain;
 
-        public string? StartupScene;
-        private Viewport renderViewport;
-
-        public Viewport RenderViewport => renderViewport;
+        public Viewport RenderViewport => default;
 
         public event Action<IGraphicsContext>? Draw;
 

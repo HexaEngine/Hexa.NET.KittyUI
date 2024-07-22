@@ -2,6 +2,7 @@
 {
     using Hexa.NET.ImGui;
     using System;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// A helper class for working with ImGui combo boxes to select enum values of a specified enum type.
@@ -48,7 +49,8 @@
         private static readonly Dictionary<Type, object[]> values = new();
         private static readonly Dictionary<Type, string[]> names = new();
 
-        private static void Get(Type type, out object[] values, out string[] names)
+        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "All members are included by [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)].")]
+        private static void Get([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type, out object[] values, out string[] names)
         {
             if (ComboEnumHelper.values.TryGetValue(type, out var objects))
             {
@@ -70,7 +72,7 @@
         /// <param name="type">The enum type to select values from.</param>
         /// <param name="value">The currently selected enum value (modified by user interaction).</param>
         /// <returns><c>true</c> if the user selects a new value, <c>false</c> otherwise.</returns>
-        public static bool Combo(string label, Type type, ref object value)
+        public static bool Combo(string label, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type, ref object value)
         {
             Get(type, out var values, out var names);
             int index = Array.IndexOf(values, value);
@@ -87,7 +89,7 @@
         /// </summary>
         /// <param name="type">The enum type to select values from.</param>
         /// <param name="value">The enum value to display.</param>
-        public static void Text(Type type, object value)
+        public static void Text([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type, object value)
         {
             Get(type, out var values, out var names);
             int index = Array.IndexOf(values, value);

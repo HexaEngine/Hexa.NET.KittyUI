@@ -9,19 +9,26 @@
 
     public class AppBuilder
     {
-        internal readonly List<Action<ImGuiFontBuilder>> fontBuilder = new();
+        internal readonly List<(Action<ImGuiFontBuilder>, string? alias)> fontBuilders = new();
 
-        internal void BuildFonts(ImGuiIOPtr io)
+        internal void BuildFonts(ImGuiIOPtr io, Dictionary<string, ImFontPtr> aliasToFont)
         {
-            if (fontBuilder.Count == 0)
+            if (fontBuilders.Count == 0)
             {
                 io.Fonts.AddFontDefault();
             }
 
-            for (int i = 0; i < fontBuilder.Count; i++)
+            for (int i = 0; i < fontBuilders.Count; i++)
             {
+                (Action<ImGuiFontBuilder> fontBuilder, string? alias) = fontBuilders[i];
                 ImGuiFontBuilder builder = new(io.Fonts);
-                fontBuilder[i](builder);
+                fontBuilder(builder);
+
+                if (alias != null)
+                {
+                    aliasToFont.Add(alias, builder.Font);
+                }
+
                 builder.Destroy();
             }
         }
@@ -87,9 +94,21 @@
             return this;
         }
 
+        public AppBuilder AddDefaultFont()
+        {
+            fontBuilders.Add((x => x.AddDefaultFont(), null));
+            return this;
+        }
+
         public AppBuilder AddFont(Action<ImGuiFontBuilder> action)
         {
-            fontBuilder.Add(action);
+            fontBuilders.Add((action, null));
+            return this;
+        }
+
+        public AppBuilder AddFont(string alias, Action<ImGuiFontBuilder> action)
+        {
+            fontBuilders.Add((action, alias));
             return this;
         }
     }
