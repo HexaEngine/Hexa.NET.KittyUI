@@ -1,6 +1,6 @@
 ﻿namespace Kitty.Audio
 {
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
     using System.Numerics;
 
     public interface IListener : IDisposable

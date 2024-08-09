@@ -34,6 +34,8 @@
         private readonly Guid DXGI_DEBUG_DXGI = new(0x25cddaa4, 0xb1c6, 0x47e1, 0xac, 0x3e, 0x98, 0x87, 0x5b, 0x5a, 0x2e, 0x2a);
         private readonly Guid DXGI_DEBUG_APP = new(0x6cd6e01, 0x4219, 0x4ebd, 0x87, 0x9, 0x27, 0xed, 0x23, 0x36, 0xc, 0x62);
         private readonly Guid DXGI_DEBUG_D3D11 = new(0x4b99317b, 0xac39, 0x4aa6, 0xbb, 0xb, 0xba, 0xa0, 0x47, 0x84, 0x79, 0x8f);
+        private static readonly ILogger D3D11Logger = LoggerFactory.GetLogger(nameof(D3D11));
+        private static readonly ILogger DXGILogger = LoggerFactory.GetLogger(nameof(DXGI));
 
         public DXGIAdapterD3D11(INativeWindowSource source, bool debug)
         {
@@ -126,13 +128,13 @@
                         string msg = Encoding.UTF8.GetString(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(message->PDescription));
 
                         if (message->Producer == DXGI_DEBUG_DX)
-                            Logger.Log($"DX {Convert(message->Severity)}: {msg} [ {Convert(message->Category)} ]");
+                            D3D11Logger.Log($"DX {Convert(message->Severity)}: {msg} [ {Convert(message->Category)} ]");
                         if (message->Producer == DXGI_DEBUG_DXGI)
-                            Logger.Log($"DXGI {Convert(message->Severity)}: {msg} [ {Convert(message->Category)} ]");
+                            DXGILogger.Log($"DXGI {Convert(message->Severity)}: {msg} [ {Convert(message->Category)} ]");
                         if (message->Producer == DXGI_DEBUG_APP)
-                            Logger.Log($"APP {Convert(message->Severity)}: {msg} [ {Convert(message->Category)} ]");
+                            D3D11Logger.Log($"APP {Convert(message->Severity)}: {msg} [ {Convert(message->Category)} ]");
                         if (message->Producer == DXGI_DEBUG_D3D11)
-                            Logger.Log($"D3D11 {Convert(message->Severity)}: {msg} [ {Convert(message->Category)} ]");
+                            D3D11Logger.Log($"D3D11 {Convert(message->Severity)}: {msg} [ {Convert(message->Category)} ]");
 
                         Free(message);
                     }
@@ -153,8 +155,8 @@
             IDXGIAdapter.GetDesc1(&desc);
             string name = new(desc.Description);
 
-            Logger.Info("Backend: Using Graphics API: D3D11");
-            Logger.Info($"Backend: Using Graphics Device: {name}");
+            LoggerFactory.General.Info("Backend: Using Graphics API: D3D11");
+            LoggerFactory.General.Info($"Backend: Using Graphics Device: {name}");
             return new D3D11GraphicsDevice(source, this, debug);
         }
 

@@ -18,7 +18,7 @@
         public static void Initialize()
         {
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;
-            Logger.Writers.Add(FileLogWriter);
+            LoggerFactory.AddGlobalWriter(FileLogWriter);
         }
 
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Accessing TargetSite is safe as reflection information is preserved.")]
@@ -26,7 +26,7 @@
         {
             if (e.IsTerminating)
             {
-                Logger.Close();
+                LoggerFactory.CloseAll();
                 var exception = (Exception)e.ExceptionObject;
 
                 StringBuilder sb = new();

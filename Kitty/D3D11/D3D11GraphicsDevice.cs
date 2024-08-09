@@ -16,7 +16,7 @@
     using ResourceMiscFlag = Graphics.ResourceMiscFlag;
     using SubresourceData = Graphics.SubresourceData;
     using Usage = Graphics.Usage;
-    using Viewport = Mathematics.Viewport;
+    using Viewport = Hexa.NET.Mathematics.Viewport;
     using Window = Silk.NET.SDL.Window;
 
     public unsafe partial class D3D11GraphicsDevice : IGraphicsDevice

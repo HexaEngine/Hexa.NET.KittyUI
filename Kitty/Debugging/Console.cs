@@ -48,7 +48,7 @@
         /// </summary>
         static ImGuiConsole()
         {
-            Logger.Writers.Add(logListener);
+            LoggerFactory.AddGlobalWriter(logListener);
 
             DefaultSettings();
 

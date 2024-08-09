@@ -5,12 +5,13 @@
     using Kitty.Debugging;
     using Kitty.Graphics;
     using Kitty.ImGuiBackend;
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
     using Kitty.Threading;
     using Kitty.UI;
     using Kitty.Windows.Events;
     using System;
     using System.Numerics;
+    using Kitty.UI.Dialogs;
 
     public class Window : SdlWindow, IRenderWindow
     {
@@ -91,6 +92,7 @@
             OnRenderBegin(context);
 
             WidgetManager.Draw(context);
+            DialogManager.Draw();
             ImGuiConsole.Draw();
             MessageBoxes.Draw();
 

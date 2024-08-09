@@ -1,6 +1,6 @@
 ﻿namespace Kitty.Graphics
 {
-    using Kitty.Unsafes;
+    using Hexa.NET.Utilities;
     using System.Runtime.InteropServices;
 
     public unsafe struct Shader : IFreeable

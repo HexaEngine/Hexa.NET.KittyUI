@@ -1,6 +1,7 @@
 ﻿namespace Kitty.Graphics
 {
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
+    using Kitty.IO;
     using System.Text;
 
     public struct ShaderMacro

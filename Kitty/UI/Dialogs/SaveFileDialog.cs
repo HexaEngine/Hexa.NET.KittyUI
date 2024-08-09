@@ -1,22 +1,10 @@
-﻿using Hexa.NET.ImGui;
-using System.Numerics;
-
-namespace Kitty.UI.Dialogs
+﻿namespace Kitty.UI.Dialogs
 {
-    public class SaveFileDialog
+    using Hexa.NET.ImGui;
+
+    public class SaveFileDialog : FileDialogBase
     {
-        private bool shown;
-        public string RootFolder;
-        public string CurrentFolder;
-        public string SelectedFile = string.Empty;
-        public List<string> AllowedExtensions = new();
-        public bool OnlyAllowFolders;
-        public bool OnlyAllowFilteredExtensions;
-        public SaveFileResult Result;
-
-        public readonly Stack<string> backHistory = new();
-
-        private readonly Stack<string> forwardHistory = new();
+        private string selectedFile = string.Empty;
 
         public SaveFileDialog()
         {
@@ -33,7 +21,7 @@ namespace Kitty.UI.Dialogs
             }
 
             RootFolder = startingPath;
-            CurrentFolder = startingPath;
+            SetInternal(startingPath, false);
             OnlyAllowFolders = false;
         }
 
@@ -51,7 +39,7 @@ namespace Kitty.UI.Dialogs
             }
 
             RootFolder = startingPath;
-            CurrentFolder = startingPath;
+            SetInternal(startingPath, false);
             OnlyAllowFolders = false;
         }
 
@@ -69,269 +57,116 @@ namespace Kitty.UI.Dialogs
             }
 
             RootFolder = startingPath;
-            CurrentFolder = startingPath;
+            SetInternal(startingPath, false);
             OnlyAllowFolders = false;
 
             if (searchFilter != null)
             {
-                if (AllowedExtensions != null)
-                    AllowedExtensions.Clear();
-                else
-                    AllowedExtensions = new List<string>();
-
-                AllowedExtensions.AddRange(searchFilter.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries));
+                AllowedExtensions.AddRange(searchFilter.Split('|', StringSplitOptions.RemoveEmptyEntries));
             }
         }
 
-        public bool Shown => shown;
+        public override string Name => "Save File";
 
-        public void Show()
+        public string SelectedFile
         {
-            shown = true;
-        }
-
-        public void Hide()
-        {
-            shown = false;
-        }
-
-        public bool Draw()
-        {
-            if (!shown) return false;
-            if (ImGui.Begin("File picker", ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoCollapse))
+            get => selectedFile;
+            set
             {
-                ImGui.SetWindowFocus();
-
-                if (ImGui.Button("Home"))
+                if (!File.Exists(value))
                 {
-                    CurrentFolder = RootFolder;
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("<"))
-                {
-                    TryGoBack();
-                }
-                ImGui.SameLine();
-                if (ImGui.Button(">"))
-                {
-                    TryGoForward();
-                }
-                ImGui.SameLine();
-                ImGui.InputText("Path", ref CurrentFolder, 1024);
-
-                float footerHeightToReserve = ImGui.GetStyle().ItemSpacing.Y + ImGui.GetFrameHeightWithSpacing();
-
-                float widthDrives = 100 + ImGui.GetStyle().ItemSpacing.X * 2;
-                float width = ImGui.GetContentRegionAvail().X - ImGui.GetStyle().ItemSpacing.X - widthDrives;
-                if (ImGui.BeginChild(1, new Vector2(widthDrives, -footerHeightToReserve), 0, ImGuiWindowFlags.HorizontalScrollbar))
-                {
-                    void Display(string? rel, string str)
-                    {
-                        if (File.Exists(str))
-                            return;
-
-                        if (ImGui.TreeNodeEx(rel != null ? Path.GetRelativePath(rel, str) : str, ImGuiTreeNodeFlags.OpenOnArrow))
-                        {
-                            if (Directory.Exists(str))
-                                foreach (var item in GetFileSystemEntries(str))
-                                {
-                                    Display(str, item);
-                                }
-
-                            ImGui.TreePop();
-                        }
-                        if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
-                        {
-                            SetFolder(str);
-                        }
-                    }
-                    if (ImGui.TreeNodeEx("Computer", ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.DefaultOpen))
-                    {
-                        string profilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                        foreach (var drive in GetSpecialDirs())
-                        {
-                            Display(profilePath, drive);
-                        }
-                        foreach (var drive in GetDrives())
-                        {
-                            Display(null, drive);
-                        }
-                        ImGui.TreePop();
-                    }
-                }
-                ImGui.EndChild();
-
-                ImGui.SameLine();
-                if (ImGui.BeginChild(2, new Vector2(width, -footerHeightToReserve), 0, 0))
-                {
-                    var di = new DirectoryInfo(CurrentFolder);
-                    if (di.Exists)
-                    {
-                        if (di.Parent != null)
-                        {
-                            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, 0.87f, 0.37f, 1.0f));
-                            if (ImGui.Selectable("../", false, ImGuiSelectableFlags.DontClosePopups))
-                                SetFolder(di.Parent.FullName);
-
-                            ImGui.PopStyleColor();
-                        }
-
-                        var fileSystemEntries = GetFileSystemEntries(di.FullName);
-                        foreach (var fse in fileSystemEntries)
-                        {
-                            if (!Directory.Exists(fse))
-                            {
-                                var name = Path.GetFileName(fse);
-                                bool isSelected = SelectedFile == fse;
-                                if (ImGui.Selectable("\xe8a5" + name, isSelected, ImGuiSelectableFlags.DontClosePopups))
-                                    SelectedFile = fse;
-
-                                if (ImGui.IsMouseDoubleClicked(0))
-                                {
-                                    Result = SaveFileResult.Ok;
-                                    ImGui.EndChild();
-                                    ImGui.End();
-                                    shown = false;
-                                    return true;
-                                }
-                            }
-                            else
-                            {
-                                var name = Path.GetFileName(fse);
-                                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, 0.87f, 0.37f, 1.0f));
-                                if (ImGui.Selectable("\xe8b7" + name, false, ImGuiSelectableFlags.DontClosePopups))
-                                    SetFolder(fse);
-                                ImGui.PopStyleColor();
-                            }
-                        }
-                    }
-                }
-                ImGui.EndChild();
-
-                if (ImGui.InputText("Selected", ref SelectedFile, 1024))
-                {
+                    return;
                 }
 
-                ImGui.SameLine();
-                if (ImGui.Button("Cancel"))
-                {
-                    Result = SaveFileResult.Cancel;
-                    ImGui.End();
-                    shown = false;
-                    return true;
-                }
-
-                if (OnlyAllowFolders)
-                {
-                    ImGui.SameLine();
-                    if (ImGui.Button("Save"))
-                    {
-                        Result = SaveFileResult.Ok;
-                        SelectedFile = CurrentFolder;
-                        ImGui.End();
-                        shown = false;
-                        return true;
-                    }
-                }
-                else if (SelectedFile != null)
-                {
-                    ImGui.SameLine();
-                    if (ImGui.Button("Open"))
-                    {
-                        Result = SaveFileResult.Ok;
-                        ImGui.End();
-                        shown = false;
-                        return true;
-                    }
-                }
-            }
-
-            ImGui.End();
-            return false;
-        }
-
-        public void SetFolder(string path)
-        {
-            backHistory.Push(CurrentFolder);
-            CurrentFolder = path;
-            forwardHistory.Clear();
-        }
-
-        public void GoHome()
-        {
-            CurrentFolder = RootFolder;
-        }
-
-        public void TryGoBack()
-        {
-            if (backHistory.TryPop(out var historyItem))
-            {
-                forwardHistory.Push(CurrentFolder);
-                CurrentFolder = historyItem;
+                selectedFile = value;
+                CurrentFolder = Path.GetDirectoryName(value) ?? string.Empty;
             }
         }
 
-        public void TryGoForward()
+        protected override ImGuiWindowFlags Flags { get; }
+
+        protected override void DrawContent()
         {
-            if (forwardHistory.TryPop(out var historyItem))
+            DrawExplorer();
+
+            ImGui.InputText("Selected", ref selectedFile, 1024);
+
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
             {
-                backHistory.Push(CurrentFolder);
-                CurrentFolder = historyItem;
+                Close(DialogResult.Cancel);
+            }
+
+            if (OnlyAllowFolders)
+            {
+                ImGui.SameLine();
+                if (ImGui.Button("Save"))
+                {
+                    SelectedFile = CurrentFolder;
+                    ValidateAndClose();
+                }
+            }
+            else if (selectedFile != null)
+            {
+                ImGui.SameLine();
+                if (ImGui.Button("Save"))
+                {
+                    ValidateAndClose();
+                }
+            }
+        }
+
+        protected override void OnCurrentFolderChanged(string old, string value)
+        {
+            selectedFile = string.Empty;
+        }
+
+        protected override bool IsSelected(FileSystemItem entry)
+        {
+            if (OnlyAllowFolders ^ entry.IsFile)
+            {
+                return false;
+            }
+
+            return entry.Path == selectedFile;
+        }
+
+        protected override void OnClicked(FileSystemItem entry, bool shift, bool ctrl)
+        {
+            selectedFile = entry.Path;
+        }
+
+        protected override void OnDoubleClicked(FileSystemItem entry, bool shift, bool ctrl)
+        {
+            if (OnlyAllowFolders ^ entry.IsFile)
+            {
+                ValidateAndClose();
             }
         }
 
-        private static string[] GetDrives()
+        protected override void OnEnterPressed()
         {
-            return Directory.GetLogicalDrives();
+            ValidateAndClose();
         }
 
-        private static string[] GetSpecialDirs()
+        private void ValidateAndClose()
         {
-            return new string[]
+            if (OnlyAllowFolders && Directory.Exists(selectedFile) || !OnlyAllowFolders && File.Exists(selectedFile))
             {
-                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
-                Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
-                Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
-            };
-        }
-
-        private List<string> GetFileSystemEntries(string fullName)
-        {
-            var files = new List<string>();
-            var dirs = new List<string>();
-            foreach (var fse in Directory.GetFileSystemEntries(fullName, string.Empty))
-            {
-                if (File.GetAttributes(fse).HasFlag(FileAttributes.System))
-                    continue;
-                if (File.GetAttributes(fse).HasFlag(FileAttributes.Hidden))
-                    continue;
-                if (File.GetAttributes(fse).HasFlag(FileAttributes.Device))
-                    continue;
-                if (Directory.Exists(fse))
-                {
-                    dirs.Add(fse);
-                }
-                else if (!OnlyAllowFolders)
-                {
-                    if (OnlyAllowFilteredExtensions)
-                    {
-                        var ext = Path.GetExtension(fse);
-                        if (AllowedExtensions.Contains(ext))
-                            files.Add(fse);
-                    }
-                    else
-                    {
-                        files.Add(fse);
-                    }
-                }
+                DialogMessageBox messageBox = new("File already exists", "Do you want to overwrite the file?", DialogMessageBoxType.YesNo);
+                messageBox.Show(OverwriteMessageBoxCallback, this, DialogFlags.CenterOnParent);
+                return;
             }
 
-            var ret = new List<string>(dirs);
-            ret.AddRange(files);
+            Close(DialogResult.Ok);
+        }
 
-            return ret;
+        private void OverwriteMessageBoxCallback(object? sender, DialogResult result)
+        {
+            if (result == DialogResult.Yes)
+            {
+                Close(DialogResult.Ok);
+            }
         }
     }
 }

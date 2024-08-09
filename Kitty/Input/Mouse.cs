@@ -1,12 +1,12 @@
 ﻿namespace Kitty.Input
 {
     using Kitty.Input.Events;
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
     using Silk.NET.SDL;
     using System.Collections.Generic;
     using System.Numerics;
     using System.Runtime.CompilerServices;
-    using Point2 = Mathematics.Point2;
+    using Point2 = Hexa.NET.Mathematics.Point2;
 
     /// <summary>
     /// Provides functionality for interacting with the mouse input.

@@ -6,7 +6,7 @@
 namespace Kitty.UI
 {
     using Hexa.NET.ImGui;
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
     using System.Numerics;
     using System.Runtime.CompilerServices;
 
@@ -92,7 +92,7 @@ namespace Kitty.UI
             if (!ImGui.ItemAdd(bb, 0, null, ImGuiItemFlags.None))
                 return changed;
 
-            int id = ImGui.ImGuiWindowGetID(Window, label, (byte*)null);
+            uint id = ImGui.ImGuiWindowGetID(Window, label, (byte*)null);
             hovered |= ImGui.ItemHoverable(new ImRect() { Min = bb.Min - new Vector2(grabRadius), Max = bb.Min + new Vector2(avail, dim) + new Vector2(grabRadius) }, id, ImGuiItemFlags.None);
 
             ImGui.RenderFrame(bb.Min, bb.Max, ImGui.GetColorU32(ImGuiCol.FrameBg, 1), true, Style.FrameRounding);

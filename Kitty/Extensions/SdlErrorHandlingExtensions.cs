@@ -1,6 +1,7 @@
 ﻿namespace Kitty.Extensions
 {
     using Kitty.Logging;
+    using Silk.NET.SDL;
     using System.Runtime.CompilerServices;
 
     /// <summary>
@@ -8,6 +9,8 @@
     /// </summary>
     public static unsafe class SdlErrorHandlingExtensions
     {
+        private static readonly ILogger Logger = LoggerFactory.GetLogger(nameof(Sdl));
+
         /// <summary>
         /// Checks the SDL function result and throws an exception if it's equal to 0.
         /// </summary>

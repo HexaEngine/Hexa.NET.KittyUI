@@ -1,5 +1,6 @@
 namespace Kitty.Graphics
 {
+    using Hexa.NET.Utilities;
     using Kitty.Graphics.Shaders;
     using System;
     using System.Buffers.Binary;

@@ -19,7 +19,7 @@ namespace Kitty.D3D11
 
         public static unsafe bool Compile(string source, ShaderMacro[] macros, string entryPoint, string sourceName, string profile, out Blob? shaderBlob, out string? error)
         {
-            Logger.Info($"Compiling: {sourceName}");
+            LoggerFactory.General.Info($"Compiling: {sourceName}");
             shaderBlob = null;
             error = null;
             ShaderFlags flags = (ShaderFlags)(1 << 21);
@@ -28,7 +28,7 @@ namespace Kitty.D3D11
 #else
             flags |= ShaderFlags.OptimizationLevel3;
 #endif
-            byte* pSource = source.ToUTF8();
+            byte* pSource = source.ToUTF8Ptr();
             int sourceLen = Encoding.UTF8.GetByteCount(source) + 1;
 
             var pMacros = macros.Length > 0 ? AllocT<D3DShaderMacro>(macros.Length + 1) : null;
@@ -36,8 +36,8 @@ namespace Kitty.D3D11
             for (int i = 0; i < macros.Length; i++)
             {
                 var macro = macros[i];
-                var pName = macro.Name.ToUTF8();
-                var pDef = macro.Definition.ToUTF8();
+                var pName = macro.Name.ToUTF8Ptr();
+                var pDef = macro.Definition.ToUTF8Ptr();
                 pMacros[i] = new(pName, pDef);
             }
             if (pMacros != null)
@@ -46,9 +46,9 @@ namespace Kitty.D3D11
                 pMacros[macros.Length].Definition = null;
             }
 
-            byte* pEntryPoint = entryPoint.ToUTF8();
-            byte* pSourceName = sourceName.ToUTF8();
-            byte* pProfile = profile.ToUTF8();
+            byte* pEntryPoint = entryPoint.ToUTF8Ptr();
+            byte* pSourceName = sourceName.ToUTF8Ptr();
+            byte* pProfile = profile.ToUTF8Ptr();
 
             ID3D10Blob* vBlob;
             ID3D10Blob* vError;
@@ -86,14 +86,14 @@ namespace Kitty.D3D11
 
             if (vBlob == null)
             {
-                Logger.Error($"Error: {sourceName}");
+                LoggerFactory.General.Error($"Error: {sourceName}");
                 return false;
             }
 
             shaderBlob = new(vBlob->Buffer.ToArray());
             vBlob->Release();
 
-            Logger.Info($"Done: {sourceName}");
+            LoggerFactory.General.Info($"Done: {sourceName}");
 
             return true;
         }
@@ -141,7 +141,7 @@ namespace Kitty.D3D11
 
             if (error != null)
             {
-                Logger.Log(error);
+                LoggerFactory.General.Log(error);
             }
         }
 
@@ -176,7 +176,7 @@ namespace Kitty.D3D11
             }
             if (error != null)
             {
-                Logger.Log(error);
+                LoggerFactory.General.Log(error);
             }
         }
 
@@ -214,7 +214,7 @@ namespace Kitty.D3D11
                     pShader->Length = shaderBlob.PointerSize;
                 }
 
-                Logger.LogIfNotNull(error);
+                LoggerFactory.General.LogIfNotNull(error);
 
                 if (pShader == null)
                 {
@@ -244,7 +244,7 @@ namespace Kitty.D3D11
                         pShader->Length = shaderBlob.PointerSize;
                     }
 
-                    Logger.LogIfNotNull(error);
+                    LoggerFactory.General.LogIfNotNull(error);
 
                     if (pShader == null)
                     {

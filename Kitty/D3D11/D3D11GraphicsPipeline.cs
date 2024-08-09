@@ -5,7 +5,7 @@
     using Silk.NET.Direct3D11;
     using System;
     using System.Numerics;
-    using Viewport = Mathematics.Viewport;
+    using Viewport = Hexa.NET.Mathematics.Viewport;
 
     public unsafe class D3D11GraphicsPipeline : IGraphicsPipeline
     {

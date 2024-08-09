@@ -1,6 +1,6 @@
 ﻿namespace Kitty.Graphics
 {
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
     using System;
     using System.Collections.Generic;
     using System.Numerics;

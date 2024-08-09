@@ -3,7 +3,7 @@
     using Kitty.Audio;
     using Kitty.Graphics;
     using Kitty.Input.Events;
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
     using Kitty.Threading;
     using Kitty.Windows.Events;
     using Silk.NET.Core.Contexts;

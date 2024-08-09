@@ -6,7 +6,7 @@
     using Kitty.Input;
     using Kitty.Input.Events;
     using Kitty.Logging;
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
     using Kitty.Windows.Events;
     using Silk.NET.Core.Contexts;
     using Silk.NET.Core.Native;
@@ -21,6 +21,7 @@
 
     public unsafe class SdlWindow : IWindow, INativeWindow
     {
+        private static readonly ILogger Logger = LoggerFactory.GetLogger(nameof(Sdl));
         protected readonly Sdl sdl = Sdl.GetApi();
         private readonly ShownEventArgs shownEventArgs = new();
         private readonly HiddenEventArgs hiddenEventArgs = new();

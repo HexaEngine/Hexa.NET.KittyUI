@@ -3,7 +3,7 @@
     using Kitty.Graphics;
     using Kitty.Graphics.Reflection;
     using Kitty.Graphics.Textures;
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
     using Silk.NET.Core.Native;
     using System.Numerics;
     using System.Runtime.CompilerServices;

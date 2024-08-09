@@ -1,2 +1,2 @@
-﻿global using static Kitty.Utils;
+﻿global using static Hexa.NET.Utilities.Utils;
 

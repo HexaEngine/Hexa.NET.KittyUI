@@ -1,6 +1,6 @@
 ﻿namespace Kitty.Graphics
 {
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
 
     public interface IRenderTargetView : IDeviceChild
     {

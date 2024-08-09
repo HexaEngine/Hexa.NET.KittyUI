@@ -1,6 +1,6 @@
 ﻿namespace Kitty.Graphics
 {
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
     using Kitty.Windows.Events;
 
     public interface ISwapChain : IDisposable

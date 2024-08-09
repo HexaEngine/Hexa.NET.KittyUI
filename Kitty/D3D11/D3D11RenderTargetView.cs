@@ -1,4 +1,4 @@
-﻿using Kitty.Mathematics;
+﻿using Hexa.NET.Mathematics;
 
 namespace Kitty.D3D11
 {

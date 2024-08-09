@@ -1,6 +1,9 @@
 ﻿namespace Kitty.UI
 {
+    using Hexa.NET.ImGui;
     using Kitty.Graphics;
+    using Kitty.UI.Dialogs;
+    using System;
 
     public static class WidgetManager
     {
@@ -10,6 +13,8 @@
         static WidgetManager()
         {
         }
+
+        public static bool BlockInput { get; set; }
 
         public static bool Register<T>(bool show = false) where T : IImGuiWindow, new()
         {
@@ -62,10 +67,12 @@
 
         public static void Draw(IGraphicsContext context)
         {
+            ImGui.BeginDisabled(BlockInput);
             for (int i = 0; i < widgets.Count; i++)
             {
                 widgets[i].DrawWindow(context);
             }
+            ImGui.EndDisabled();
         }
 
         public static unsafe void DrawMenu()

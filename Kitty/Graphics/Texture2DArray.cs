@@ -1,9 +1,8 @@
 ﻿namespace Kitty.Graphics
 {
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
     using System;
     using System.Runtime.CompilerServices;
-    using static Kitty.Utils;
 
     public unsafe class TextureArray : IDisposable
     {

@@ -2,11 +2,12 @@
 {
     using Hexa.NET.DirectXTex;
     using Kitty.Graphics;
-    using Kitty.Mathematics;
+    using Hexa.NET.Mathematics;
     using Silk.NET.Direct3D11;
     using System.Diagnostics;
     using System.IO;
     using System.Numerics;
+    using Kitty.IO;
 
     public unsafe class D3D11TextureLoader : ITextureLoader
     {

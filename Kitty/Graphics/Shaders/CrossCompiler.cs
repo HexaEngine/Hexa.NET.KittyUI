@@ -56,7 +56,7 @@
             var blob = FileUtils.ReadBlob(path);
             result->Content = blob.Data;
             result->ContentLength = (nuint)blob.Length;
-            result->SourceName = path.ToUTF8();
+            result->SourceName = path.ToUTF8Ptr();
             result->SourceNameLength = (nuint)path.Length;
             return result;
         }
@@ -79,7 +79,7 @@
         private static void ErrorCallback(void* userdata, byte* error)
         {
             var message = ToStringFromUTF8(error);
-            Logger.Error(message);
+            LoggerFactory.General.Error(message);
         }
 
         /// <summary>
@@ -142,9 +142,9 @@
 
             for (int i = 0; i < macros.Length; i++)
             {
-                var pName = macros[i].Name.ToUTF8();
+                var pName = macros[i].Name.ToUTF8Ptr();
                 var nameLen = (nuint)macros[i].Name.Length;
-                var pValue = macros[i].Definition.ToUTF8();
+                var pValue = macros[i].Definition.ToUTF8Ptr();
                 var valueLen = (nuint)macros[i].Definition.Length;
                 options.AddMacroDefinition(pName, nameLen, pValue, valueLen);
                 Free(pName);
@@ -152,7 +152,7 @@
             }
 
             var basePath = Path.GetDirectoryName(filename) ?? string.Empty;
-            byte* pBasePath = basePath.ToUTF8();
+            byte* pBasePath = basePath.ToUTF8Ptr();
             options.SetIncludeCallbacks(include, release, pBasePath);
 
             ShadercCompilationResult result = Shaderc.ShadercCompileIntoSpv(compiler, pSource, sourceSize, shaderKind, pFilename, pEntrypoint, options);

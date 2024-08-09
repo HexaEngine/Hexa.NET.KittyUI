@@ -1,41 +1,12 @@
-﻿using Hexa.NET.ImGui;
-using System.Numerics;
-
-namespace Kitty.UI.Dialogs
+﻿namespace Kitty.UI.Dialogs
 {
-    public class OpenFileDialog
+    using Hexa.NET.ImGui;
+
+    public class OpenFileDialog : FileDialogBase
     {
-        private bool shown;
-        private DirectoryInfo currentDir;
-        private readonly List<Item> files = new();
-        private readonly List<Item> dirs = new();
-        public string RootFolder;
-        public string currentFolder;
-        public string SelectedFile = string.Empty;
-        public List<string> AllowedExtensions = new();
-        public bool OnlyAllowFolders;
-        public bool OnlyAllowFilteredExtensions;
-        public OpenFileResult Result;
-
-        private readonly Stack<string> backHistory = new();
-        private readonly Stack<string> forwardHistory = new();
-
-        private struct Item
-        {
-            public string Path;
-            public string Name;
-
-            public Item(string name, string path)
-            {
-                Name = name;
-                Path = path;
-            }
-        }
-
-#pragma warning disable CS8618 // Non-nullable field 'currentFolder' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+        private readonly MultiSelection selection = [];
 
         public OpenFileDialog()
-#pragma warning restore CS8618 // Non-nullable field 'currentFolder' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
         {
             string startingPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             if (File.Exists(startingPath))
@@ -46,19 +17,17 @@ namespace Kitty.UI.Dialogs
             {
                 startingPath = Environment.CurrentDirectory;
                 if (string.IsNullOrEmpty(startingPath))
+                {
                     startingPath = AppContext.BaseDirectory;
+                }
             }
 
             RootFolder = startingPath;
-            CurrentFolder = startingPath;
-            OnlyAllowFolders = false;
-            currentDir = new DirectoryInfo(CurrentFolder);
+            SetInternal(startingPath, refresh: false);
+            ShowFiles = ShowFolders = true;
         }
-
-#pragma warning disable CS8618 // Non-nullable field 'currentFolder' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
 
         public OpenFileDialog(string startingPath)
-#pragma warning restore CS8618 // Non-nullable field 'currentFolder' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
         {
             if (File.Exists(startingPath))
             {
@@ -68,19 +37,17 @@ namespace Kitty.UI.Dialogs
             {
                 startingPath = Environment.CurrentDirectory;
                 if (string.IsNullOrEmpty(startingPath))
+                {
                     startingPath = AppContext.BaseDirectory;
+                }
             }
 
             RootFolder = startingPath;
-            CurrentFolder = startingPath;
-            OnlyAllowFolders = false;
-            currentDir = new DirectoryInfo(CurrentFolder);
+            SetInternal(startingPath, refresh: false);
+            ShowFiles = ShowFolders = true;
         }
 
-#pragma warning disable CS8618 // Non-nullable field 'currentFolder' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-
         public OpenFileDialog(string startingPath, string? searchFilter = null)
-#pragma warning restore CS8618 // Non-nullable field 'currentFolder' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
         {
             if (File.Exists(startingPath))
             {
@@ -90,318 +57,159 @@ namespace Kitty.UI.Dialogs
             {
                 startingPath = Environment.CurrentDirectory;
                 if (string.IsNullOrEmpty(startingPath))
+                {
                     startingPath = AppContext.BaseDirectory;
+                }
             }
 
             RootFolder = startingPath;
-            CurrentFolder = startingPath;
-            OnlyAllowFolders = false;
+            SetInternal(startingPath, refresh: false);
+            ShowFiles = ShowFolders = true;
 
             if (searchFilter != null)
             {
-                if (AllowedExtensions != null)
-                    AllowedExtensions.Clear();
-                else
-                    AllowedExtensions = new List<string>();
-
-                AllowedExtensions.AddRange(searchFilter.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries));
-            }
-
-            currentDir = new DirectoryInfo(CurrentFolder);
-        }
-
-        public bool Shown => shown;
-
-        public string CurrentFolder
-        {
-            get => currentFolder;
-            set
-            {
-                currentFolder = value;
-                Refresh();
+                AllowedExtensions.AddRange(searchFilter.Split('|', StringSplitOptions.RemoveEmptyEntries));
             }
         }
 
-        public void Show()
+        protected override ImGuiWindowFlags Flags { get; }
+
+        public override string Name => "File Picker";
+
+        public string? SelectedFile
         {
-            shown = true;
+            get => selection.Count > 0 ? selection[0] : null;
         }
 
-        public void Hide()
+        public bool AllowMultipleSelection
         {
-            shown = false;
+            get => selection.AllowMultipleSelection;
+            set => selection.AllowMultipleSelection = value;
         }
 
-        public bool Draw()
+        public IReadOnlyList<string> Selection => selection;
+
+        protected override void DrawContent()
         {
-            if (!shown) return false;
-            if (ImGui.Begin("File picker", ImGuiWindowFlags.NoDocking))
+            DrawExplorer();
+
+            var selectionString = selection.SelectionString;
+            if (ImGui.InputText("Selected", ref selectionString, 1024, ImGuiInputTextFlags.EnterReturnsTrue))
             {
-                ImGui.SetWindowFocus();
-                if (ImGui.Button("\xe80f"))
+                selection.SetSelectionString(selectionString, GetValidationOptions());
+                if (ImGui.IsKeyPressed(ImGuiKey.Enter))
                 {
-                    CurrentFolder = RootFolder;
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("\xe72b"))
-                {
-                    TryGoBack();
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("\xe72a"))
-                {
-                    TryGoForward();
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("\xe72c"))
-                {
-                    Refresh();
-                }
-                ImGui.SameLine();
-                ImGui.InputText("Path", ref currentFolder, 1024);
-
-                float footerHeightToReserve = ImGui.GetStyle().ItemSpacing.Y + ImGui.GetFrameHeightWithSpacing();
-
-                float widthDrives = 100 + ImGui.GetStyle().ItemSpacing.X * 2;
-                float width = ImGui.GetContentRegionAvail().X - ImGui.GetStyle().ItemSpacing.X - widthDrives;
-                if (ImGui.BeginChild(1, new Vector2(widthDrives, -footerHeightToReserve), ImGuiWindowFlags.HorizontalScrollbar))
-                {
-                    void Display(string? rel, string str)
-                    {
-                        if (File.Exists(str))
-                            return;
-
-                        if (ImGui.TreeNodeEx(rel != null ? Path.GetRelativePath(rel, str) : str, ImGuiTreeNodeFlags.OpenOnArrow))
-                        {
-                            if (Directory.Exists(str))
-                                foreach (var item in GetFileSystemEntries(str))
-                                {
-                                    Display(str, item);
-                                }
-
-                            ImGui.TreePop();
-                        }
-                        if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
-                        {
-                            SetFolder(str);
-                        }
-                    }
-                    if (ImGui.TreeNodeEx("Computer", ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.DefaultOpen))
-                    {
-                        string profilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                        foreach (var drive in GetSpecialDirs())
-                        {
-                            Display(profilePath, drive);
-                        }
-                        foreach (var drive in GetDrives())
-                        {
-                            Display(null, drive);
-                        }
-                        ImGui.TreePop();
-                    }
-                }
-                ImGui.EndChild();
-
-                ImGui.SameLine();
-                if (ImGui.BeginChild(0, new Vector2(width, -footerHeightToReserve), 0, 0))
-                {
-                    if (currentDir.Exists)
-                    {
-                        if (currentDir.Parent != null)
-                        {
-                            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, 0.87f, 0.37f, 1.0f));
-                            if (ImGui.Selectable("../", false, ImGuiSelectableFlags.DontClosePopups))
-                                SetFolder(currentDir.Parent.FullName);
-
-                            ImGui.PopStyleColor();
-                        }
-
-                        for (int i = 0; i < dirs.Count; i++)
-                        {
-                            var dir = dirs[i];
-                            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, 0.87f, 0.37f, 1.0f));
-                            if (ImGui.Selectable(dir.Name, false, ImGuiSelectableFlags.DontClosePopups))
-                                SetFolder(dir.Path);
-                            ImGui.PopStyleColor();
-                        }
-
-                        for (int i = 0; i < files.Count; i++)
-                        {
-                            var file = files[i];
-
-                            bool isSelected = SelectedFile == file.Path;
-                            if (ImGui.Selectable(file.Name, isSelected, ImGuiSelectableFlags.DontClosePopups))
-                                SelectedFile = file.Path;
-
-                            if (ImGui.IsMouseDoubleClicked(0))
-                            {
-                                Result = OpenFileResult.Ok;
-                                ImGui.EndChild();
-                                ImGui.End();
-                                shown = false;
-                                return true;
-                            }
-                        }
-                    }
-                }
-                ImGui.EndChild();
-
-                ImGui.InputText("Selected", ref SelectedFile, 1024);
-
-                ImGui.SameLine();
-                if (ImGui.Button("Cancel"))
-                {
-                    Result = OpenFileResult.Cancel;
-                    ImGui.End();
-                    shown = false;
-                    return true;
-                }
-
-                if (OnlyAllowFolders)
-                {
-                    ImGui.SameLine();
-                    if (ImGui.Button("Open"))
-                    {
-                        Result = OpenFileResult.Ok;
-                        SelectedFile = CurrentFolder;
-                        ImGui.End();
-                        shown = false;
-                        return true;
-                    }
-                }
-                else if (SelectedFile != null)
-                {
-                    ImGui.SameLine();
-                    if (ImGui.Button("Open"))
-                    {
-                        Result = OpenFileResult.Ok;
-                        ImGui.End();
-                        shown = false;
-                        return true;
-                    }
+                    selection.Validate(GetValidationOptions());
                 }
             }
 
-            ImGui.End();
-            return false;
-        }
-
-        public void SetFolder(string path)
-        {
-            backHistory.Push(CurrentFolder);
-            CurrentFolder = path;
-            forwardHistory.Clear();
-        }
-
-        public void GoHome()
-        {
-            CurrentFolder = RootFolder;
-        }
-
-        public void TryGoBack()
-        {
-            if (backHistory.TryPop(out var historyItem))
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"u8))
             {
-                forwardHistory.Push(CurrentFolder);
-                CurrentFolder = historyItem;
+                Close(DialogResult.Cancel);
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Open"u8))
+            {
+                selection.Validate(GetValidationOptions());
+                Close(selection.Count > 0 ? DialogResult.Ok : DialogResult.Failed);
             }
         }
 
-        public void TryGoForward()
+        private MultiSelection.ValidationOptions GetValidationOptions()
         {
-            if (forwardHistory.TryPop(out var historyItem))
+            MultiSelection.ValidationOptions options = MultiSelection.ValidationOptions.MustExist;
+            if (OnlyAllowFolders)
             {
-                backHistory.Push(CurrentFolder);
-                CurrentFolder = historyItem;
+                options |= MultiSelection.ValidationOptions.AllowFolders;
             }
-        }
-
-        private static string[] GetDrives()
-        {
-            return Directory.GetLogicalDrives();
-        }
-
-        private static string[] GetSpecialDirs()
-        {
-            return new string[]
+            else
             {
-                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
-                Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
-                Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
-            };
-        }
-
-        public void Refresh()
-        {
-            currentDir = new DirectoryInfo(CurrentFolder);
-            files.Clear();
-            dirs.Clear();
-
-            foreach (var fse in Directory.GetFileSystemEntries(currentFolder, string.Empty))
-            {
-                if (File.GetAttributes(fse).HasFlag(FileAttributes.System))
-                    continue;
-                if (File.GetAttributes(fse).HasFlag(FileAttributes.Hidden))
-                    continue;
-                if (File.GetAttributes(fse).HasFlag(FileAttributes.Device))
-                    continue;
-                if (Directory.Exists(fse))
-                {
-                    dirs.Add(new("\xe8b7" + Path.GetFileName(fse), fse));
-                }
-                else if (!OnlyAllowFolders)
-                {
-                    if (OnlyAllowFilteredExtensions)
-                    {
-                        var ext = Path.GetExtension(fse);
-                        if (AllowedExtensions.Contains(ext))
-                            files.Add(new("\xe8a5" + Path.GetFileName(fse), fse));
-                    }
-                    else
-                    {
-                        files.Add(new("\xe8a5" + Path.GetFileName(fse), fse));
-                    }
-                }
+                options |= MultiSelection.ValidationOptions.AllowFiles;
             }
+
+            return options;
         }
 
-        private List<string> GetFileSystemEntries(string fullName)
+        public override void Reset()
         {
-            var files = new List<string>();
-            var dirs = new List<string>();
-            foreach (var fse in Directory.GetFileSystemEntries(fullName, string.Empty))
+            selection.Clear();
+            base.Reset();
+        }
+
+        protected override void OnCurrentFolderChanged(string old, string value)
+        {
+            selection.RootPath = value;
+        }
+
+        protected override bool IsSelected(FileSystemItem entry)
+        {
+            if (entry.IsFile == OnlyAllowFolders)
             {
-                if (File.GetAttributes(fse).HasFlag(FileAttributes.System))
-                    continue;
-                if (File.GetAttributes(fse).HasFlag(FileAttributes.Hidden))
-                    continue;
-                if (File.GetAttributes(fse).HasFlag(FileAttributes.Device))
-                    continue;
-                if (Directory.Exists(fse))
+                return false;
+            }
+
+            return selection.Contains(entry.Path);
+        }
+
+        protected override void OnClicked(FileSystemItem entry, bool shift, bool ctrl)
+        {
+            if (entry.IsFile == OnlyAllowFolders)
+            {
+                return;
+            }
+
+            if (shift)
+            {
+                string? last = selection.Count > 0 ? selection[^1] : null;
+                if (last == null)
                 {
-                    dirs.Add(fse);
+                    return;
                 }
-                else if (!OnlyAllowFolders)
+
+                // Avoid querying the file system by setting the field directly and not calling the constructor.
+                FileSystemItem lastEntry = new() { Path = last };
+
+                if (FindRange(entry, lastEntry, out int startIndex, out int endIndex))
                 {
-                    if (OnlyAllowFilteredExtensions)
+                    for (int i = startIndex; i <= endIndex; i++)
                     {
-                        var ext = Path.GetExtension(fse);
-                        if (AllowedExtensions.Contains(ext))
-                            files.Add(fse);
-                    }
-                    else
-                    {
-                        files.Add(fse);
+                        selection.Add(Entries[i].Path);
                     }
                 }
             }
+            else if (ctrl)
+            {
+                selection.Add(entry.Path);
+            }
+            else
+            {
+                selection.Clear();
+                selection.Add(entry.Path);
+            }
+        }
 
-            var ret = new List<string>(dirs);
-            ret.AddRange(files);
+        protected override void OnDoubleClicked(FileSystemItem entry, bool shift, bool ctrl)
+        {
+            selection.Validate(GetValidationOptions());
+            if (selection.Count == 0)
+            {
+                return;
+            }
 
-            return ret;
+            Close(DialogResult.Ok);
+        }
+
+        protected override void OnEnterPressed()
+        {
+            selection.Validate(GetValidationOptions());
+            if (selection.Count == 0)
+            {
+                return;
+            }
+
+            Close(DialogResult.Ok);
         }
     }
 }

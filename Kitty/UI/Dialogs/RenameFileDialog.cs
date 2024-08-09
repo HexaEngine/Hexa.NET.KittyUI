@@ -7,7 +7,7 @@
         private bool shown;
         private string file = string.Empty;
         private string filename = string.Empty;
-        private RenameFileResult renameFileResult;
+        private DialogResult renameFileResult;
         private bool overwrite;
 
         public RenameFileDialog()
@@ -36,6 +36,8 @@
         {
             get => file; set
             {
+                if (!System.IO.File.Exists(value))
+                    return;
                 file = value;
                 filename = Path.GetFileName(file);
             }
@@ -43,7 +45,7 @@
 
         public bool Overwrite { get => overwrite; set => overwrite = value; }
 
-        public RenameFileResult Result => renameFileResult;
+        public DialogResult Result => renameFileResult;
 
         public void Show()
         {
@@ -67,7 +69,7 @@
 
                 if (ImGui.Button("Cancel"))
                 {
-                    renameFileResult = RenameFileResult.Cancel;
+                    renameFileResult = DialogResult.Cancel;
                 }
                 ImGui.SameLine();
                 if (ImGui.Button("Ok"))
@@ -75,7 +77,7 @@
                     string dir = new(Path.GetDirectoryName(file.AsSpan()));
                     string newPath = Path.Combine(dir, filename);
                     System.IO.File.Move(file, newPath, overwrite);
-                    renameFileResult = RenameFileResult.Ok;
+                    renameFileResult = DialogResult.Ok;
                     result = true;
                 }
                 ImGui.End();
