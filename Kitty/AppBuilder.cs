@@ -115,10 +115,10 @@
                     (char)0xe003, (char)0xF8FF,
                     (char)0 // null terminator
             ];
-            builder.AddFontFromFileTTF("assets/fonts/ARIAL.TTF", 15);
+            builder.AddFontFromFileTTF("./assets/fonts/arial.ttf", 15);
             builder.SetOption(conf => conf.GlyphMinAdvanceX = 16);
             builder.SetOption(conf => conf.GlyphOffset = new(0, 2));
-            builder.AddFontFromFileTTF("assets/fonts/MaterialSymbolsRounded.ttf", 18, glyphMaterialRanges);
+            builder.AddFontFromFileTTF("./assets/fonts/MaterialSymbolsRounded.ttf", 18, glyphMaterialRanges);
         }
 
         public AppBuilder AddFont(ImGuiFontBuilderCallback action)

@@ -89,7 +89,13 @@
 
         public ImGuiFontBuilder AddFontFromFileTTF(string path, float size)
         {
-            font = fontAtlas.AddFontFromFileTTF(Path.GetFullPath(path), size, config);
+            var fullpath = Path.GetFullPath(path);
+            bool exists = File.Exists(fullpath);
+            if (!exists)
+            {
+                throw new FileNotFoundException($"Font file not found: {fullpath}");
+            }
+            font = fontAtlas.AddFontFromFileTTF(fullpath, size, config);
             config.MergeMode = true;
             return this;
         }
