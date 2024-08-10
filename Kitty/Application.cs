@@ -53,7 +53,7 @@
             Application.mainWindow = mainWindow;
             Application.builder = builder;
             mainWindow.Closed += MainWindowClosed;
-
+            builder.Dispose();
             mainWindow.Show();
             PlatformRun();
         }

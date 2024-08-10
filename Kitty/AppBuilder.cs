@@ -11,7 +11,7 @@
     public unsafe class AppBuilder
     {
         internal readonly List<(ImGuiFontBuilderCallback, string? alias)> fontBuilders = new();
-
+        internal readonly List<ImGuiFontBuilder> builders = new();
         internal void BuildFonts(ImGuiIOPtr io, Dictionary<string, ImFontPtr> aliasToFont)
         {
             if (fontBuilders.Count == 0)
@@ -19,7 +19,7 @@
                 AddDefaultFont();
             }
 
-            List<ImGuiFontBuilder> builders = new();
+            
             for (int i = 0; i < fontBuilders.Count; i++)
             {
                 (ImGuiFontBuilderCallback fontBuilder, string? alias) = fontBuilders[i];
@@ -34,11 +34,15 @@
             }
 
             io.Fonts.Build();
+        }
 
+        internal void Dispose()
+        {
             for (int i = 0; i < builders.Count; i++)
             {
                 builders[i].Destroy();
             }
+            builders.Clear();
         }
 
         public AppBuilder AddWindow<T>() where T : IImGuiWindow, new()
@@ -113,7 +117,7 @@
             Span<char> glyphMaterialRanges =
             [
                     (char)0xe003, (char)0xF8FF,
-                    (char)0 // null terminator
+                    (char)0, (char)0 // null terminator
             ];
             builder.AddFontFromFileTTF("./assets/fonts/arial.ttf", 15);
             builder.SetOption(conf => conf.GlyphMinAdvanceX = 16);
