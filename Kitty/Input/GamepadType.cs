@@ -1,4 +1,4 @@
-﻿namespace Kitty.Input
+﻿namespace Hexa.NET.Kitty.Input
 {
     /// <summary>
     /// Represents the type of a gamepad controller.

@@ -1,4 +1,4 @@
-﻿namespace Kitty.UI
+﻿namespace Hexa.NET.Kitty.UI
 {
     /// <summary>
     /// Represents the different results or choices in a message box.

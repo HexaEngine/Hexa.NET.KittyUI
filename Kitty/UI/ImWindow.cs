@@ -1,8 +1,7 @@
-﻿namespace Kitty.UI
+﻿namespace Hexa.NET.Kitty.UI
 {
     using Hexa.NET.ImGui;
-    using Kitty.Graphics;
-    using Kitty.ImGuiBackend;
+    using Hexa.NET.Kitty.ImGuiBackend;
 
     public abstract class ImWindow : IImGuiWindow
     {
@@ -15,11 +14,11 @@
 
         protected bool IsEmbedded;
 
-        public virtual void Init(IGraphicsDevice device)
+        public virtual void Init()
         {
         }
 
-        public virtual unsafe void DrawWindow(IGraphicsContext context)
+        public virtual unsafe void DrawWindow()
         {
             if (!IsShown) return;
 
@@ -39,13 +38,13 @@
 
             windowEnded = false;
 
-            DrawContent(context);
+            DrawContent();
 
             if (!windowEnded)
                 ImGui.End();
         }
 
-        public abstract void DrawContent(IGraphicsContext context);
+        public abstract void DrawContent();
 
         protected void EndWindow()
         {

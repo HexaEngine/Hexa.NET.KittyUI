@@ -1,4 +1,4 @@
-﻿namespace Kitty.Debugging
+﻿namespace Hexa.NET.Kitty.Debugging
 {
     /// <summary>
     /// Defines the color codes used for console text and background colors.

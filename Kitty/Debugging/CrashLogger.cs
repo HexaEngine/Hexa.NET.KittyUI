@@ -1,6 +1,6 @@
-﻿namespace Kitty.Debugging
+﻿namespace Hexa.NET.Kitty.Debugging
 {
-    using Kitty.Logging;
+    using Hexa.NET.Kitty.Logging;
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;

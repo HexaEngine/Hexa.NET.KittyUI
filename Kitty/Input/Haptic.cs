@@ -1,4 +1,4 @@
-﻿namespace Kitty.Input
+﻿namespace Hexa.NET.Kitty.Input
 {
     using Silk.NET.SDL;
     using static Extensions.SdlErrorHandlingExtensions;

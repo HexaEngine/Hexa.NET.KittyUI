@@ -1,4 +1,4 @@
-﻿namespace Kitty.Debugging
+﻿namespace Hexa.NET.Kitty.Debugging
 {
 #if TRACELEAK
 

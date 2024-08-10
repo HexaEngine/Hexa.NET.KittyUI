@@ -1,9 +1,8 @@
-﻿namespace Kitty
+﻿namespace Hexa.NET.Kitty
 {
     using Hexa.NET.ImGui;
-    using Kitty.Graphics;
-    using Kitty.ImGuiBackend;
-    using Kitty.UI;
+    using Hexa.NET.Kitty.ImGuiBackend;
+    using Hexa.NET.Kitty.UI;
     using System;
     using System.Collections.Generic;
 
@@ -57,9 +56,9 @@
         public class WrappedWindow : ImWindow
         {
             private readonly string name;
-            private readonly Action<IGraphicsContext> draw;
+            private readonly Action draw;
 
-            public WrappedWindow(string name, Action<IGraphicsContext> draw)
+            public WrappedWindow(string name, Action draw)
             {
                 this.name = name;
                 this.draw = draw;
@@ -69,7 +68,7 @@
 
             protected override string Name => name;
 
-            public override unsafe void DrawWindow(IGraphicsContext context)
+            public override unsafe void DrawWindow()
             {
                 ImGuiWindowClass windowClass;
                 windowClass.DockNodeFlagsOverrideSet = (ImGuiDockNodeFlags)ImGuiDockNodeFlagsPrivate.NoTabBar;
@@ -85,19 +84,19 @@
 
                 windowEnded = false;
 
-                DrawContent(context);
+                DrawContent();
 
                 if (!windowEnded)
                     ImGui.End();
             }
 
-            public override void DrawContent(IGraphicsContext context)
+            public override void DrawContent()
             {
-                draw(context);
+                draw();
             }
         }
 
-        public AppBuilder AddWindow(string name, Action<IGraphicsContext> window)
+        public AppBuilder AddWindow(string name, Action window)
         {
             WidgetManager.Register(new WrappedWindow(name, window));
             return this;

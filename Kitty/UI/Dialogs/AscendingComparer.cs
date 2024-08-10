@@ -1,4 +1,4 @@
-﻿namespace Kitty.UI.Dialogs
+﻿namespace Hexa.NET.Kitty.UI.Dialogs
 {
     public readonly struct AscendingComparer<T, TComparer> : IComparer<T> where TComparer : struct, IComparer<T> where T : struct
     {

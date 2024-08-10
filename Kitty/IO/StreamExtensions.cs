@@ -1,12 +1,12 @@
-﻿namespace Kitty.IO
+﻿namespace Hexa.NET.Kitty.IO
 {
+    using Hexa.NET.Mathematics;
     using System;
     using System.Buffers;
     using System.Buffers.Binary;
     using System.IO;
     using System.Numerics;
     using System.Text;
-    using Hexa.NET.Mathematics;
 
     internal static class StreamExtensions
     {

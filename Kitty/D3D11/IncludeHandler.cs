@@ -1,6 +1,6 @@
 ﻿#define SHADER_FORCE_OPTIMIZE
 
-namespace Kitty.D3D11
+namespace Hexa.NET.Kitty.D3D11
 {
     using Silk.NET.Core.Native;
     using System.Runtime.InteropServices;

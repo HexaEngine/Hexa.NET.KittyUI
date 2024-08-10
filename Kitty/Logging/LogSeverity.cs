@@ -1,4 +1,4 @@
-﻿namespace Kitty.Logging
+﻿namespace Hexa.NET.Kitty.Logging
 {
     /// <summary>
     /// Represents the severity levels for log messages.

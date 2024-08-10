@@ -1,4 +1,4 @@
-﻿namespace Kitty.Input
+﻿namespace Hexa.NET.Kitty.Input
 {
     /// <summary>
     /// Represents flags that specify the types of haptic effects supported by a haptic feedback device.

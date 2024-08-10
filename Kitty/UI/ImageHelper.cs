@@ -1,4 +1,4 @@
-﻿namespace Kitty.UI
+﻿namespace Hexa.NET.Kitty.UI
 {
     using Hexa.NET.ImGui;
     using System.Numerics;

@@ -1,4 +1,4 @@
-﻿namespace Kitty.Input
+﻿namespace Hexa.NET.Kitty.Input
 {
     /// <summary>
     /// Defines the types of sensors available on a gamepad.

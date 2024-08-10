@@ -1,20 +1,18 @@
-﻿namespace Kitty.UI
+﻿namespace Hexa.NET.Kitty.UI
 {
-    using Kitty.Graphics;
-
     public interface IImGuiWindow
     {
         void Close();
 
         void Dispose();
 
-        void DrawContent(IGraphicsContext context);
+        void DrawContent();
 
         void DrawMenu();
 
-        void DrawWindow(IGraphicsContext context);
+        void DrawWindow();
 
-        void Init(IGraphicsDevice device);
+        void Init();
 
         void Show();
     }

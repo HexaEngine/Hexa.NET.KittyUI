@@ -1,11 +1,11 @@
-﻿namespace Kitty.OpenAL
+﻿namespace Hexa.NET.Kitty.OpenAL
 {
-    using Kitty.Audio;
+    using Hexa.NET.Kitty.Audio;
     using Hexa.NET.Mathematics;
     using Silk.NET.OpenAL;
     using System;
     using System.Numerics;
-    using static Kitty.OpenAL.Helper;
+    using static Hexa.NET.Kitty.OpenAL.Helper;
 
     public class OpenALListener : IListener
     {

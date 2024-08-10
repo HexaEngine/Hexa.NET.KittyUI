@@ -1,4 +1,4 @@
-﻿namespace Kitty.Input
+﻿namespace Hexa.NET.Kitty.Input
 {
     /// <summary>
     /// A utility class that provides conversion methods for translating between different input and SDL types.

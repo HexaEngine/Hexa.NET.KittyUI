@@ -1,5 +1,7 @@
-﻿namespace Kitty.Windows.Events
+﻿namespace Hexa.NET.Kitty.Windows.Events
 {
+    using Hexa.NET.Kitty.Windows;
+
     /// <summary>
     /// Event arguments for the hidden event of a window.
     /// </summary>

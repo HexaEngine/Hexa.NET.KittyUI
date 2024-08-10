@@ -1,5 +1,7 @@
-﻿namespace Kitty.Windows.Events
+﻿namespace Hexa.NET.Kitty.Windows.Events
 {
+    using Hexa.NET.Kitty.Windows;
+
     /// <summary>
     /// Provides event arguments for the maximized event of a window.
     /// </summary>

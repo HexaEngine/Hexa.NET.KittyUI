@@ -1,6 +1,6 @@
-﻿namespace Kitty.OpenAL
+﻿namespace Hexa.NET.Kitty.OpenAL
 {
-    using Kitty.Audio;
+    using Hexa.NET.Kitty.Audio;
     using Silk.NET.OpenAL;
     using System.Numerics;
     using static Kitty.OpenAL.Helper;

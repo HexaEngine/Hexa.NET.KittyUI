@@ -1,4 +1,4 @@
-﻿namespace Kitty.OpenAL
+﻿namespace Hexa.NET.Kitty.OpenAL
 {
     internal static class StreamExtensions
     {

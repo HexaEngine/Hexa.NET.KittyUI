@@ -1,4 +1,4 @@
-﻿namespace Kitty.Audio
+﻿namespace Hexa.NET.Kitty.Audio
 {
     public static class AudioAdapter
     {

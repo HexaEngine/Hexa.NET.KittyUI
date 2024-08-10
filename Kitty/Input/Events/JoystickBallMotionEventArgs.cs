@@ -1,4 +1,4 @@
-﻿namespace Kitty.Input.Events
+﻿namespace Hexa.NET.Kitty.Input.Events
 {
     /// <summary>
     /// Provides data for a joystick ball motion event.

@@ -1,4 +1,4 @@
-﻿namespace Kitty.Input
+﻿namespace Hexa.NET.Kitty.Input
 {
     /// <summary>
     /// Represents the available axes on a gamepad controller.

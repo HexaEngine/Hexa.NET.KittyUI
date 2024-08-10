@@ -1,7 +1,6 @@
-﻿namespace Kitty.D3D11
+﻿namespace Hexa.NET.Kitty.D3D11
 {
-    using Kitty.Graphics;
-    using Kitty.Windows.Events;
+    using Hexa.NET.Kitty.Windows.Events;
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
     using Silk.NET.DXGI;
@@ -9,54 +8,46 @@
     using System.Diagnostics;
     using System.Runtime.CompilerServices;
 
-    public unsafe class DXGISwapChain : DeviceChildBase, ISwapChain
+    public unsafe class DXGISwapChain : DeviceChildBase
     {
         private ComPtr<IDXGISwapChain2> swapChain;
         private readonly SwapChainFlag flags;
-        private ID3D11Texture2D* backbuffer;
-        private ITexture2D depthStencil;
+        private ComPtr<ID3D11Texture2D> backbuffer;
         private long fpsStartTime;
         private long fpsFrameCount;
         private bool vSync;
         private bool limitFPS;
         private int targetFPS = 120;
         private bool active;
+        private ComPtr<ID3D11RenderTargetView> backbufferRTV;
 
-        internal DXGISwapChain(D3D11GraphicsDevice device, ComPtr<IDXGISwapChain2> swapChain, SwapChainFlag flags)
+        internal DXGISwapChain(ComPtr<IDXGISwapChain2> swapChain, SwapChainFlag flags)
         {
-            Device = device;
             this.swapChain = swapChain;
             this.flags = flags;
 
-            ID3D11Texture2D* backbuffer;
-            swapChain.GetBuffer(0, Utils.Guid(ID3D11Texture2D.Guid), (void**)&backbuffer);
+            swapChain.GetBuffer(0, out backbuffer);
             Texture2DDesc desc;
-            backbuffer->GetDesc(&desc);
-            Texture2DDescription description = Helper.ConvertBack(desc);
-            this.backbuffer = backbuffer;
+            backbuffer.GetDesc(&desc);
 
-            Backbuffer = new D3D11Texture2D(backbuffer, description);
-            BackbufferRTV = device.CreateRenderTargetView(Backbuffer, new(description.Width, description.Height));
-            depthStencil = device.CreateTexture2D(Graphics.Format.D32FloatS8X24UInt, description.Width, description.Height, 1, 1, null, BindFlags.DepthStencil);
-            BackbufferDSV = device.CreateDepthStencilView(depthStencil);
-            Width = description.Width;
-            Height = description.Height;
+            var dev = D3D11GraphicsDevice.Device;
+
+            dev.CreateRenderTargetView(backbuffer, null, ref backbufferRTV);
+
+            Width = (int)desc.Width;
+            Height = (int)desc.Height;
             Viewport = new(0, 0, Width, Height);
         }
 
-        public ITexture2D Backbuffer { get; private set; }
+        public ComPtr<ID3D11Texture2D> Backbuffer => backbuffer;
 
-        public IRenderTargetView BackbufferRTV { get; private set; }
-
-        public IDepthStencilView BackbufferDSV { get; private set; }
-
-        public IGraphicsDevice Device { get; }
+        public ComPtr<ID3D11RenderTargetView> BackbufferRTV { get => backbufferRTV; private set => backbufferRTV = value; }
 
         public int Width { get; private set; }
 
         public int Height { get; private set; }
 
-        public Hexa.NET.Mathematics.Viewport Viewport { get; private set; }
+        public Mathematics.Viewport Viewport { get; private set; }
 
         public event EventHandler? Resizing;
 
@@ -133,25 +124,19 @@
 
             Backbuffer.Dispose();
             BackbufferRTV.Dispose();
-            BackbufferDSV.Dispose();
-            depthStencil.Dispose();
 
-            swapChain.ResizeBuffers(2, (uint)width, (uint)height, Silk.NET.DXGI.Format.FormatB8G8R8A8Unorm, (uint)flags);
+            swapChain.ResizeBuffers(2, (uint)width, (uint)height, Format.FormatB8G8R8A8Unorm, (uint)flags);
             Width = width;
             Height = height;
             Viewport = new(0, 0, Width, Height);
 
-            ID3D11Texture2D* backbuffer;
-            swapChain.GetBuffer(0, Utils.Guid(ID3D11Texture2D.Guid), (void**)&backbuffer);
+            swapChain.GetBuffer(0, out backbuffer);
             Texture2DDesc desc;
-            backbuffer->GetDesc(&desc);
-            Texture2DDescription description = Helper.ConvertBack(desc);
-            this.backbuffer = backbuffer;
+            backbuffer.GetDesc(&desc);
 
-            Backbuffer = new D3D11Texture2D(backbuffer, description);
-            BackbufferRTV = Device.CreateRenderTargetView(Backbuffer, new(description.Width, description.Height));
-            depthStencil = Device.CreateTexture2D(Graphics.Format.D32FloatS8X24UInt, description.Width, description.Height, 1, 1, null, BindFlags.DepthStencil);
-            BackbufferDSV = Device.CreateDepthStencilView(depthStencil);
+            var dev = D3D11GraphicsDevice.Device;
+
+            dev.CreateRenderTargetView(backbuffer, null, ref backbufferRTV);
 
             Resized?.Invoke(this, new(oldWidth, oldHeight, width, height));
         }
@@ -160,8 +145,6 @@
         {
             Backbuffer.Dispose();
             BackbufferRTV.Dispose();
-            BackbufferDSV.Dispose();
-            depthStencil.Dispose();
             swapChain.Release();
         }
     }

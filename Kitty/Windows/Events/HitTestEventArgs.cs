@@ -1,4 +1,4 @@
-﻿namespace Kitty.Windows.Events
+﻿namespace Hexa.NET.Kitty.Windows.Events
 {
     /// <summary>
     /// Event arguments for the hit test event of a window.

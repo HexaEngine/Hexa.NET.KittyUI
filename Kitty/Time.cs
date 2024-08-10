@@ -1,4 +1,4 @@
-﻿namespace Kitty
+﻿namespace Hexa.NET.Kitty
 {
     using System;
     using System.Diagnostics;

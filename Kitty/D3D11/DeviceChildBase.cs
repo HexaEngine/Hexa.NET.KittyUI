@@ -1,11 +1,10 @@
-﻿namespace Kitty.D3D11
+﻿namespace Hexa.NET.Kitty.D3D11
 {
-    using Kitty;
-    using Kitty.Graphics;
+    using Hexa.NET.Kitty.Graphics;
     using Silk.NET.Direct3D11;
     using System;
 
-    public abstract unsafe class DeviceChildBase : DisposableBase, IDeviceChild
+    public abstract unsafe class DeviceChildBase : DisposableBase
     {
         protected nint nativePointer;
 

@@ -1,13 +1,13 @@
-﻿namespace Kitty.Windows
+﻿namespace Hexa.NET.Kitty.Windows
 {
-    using Kitty;
-    using Kitty.Extensions;
-    using Kitty.Graphics;
-    using Kitty.Input;
-    using Kitty.Input.Events;
-    using Kitty.Logging;
+    using Hexa.NET.Kitty.Input;
+    using Hexa.NET.Kitty.Input.Events;
+    using Hexa.NET.Kitty.Logging;
+    using Hexa.NET.Kitty.Windows.Events;
     using Hexa.NET.Mathematics;
-    using Kitty.Windows.Events;
+    using Kitty.D3D11;
+    using Kitty.Extensions;
+    using Kitty.OpenGL;
     using Silk.NET.Core.Contexts;
     using Silk.NET.Core.Native;
     using Silk.NET.SDL;
@@ -16,8 +16,16 @@
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Text;
-    using Key = Input.Key;
     using static Extensions.SdlErrorHandlingExtensions;
+    using Key = Input.Key;
+
+    public enum GraphicsBackend
+    {
+        D3D11,
+        OpenGL,
+        Vulkan,
+        Metal
+    }
 
     public unsafe class SdlWindow : IWindow, INativeWindow
     {
@@ -47,7 +55,7 @@
         private readonly TouchEventArgs touchEventArgs = new();
         private readonly TouchMotionEventArgs touchMotionEventArgs = new();
 
-        private Silk.NET.SDL.Window* window;
+        private Window* window;
         private bool created;
         private bool destroyed;
         private int width = 1280;
@@ -104,20 +112,29 @@
             {
                 return;
             }
+            GraphicsBackend backend = GraphicsBackend.OpenGL;
+            if (OperatingSystem.IsWindows())
+            {
+                backend = GraphicsBackend.D3D11;
+            }
+
+#if FORCE_OPENGL
+            backend = GraphicsBackend.OpenGL;
+#endif
 
             byte[] bytes = Encoding.UTF8.GetBytes(title);
             byte* ptr = (byte*)Unsafe.AsPointer(ref bytes[0]);
 
             windowFlags |= WindowFlags.Hidden;
 
-            switch (GraphicsAdapter.Backend)
+            switch (backend)
             {
-                case GraphicsBackend.Vulkan:
-                    windowFlags |= WindowFlags.Vulkan;
-                    break;
-
                 case GraphicsBackend.OpenGL:
                     windowFlags |= WindowFlags.Opengl;
+                    break;
+
+                case GraphicsBackend.Vulkan:
+                    windowFlags |= WindowFlags.Vulkan;
                     break;
 
                 case GraphicsBackend.Metal:
@@ -125,7 +142,7 @@
                     break;
             }
 
-            window = SdlCheckError(sdl.CreateWindow(ptr, x, y, width, height, (uint)(windowFlags)));
+            window = SdlCheckError(sdl.CreateWindow(ptr, x, y, width, height, (uint)windowFlags));
 
             WindowID = sdl.GetWindowID(window).SdlThrowIf();
 
@@ -134,24 +151,41 @@
             sdl.GetWindowSize(window, &w, &h);
 
             cursors = (Cursor**)AllocArray((uint)SystemCursor.NumSystemCursors);
-            cursors[(int)CursorType.Arrow] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorArrow));
-            cursors[(int)CursorType.IBeam] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorIbeam));
-            cursors[(int)CursorType.Wait] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorWait));
-            cursors[(int)CursorType.Crosshair] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorCrosshair));
-            cursors[(int)CursorType.WaitArrow] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorWaitarrow));
-            cursors[(int)CursorType.SizeNWSE] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorSizens));
-            cursors[(int)CursorType.SizeNESW] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorSizewe));
-            cursors[(int)CursorType.SizeWE] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorSizenesw));
-            cursors[(int)CursorType.SizeNS] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorSizenwse));
-            cursors[(int)CursorType.SizeAll] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorSizeall));
-            cursors[(int)CursorType.No] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorNo));
-            cursors[(int)CursorType.Hand] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorHand));
+            for (SystemCursor i = 0; i < SystemCursor.NumSystemCursors; i++)
+            {
+                cursors[(int)i] = SdlCheckError(sdl.CreateSystemCursor(SystemCursor.SystemCursorArrow));
+            }
 
             Width = w;
             Height = h;
             Viewport = new(0, 0, w, h, 0, 1);
             created = true;
             destroyed = false;
+
+            Backend = backend;
+
+            InitGraphics(backend);
+        }
+
+        private void InitGraphics(GraphicsBackend backend)
+        {
+            switch (backend)
+            {
+                case GraphicsBackend.D3D11:
+                    D3D11Adapter.Init(this, false);
+                    break;
+
+                case GraphicsBackend.OpenGL:
+                    sdl.GLSetAttribute(GLattr.ContextMajorVersion, 3);
+                    sdl.GLSetAttribute(GLattr.ContextMinorVersion, 3);
+                    sdl.GLSetAttribute(GLattr.ContextProfileMask, (int)GLprofile.Core);
+
+                    OpenGLAdapter.Init(this);
+                    break;
+
+                default:
+                    throw new NotSupportedException("The specified graphics backend is not supported");
+            }
         }
 
         public void Show()
@@ -172,7 +206,7 @@
         {
             Logger.ThrowIf(destroyed, "The window is already destroyed");
             closeEventArgs.Handled = false;
-            OnClose(closeEventArgs);
+            OnClosing(closeEventArgs);
         }
 
         public void ReleaseCapture()
@@ -214,7 +248,7 @@
             return new SdlContext(sdl, window, null, (GLattr.ContextMajorVersion, 4), (GLattr.ContextMinorVersion, 5));
         }
 
-        public Silk.NET.SDL.Window* GetWindow() => window;
+        public Window* GetWindow() => window;
 
         public uint WindowID { get; private set; }
 
@@ -470,6 +504,11 @@
         public event EventHandler<CloseEventArgs>? Closing;
 
         /// <summary>
+        /// Event triggered when the window is closed.
+        /// </summary>
+        public event EventHandler<CloseEventArgs>? Closed;
+
+        /// <summary>
         /// Event triggered when the window requests to take focus.
         /// </summary>
         public event EventHandler<TakeFocusEventArgs>? TakeFocus;
@@ -639,27 +678,28 @@
         /// Raises the <see cref="Closing"/> event.
         /// </summary>
         /// <param name="args">The event arguments.</param>
-        protected virtual void OnClose(CloseEventArgs args)
+        protected virtual void OnClosing(CloseEventArgs args)
         {
             Closing?.Invoke(this, args);
             if (!args.Handled && !destroyed)
             {
-                if (Application.MainWindow == this)
-                {
-                    return;
-                }
-
-                for (SystemCursor i = 0; i < SystemCursor.NumSystemCursors; i++)
-                {
-                    sdl.FreeCursor(cursors[(int)i]);
-                }
-
-                sdl.DestroyWindow(window);
-                SdlCheckError();
-
-                destroyed = true;
-                created = false;
+                DestroyWindow();
             }
+            else
+            {
+                Application.SuppressQuitApp();
+            }
+        }
+
+        /// <summary>
+        /// Raises the <see cref="Closed"/> event.
+        /// </summary>
+        /// <param name="args">The event arguments.</param>
+        protected virtual void OnClosed(CloseEventArgs args)
+        {
+            DestroyWindow();
+
+            Closed?.Invoke(this, args);
         }
 
         /// <summary>
@@ -940,10 +980,10 @@
                     {
                         closeEventArgs.Timestamp = evnt.Timestamp;
                         closeEventArgs.Handled = false;
-                        OnClose(closeEventArgs);
-                        if (!closeEventArgs.Handled)
+                        OnClosing(closeEventArgs);
+                        if (closeEventArgs.Handled)
                         {
-                            Close();
+                            sdl.ShowWindow(window);
                         }
                     }
                     break;
@@ -1106,13 +1146,32 @@
         {
             if (!destroyed)
             {
-                for (SystemCursor i = 0; i < SystemCursor.NumSystemCursors; i++)
+                switch (Backend)
                 {
-                    sdl.FreeCursor(cursors[(int)i]);
+                    case GraphicsBackend.D3D11:
+                        D3D11Adapter.Shutdown();
+                        break;
+
+                    case GraphicsBackend.OpenGL:
+                        OpenGLAdapter.Shutdown();
+                        break;
+                }
+                if (cursors != null)
+                {
+                    for (SystemCursor i = 0; i < SystemCursor.NumSystemCursors; i++)
+                    {
+                        sdl.FreeCursor(cursors[(int)i]);
+                    }
+                    Free(cursors);
+                    cursors = null;
                 }
 
-                sdl.DestroyWindow(window);
-                SdlCheckError();
+                if (window != null)
+                {
+                    sdl.DestroyWindow(window);
+                    SdlCheckError();
+                    window = null;
+                }
 
                 destroyed = true;
                 created = false;

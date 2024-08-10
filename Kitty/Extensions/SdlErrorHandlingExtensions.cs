@@ -1,6 +1,7 @@
-﻿namespace Kitty.Extensions
+﻿namespace Hexa.NET.Kitty.Extensions
 {
-    using Kitty.Logging;
+    using Hexa.NET.Kitty;
+    using Hexa.NET.Kitty.Logging;
     using Silk.NET.SDL;
     using System.Runtime.CompilerServices;
 

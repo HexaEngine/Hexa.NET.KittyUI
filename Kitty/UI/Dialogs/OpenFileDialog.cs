@@ -1,4 +1,6 @@
-﻿namespace Kitty.UI.Dialogs
+﻿using Kitty.UI.Dialogs;
+
+namespace Hexa.NET.Kitty.UI.Dialogs
 {
     using Hexa.NET.ImGui;
 

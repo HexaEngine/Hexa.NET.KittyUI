@@ -1,8 +1,8 @@
-﻿namespace Kitty.Debugging
+﻿namespace Hexa.NET.Kitty.Debugging
 {
     using Hexa.NET.ImGui;
-    using Kitty.Collections;
-    using Kitty.Logging;
+    using Hexa.NET.Kitty.Collections;
+    using Hexa.NET.Kitty.Logging;
     using System;
     using System.Collections.Generic;
     using System.Linq;

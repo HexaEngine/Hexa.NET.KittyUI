@@ -1,11 +1,10 @@
-﻿namespace Kitty.ImGuiBackend
+﻿namespace Hexa.NET.Kitty.ImGuiBackend
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGuizmo;
     using Hexa.NET.ImNodes;
     using Hexa.NET.ImPlot;
-    using Kitty.Graphics;
-    using Kitty.Windows;
+    using Hexa.NET.Kitty;
     using System.Numerics;
 
     public class ImGuiManager
@@ -45,7 +44,7 @@
             fontPushes--;
         }
 
-        public unsafe ImGuiManager(SdlWindow window, AppBuilder appBuilder, IGraphicsDevice device, IGraphicsContext context, ImGuiConfigFlags flags = ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad | ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable)
+        public unsafe ImGuiManager(AppBuilder appBuilder, ImGuiConfigFlags flags = ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad | ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable)
         {
             guiContext = ImGui.CreateContext(null);
             ImGui.SetCurrentContext(guiContext);
@@ -164,9 +163,6 @@
                 style.WindowRounding = 0.0f;
                 style.Colors[(int)ImGuiCol.WindowBg].W = 1.0f;
             }
-
-            ImGuiSDL2Platform.Init(window.GetWindow(), null, null);
-            ImGuiRenderer.Init(device, context);
         }
 
         public unsafe void NewFrame()
@@ -190,12 +186,15 @@
 
         public static uint DockSpaceId { get; private set; }
 
+        public Action<ImDrawDataPtr> RenderDrawData;
+
         public unsafe void EndFrame()
         {
             var io = ImGui.GetIO();
             ImGui.Render();
             ImGui.EndFrame();
-            ImGuiRenderer.RenderDrawData(ImGui.GetDrawData());
+
+            RenderDrawData(ImGui.GetDrawData());
 
             if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
             {
@@ -206,7 +205,6 @@
 
         public void Dispose()
         {
-            ImGuiRenderer.Shutdown();
             ImGuiSDL2Platform.Shutdown();
         }
     }

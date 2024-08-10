@@ -1,4 +1,4 @@
-﻿namespace Kitty.UI
+﻿namespace Hexa.NET.Kitty.UI
 {
     using System.Collections.Generic;
 

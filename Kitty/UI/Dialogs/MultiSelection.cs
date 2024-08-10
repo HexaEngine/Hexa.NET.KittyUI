@@ -1,4 +1,4 @@
-﻿namespace Kitty.UI.Dialogs
+﻿namespace Hexa.NET.Kitty.UI.Dialogs
 {
     using System.Collections;
     using System.Collections.Generic;
@@ -84,7 +84,7 @@
                 }
                 else
                 {
-                    if ((!allowAny || !exists) && (!allowFiles || !isFile) && (!allowFolders || !isFolder) && !PathValidator.IsValidPath(path))
+                    if ((!allowAny || !exists) && (!allowFiles || !isFile) && (!allowFolders || !isFolder) && !path.IsValidPath())
                     {
                         Remove(ref i);
                         continue;
@@ -131,7 +131,7 @@
                 }
                 else
                 {
-                    if ((!allowAny || !exists) && (!allowFiles || !isFile) && (!allowFolders || !isFolder) && !PathValidator.IsValidPath(path))
+                    if ((!allowAny || !exists) && (!allowFiles || !isFile) && (!allowFolders || !isFolder) && !path.IsValidPath())
                     {
                         Remove(ref i);
                         continue;

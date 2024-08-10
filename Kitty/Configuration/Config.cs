@@ -1,8 +1,7 @@
 ﻿namespace HexaEngine.Core
 {
-    using Kitty.Configuration;
-    using Kitty.Input;
-    using Newtonsoft.Json.Linq;
+    using Hexa.NET.Kitty.Configuration;
+    using Hexa.NET.Kitty.Input;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Numerics;

@@ -1,4 +1,4 @@
-﻿namespace Kitty.UI.Dialogs
+﻿namespace Hexa.NET.Kitty.UI.Dialogs
 {
     public enum DialogResult
     {

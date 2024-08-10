@@ -1,5 +1,7 @@
-﻿namespace Kitty.Windows.Events
+﻿namespace Hexa.NET.Kitty.Windows.Events
 {
+    using Hexa.NET.Kitty.Windows;
+
     /// <summary>
     /// Provides event arguments for the minimized event of a window.
     /// </summary>

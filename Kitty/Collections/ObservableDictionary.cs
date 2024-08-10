@@ -1,4 +1,4 @@
-﻿namespace Kitty.Collections
+﻿namespace Hexa.NET.Kitty.Collections
 {
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -22,7 +22,7 @@
             //var m=base.FirstOrDefault((i) => i.Key == key);
             var r = ThisAsCollection().FirstOrDefault((i) => Equals(key, i.Key));
 
-            return !Equals(default(ObservableKeyValuePair<TKey, TValue>), r);
+            return !Equals(default, r);
         }
 
 #pragma warning disable CS0693 // Type parameter 'TKey' has the same name as the type parameter from outer type 'ObservableDictionary<TKey, TValue>'
@@ -121,7 +121,7 @@
         public virtual bool Contains(KeyValuePair<TKey, TValue> item)
         {
             var r = GetKvpByTheKey(item.Key);
-            if (Equals(r, default(ObservableKeyValuePair<TKey, TValue>)))
+            if (Equals(r, default))
             {
                 return false;
             }
@@ -140,7 +140,7 @@
         public virtual bool Remove(KeyValuePair<TKey, TValue> item)
         {
             var r = GetKvpByTheKey(item.Key);
-            if (Equals(r, default(ObservableKeyValuePair<TKey, TValue>)))
+            if (Equals(r, default))
             {
                 return false;
             }

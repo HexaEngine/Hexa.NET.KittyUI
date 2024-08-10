@@ -1,6 +1,6 @@
-﻿namespace Kitty.Logging
+﻿namespace Hexa.NET.Kitty.Logging
 {
-    using Kitty.Threading;
+    using Hexa.NET.Kitty.Threading;
     using System.Collections.Concurrent;
 
     public class LoggerFactory

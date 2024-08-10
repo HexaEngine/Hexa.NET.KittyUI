@@ -1,6 +1,6 @@
-﻿namespace Kitty.Input
+﻿namespace Hexa.NET.Kitty.Input
 {
-    using Kitty.Input.Events;
+    using Hexa.NET.Kitty.Input.Events;
     using Silk.NET.SDL;
 
     /// <summary>
@@ -34,7 +34,7 @@
         {
             id = sdl.GetTouchDevice(index);
             name = sdl.GetTouchNameS(index);
-            type = (TouchDeviceType)sdl.GetTouchDeviceType(id);
+            type = sdl.GetTouchDeviceType(id);
 
             var fingerCount = sdl.GetNumTouchFingers(id);
             fingers = new Finger[fingerCount];
@@ -54,7 +54,7 @@
         {
             this.id = id;
             name = "Unknown";
-            type = (TouchDeviceType)sdl.GetTouchDeviceType(id);
+            type = sdl.GetTouchDeviceType(id);
 
             var fingerCount = sdl.GetNumTouchFingers(id);
             fingers = new Finger[fingerCount];

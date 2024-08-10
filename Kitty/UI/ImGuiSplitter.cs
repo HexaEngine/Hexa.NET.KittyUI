@@ -1,7 +1,7 @@
 ﻿using Hexa.NET.ImGui;
 using System.Numerics;
 
-namespace Kitty.UI
+namespace Hexa.NET.Kitty.UI
 {
     public static unsafe class ImGuiSplitter
     {

@@ -1,8 +1,7 @@
-﻿namespace Kitty.ImGuiBackend
+﻿namespace Hexa.NET.Kitty.ImGuiBackend
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.Utilities;
-    using System.Drawing;
     using System.IO;
 
     public unsafe struct GlyphRanges

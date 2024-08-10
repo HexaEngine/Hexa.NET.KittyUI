@@ -1,4 +1,4 @@
-﻿namespace Kitty.Windows.Events
+﻿namespace Hexa.NET.Kitty.Windows.Events
 {
     /// <summary>
     /// Event arguments for the focus lost event of a window.

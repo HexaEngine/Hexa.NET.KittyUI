@@ -1,4 +1,4 @@
-﻿namespace Kitty.Extensions
+﻿namespace Hexa.NET.Kitty.Extensions
 {
     using System;
     using System.Collections.Generic;

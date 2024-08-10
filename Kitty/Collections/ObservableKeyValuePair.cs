@@ -1,4 +1,4 @@
-﻿namespace Kitty.Collections
+﻿namespace Hexa.NET.Kitty.Collections
 {
     using System.ComponentModel;
 

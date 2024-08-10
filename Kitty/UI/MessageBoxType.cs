@@ -1,4 +1,4 @@
-﻿namespace Kitty.UI
+﻿namespace Hexa.NET.Kitty.UI
 {
     /// <summary>
     /// Represents the different types of message boxes.

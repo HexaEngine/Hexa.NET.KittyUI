@@ -1,7 +1,6 @@
-﻿namespace Kitty.UI
+﻿namespace Hexa.NET.Kitty.UI
 {
     using Hexa.NET.ImGui;
-    using Kitty.ImGuiBackend;
     using System;
     using System.Diagnostics;
     using System.Numerics;
@@ -64,7 +63,7 @@
             float lineHeight = ImGui.GetTextLineHeight();
 
             bool display_frame = (flags & ImGuiTreeNodeFlags.Framed) != 0;
-            Vector2 padding = (display_frame || (flags & ImGuiTreeNodeFlags.FramePadding) != 0) ? style.FramePadding : new Vector2(style.FramePadding.X, Math.Min(window->DC.CurrLineTextBaseOffset, style.FramePadding.Y));
+            Vector2 padding = display_frame || (flags & ImGuiTreeNodeFlags.FramePadding) != 0 ? style.FramePadding : new Vector2(style.FramePadding.X, Math.Min(window->DC.CurrLineTextBaseOffset, style.FramePadding.Y));
 
             uint id = ImGui.GetID(label);
             Vector2 pos = ImGui.GetCursorScreenPos();
@@ -79,7 +78,7 @@
 
             // We vertically grow up to current line height up the typical widget height.
             float frame_height = Math.Max(Math.Min(window->DC.CurrLineSize.Y, g.FontSize + style.FramePadding.Y * 2), labelSize.Y + padding.Y * 2);
-            bool span_all_columns = (flags & ImGuiTreeNodeFlags.SpanAllColumns) != 0 && (!g.CurrentTable.IsNull);
+            bool span_all_columns = (flags & ImGuiTreeNodeFlags.SpanAllColumns) != 0 && !g.CurrentTable.IsNull;
             ImRect frame_bb;
             frame_bb.Min.X = span_all_columns ? window->ParentWorkRect.Min.X : (flags & ImGuiTreeNodeFlags.SpanFullWidth) != 0 ? window->WorkRect.Min.X : pos.X;
             frame_bb.Min.Y = pos.Y;
@@ -162,9 +161,9 @@
             // We allow clicking on the arrow section with keyboard modifiers held, in order to easily
             // allow browsing a tree while preserving selection with code implementing multi-selection patterns.
             // When clicking on the rest of the tree node we always disallow keyboard modifiers.
-            float arrow_hit_x1 = (text_pos.X - text_offset_x) - style.TouchExtraPadding.X;
-            float arrow_hit_x2 = (text_pos.X - text_offset_x) + (g.FontSize + padding.X * 2.0f) + style.TouchExtraPadding.X;
-            bool is_mouse_x_over_arrow = (g.IO.MousePos.X >= arrow_hit_x1 && g.IO.MousePos.X < arrow_hit_x2);
+            float arrow_hit_x1 = text_pos.X - text_offset_x - style.TouchExtraPadding.X;
+            float arrow_hit_x2 = text_pos.X - text_offset_x + (g.FontSize + padding.X * 2.0f) + style.TouchExtraPadding.X;
+            bool is_mouse_x_over_arrow = g.IO.MousePos.X >= arrow_hit_x1 && g.IO.MousePos.X < arrow_hit_x2;
 
             // Open behaviors can be altered with the _OpenOnArrow and _OnOnDoubleClick flags.
             // Some alteration have subtle effects (e.g. toggle on MouseUp vs MouseDown events) due to requirements for multi-selection and drag and drop support.
@@ -210,7 +209,7 @@
             {
                 if (pressed && g.DragDropHoldJustPressedId != id)
                 {
-                    if ((flags & (ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick)) == 0 || (g.NavActivateId == id && !is_multi_select))
+                    if ((flags & (ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick)) == 0 || g.NavActivateId == id && !is_multi_select)
                         toggled = true;
                     if ((flags & ImGuiTreeNodeFlags.OpenOnArrow) != 0)
                         toggled |= is_mouse_x_over_arrow && !g.NavDisableMouseHover; // Lightweight equivalent of IsMouseHoveringRect() since ButtonBehavior() already did the job
@@ -269,13 +268,13 @@
                 if (display_frame)
                 {
                     // Framed type
-                    uint bg_col = ImGui.GetColorU32((held && hovered) ? ImGuiCol.HeaderActive : hovered ? ImGuiCol.HeaderHovered : ImGuiCol.Header);
+                    uint bg_col = ImGui.GetColorU32(held && hovered ? ImGuiCol.HeaderActive : hovered ? ImGuiCol.HeaderHovered : ImGuiCol.Header);
                     ImGui.RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, true, style.FrameRounding);
                     ImGui.RenderNavHighlight(frame_bb, id, nav_highlight_flags);
                     if ((flags & ImGuiTreeNodeFlags.Bullet) != 0)
                         ImGui.RenderBullet(draw, new(text_pos.X - text_offset_x * 0.60f, text_pos.Y + g.FontSize * 0.5f), text_col);
                     else if (!is_leaf)
-                        ImGui.RenderArrow(draw, new Vector2(text_pos.X - text_offset_x + padding.X, text_pos.Y), text_col, is_open ? ((flags & (ImGuiTreeNodeFlags)ImGuiTreeNodeFlagsPrivate.UpsideDownArrow) != 0 ? ImGuiDir.Up : ImGuiDir.Down) : ImGuiDir.Right, 1.0f);
+                        ImGui.RenderArrow(draw, new Vector2(text_pos.X - text_offset_x + padding.X, text_pos.Y), text_col, is_open ? (flags & (ImGuiTreeNodeFlags)ImGuiTreeNodeFlagsPrivate.UpsideDownArrow) != 0 ? ImGuiDir.Up : ImGuiDir.Down : ImGuiDir.Right, 1.0f);
                     else // Leaf without bullet, left-adjusted text
                         text_pos.X -= text_offset_x - padding.X;
                     if ((flags & (ImGuiTreeNodeFlags)ImGuiTreeNodeFlagsPrivate.ClipLabelForTrailingButton) != 0)
@@ -288,14 +287,14 @@
                     // Unframed typed for tree nodes
                     if (hovered || selected)
                     {
-                        uint bg_col = ImGui.GetColorU32((held && hovered) ? ImGuiCol.HeaderActive : hovered ? ImGuiCol.HeaderHovered : ImGuiCol.Header);
+                        uint bg_col = ImGui.GetColorU32(held && hovered ? ImGuiCol.HeaderActive : hovered ? ImGuiCol.HeaderHovered : ImGuiCol.Header);
                         ImGui.RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, false, style.FrameRounding);
                     }
                     ImGui.RenderNavHighlight(frame_bb, id, nav_highlight_flags);
                     if ((flags & ImGuiTreeNodeFlags.Bullet) != 0)
                         ImGui.RenderBullet(draw, new(text_pos.X - text_offset_x * 0.5f, text_pos.Y + g.FontSize * 0.5f), text_col);
                     else if (!is_leaf)
-                        ImGui.RenderArrow(draw, new Vector2(text_pos.X - text_offset_x + padding.X, text_pos.Y + g.FontSize * 0.15f), text_col, is_open ? ((flags & (ImGuiTreeNodeFlags)ImGuiTreeNodeFlagsPrivate.UpsideDownArrow) != 0 ? ImGuiDir.Up : ImGuiDir.Down) : ImGuiDir.Right, 0.70f);
+                        ImGui.RenderArrow(draw, new Vector2(text_pos.X - text_offset_x + padding.X, text_pos.Y + g.FontSize * 0.15f), text_col, is_open ? (flags & (ImGuiTreeNodeFlags)ImGuiTreeNodeFlagsPrivate.UpsideDownArrow) != 0 ? ImGuiDir.Up : ImGuiDir.Down : ImGuiDir.Right, 0.70f);
                     if (g.LogEnabled)
                         ImGui.LogSetNextTextDecoration(">", (byte*)null);
                 }
@@ -331,7 +330,7 @@
             ImGuiContext* g = ImGui.GetCurrentContext();
             ImGuiWindow* window = g->CurrentWindow;
 
-            ImVector<ImGuiTreeNodeStackData>* treeNodeStack = (ImVector<ImGuiTreeNodeStackData>*)&g->TreeNodeStack;
+            ImVector<ImGuiTreeNodeStackData>* treeNodeStack = &g->TreeNodeStack;
             treeNodeStack->Resize(treeNodeStack->Size + 1);
             ImGuiTreeNodeStackData* tree_node_data = treeNodeStack->Back;
             tree_node_data->ID = g->LastItemData.ID;
@@ -452,7 +451,7 @@
             ImGui.RenderNavHighlight(bb, id, default);
             if (pressed || hovered || held)
             {
-                uint col = ImGui.GetColorU32((held && hovered) ? ImGuiCol.ButtonActive : hovered ? ImGuiCol.ButtonHovered : ImGuiCol.Button);
+                uint col = ImGui.GetColorU32(held && hovered ? ImGuiCol.ButtonActive : hovered ? ImGuiCol.ButtonHovered : ImGuiCol.Button);
                 ImGui.RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
             }
 

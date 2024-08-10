@@ -1,9 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Hexa.NET.ImGui;
-using Kitty;
-using Kitty.Graphics;
-using Kitty.UI;
-using Kitty.UI.Dialogs;
+using Hexa.NET.Kitty;
+using Hexa.NET.Kitty.UI;
+using Hexa.NET.Kitty.UI.Dialogs;
 using TestApp;
 
 WidgetManager.Register<MainWindow>(show: true);
@@ -23,12 +22,7 @@ namespace TestApp
 
         protected override string Name => "Main Window";
 
-        public override void DrawWindow(IGraphicsContext context)
-        {
-            base.DrawWindow(context);
-        }
-
-        public override unsafe void DrawContent(IGraphicsContext context)
+        public override unsafe void DrawContent()
         {
             ImGui.Text("Hello, World!");
 
@@ -49,12 +43,6 @@ namespace TestApp
                 SaveFileDialog dialog = new();
                 dialog.Show(Callback);
             }
-
-            void* fu = stackalloc byte[12];
-            ((int*)fu)[0] = 10;
-            ((double*)&((int*)fu)[1])[0] = 10.0f;
-
-            ImGui.TextV("%d, Hello, %f", (nuint)fu);
         }
 
         private void Callback(object? sender, DialogResult result)

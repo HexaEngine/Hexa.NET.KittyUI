@@ -1,7 +1,5 @@
-﻿namespace Kitty.Input.Events
+﻿namespace Hexa.NET.Kitty.Input.Events
 {
-    using Kitty.Input;
-
     /// <summary>
     /// Provides data for the event that occurs when a gamepad axis motion is detected.
     /// </summary>

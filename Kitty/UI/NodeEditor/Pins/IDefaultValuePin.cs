@@ -1,4 +1,4 @@
-﻿namespace Kitty.UI.NodeEditor.Pins
+﻿namespace Hexa.NET.Kitty.UI.NodeEditor.Pins
 {
     public interface IDefaultValuePin
     {

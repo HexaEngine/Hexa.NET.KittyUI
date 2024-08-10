@@ -1,4 +1,4 @@
-﻿namespace Kitty.UI.Dialogs
+﻿namespace Hexa.NET.Kitty.UI.Dialogs
 {
     using System.Runtime.InteropServices;
 
@@ -61,7 +61,7 @@
                 if (root.Length > 1 && root[1] == ':')
                 {
                     char driveLetter = root[0];
-                    if (!((driveLetter >= 'A' && driveLetter <= 'Z') || (driveLetter >= 'a' && driveLetter <= 'z')))
+                    if (!(driveLetter >= 'A' && driveLetter <= 'Z' || driveLetter >= 'a' && driveLetter <= 'z'))
                     {
                         return false;
                     }

@@ -1,9 +1,9 @@
-﻿namespace Kitty.OpenAL
+﻿namespace Hexa.NET.Kitty.OpenAL
 {
     using Silk.NET.OpenAL;
     using Silk.NET.OpenAL.Extensions.Enumeration;
     using System.Collections.Generic;
-    using static Kitty.OpenAL.Helper;
+    using static Hexa.NET.Kitty.OpenAL.Helper;
 
     public unsafe class OpenALAudioSystem
     {

@@ -1,4 +1,4 @@
-﻿namespace Kitty.Text
+﻿namespace Hexa.NET.Kitty.Text
 {
     /// <summary>
     /// Provides helper methods for formatting data sizes.

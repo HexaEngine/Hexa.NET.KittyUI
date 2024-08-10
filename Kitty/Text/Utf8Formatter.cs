@@ -1,4 +1,4 @@
-﻿namespace Kitty.Text
+﻿namespace Hexa.NET.Kitty.Text
 {
     public static class Utf8Formatter
     {

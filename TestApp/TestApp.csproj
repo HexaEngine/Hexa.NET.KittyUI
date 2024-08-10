@@ -10,7 +10,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Kitty\Kitty.csproj" />
+		<ProjectReference Include="..\Kitty\Hexa.NET.Kitty.csproj" />
 	</ItemGroup>
 
 </Project>

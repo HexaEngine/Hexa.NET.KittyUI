@@ -1,4 +1,4 @@
-﻿namespace Kitty.Extensions
+﻿namespace Hexa.NET.Kitty.Extensions
 {
     using System.Globalization;
     using System.Numerics;

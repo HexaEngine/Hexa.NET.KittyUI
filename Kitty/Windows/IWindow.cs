@@ -1,11 +1,11 @@
-﻿namespace Kitty.Windows
+﻿namespace Hexa.NET.Kitty.Windows
 {
-    using Kitty.Audio;
-    using Kitty.Graphics;
-    using Kitty.Input.Events;
+    using Hexa.NET.Kitty;
+    using Hexa.NET.Kitty.Audio;
+    using Hexa.NET.Kitty.Input.Events;
+    using Hexa.NET.Kitty.Threading;
+    using Hexa.NET.Kitty.Windows.Events;
     using Hexa.NET.Mathematics;
-    using Kitty.Threading;
-    using Kitty.Windows.Events;
     using Silk.NET.Core.Contexts;
     using Silk.NET.Core.Native;
 
@@ -13,17 +13,9 @@
     {
         IThreadDispatcher Dispatcher { get; }
 
-        IGraphicsDevice Device { get; }
+        void Initialize(AppBuilder appBuilder, IAudioDevice audioDevice);
 
-        IGraphicsContext Context { get; }
-
-        ISwapChain SwapChain { get; }
-
-        Viewport RenderViewport { get; }
-
-        void Initialize(AppBuilder appBuilder, IAudioDevice audioDevice, IGraphicsDevice graphicsDevice);
-
-        void Render(IGraphicsContext context);
+        void Render();
 
         void Uninitialize();
     }
@@ -104,6 +96,11 @@
         /// Event triggered when the window is closing.
         /// </summary>
         event EventHandler<CloseEventArgs>? Closing;
+
+        /// <summary>
+        /// Event triggered when the window is closed.
+        /// </summary>
+        event EventHandler<CloseEventArgs>? Closed;
 
         /// <summary>
         /// Event triggered when the mouse enters the window.

@@ -1,6 +1,7 @@
-﻿namespace Kitty.UI.Dialogs
+﻿namespace Hexa.NET.Kitty.UI.Dialogs
 {
     using Hexa.NET.ImGui;
+    using Hexa.NET.Kitty.UI;
 
     public static class DialogManager
     {

@@ -1,6 +1,6 @@
-﻿namespace Kitty.Input
+﻿namespace Hexa.NET.Kitty.Input
 {
-    using Kitty.Input.Events;
+    using Hexa.NET.Kitty.Input.Events;
 
     /// <summary>
     /// Represents a finger in an input system.

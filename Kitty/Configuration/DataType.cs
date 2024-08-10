@@ -1,4 +1,4 @@
-﻿namespace Kitty.Configuration
+﻿namespace Hexa.NET.Kitty.Configuration
 {
     public enum DataType
     {

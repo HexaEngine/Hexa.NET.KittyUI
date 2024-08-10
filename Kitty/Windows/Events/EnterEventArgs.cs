@@ -1,4 +1,4 @@
-﻿namespace Kitty.Windows.Events
+﻿namespace Hexa.NET.Kitty.Windows.Events
 {
     /// <summary>
     /// Event arguments for the enter event of a window.

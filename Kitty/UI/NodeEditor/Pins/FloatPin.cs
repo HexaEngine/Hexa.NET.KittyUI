@@ -1,8 +1,8 @@
-﻿namespace Kitty.UI.NodeEditor.Pins
+﻿namespace Hexa.NET.Kitty.UI.NodeEditor.Pins
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImNodes;
-    using Kitty.UI.NodeEditor;
+    using Hexa.NET.Kitty.UI.NodeEditor;
     using System.Globalization;
     using System.Numerics;
 

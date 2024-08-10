@@ -1,4 +1,4 @@
-﻿namespace Kitty.Windows.Events
+﻿namespace Hexa.NET.Kitty.Windows.Events
 {
     /// <summary>
     /// Provides event arguments for the moved event of a window.

@@ -1,7 +1,5 @@
-﻿namespace Kitty.Input.Events
+﻿namespace Hexa.NET.Kitty.Input.Events
 {
-    using Kitty.Input;
-
     /// <summary>
     /// Provides data for a joystick button event.
     /// </summary>

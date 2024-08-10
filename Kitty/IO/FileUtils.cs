@@ -1,4 +1,4 @@
-﻿namespace Kitty.IO
+﻿namespace Hexa.NET.Kitty.IO
 {
     using System;
     using System.Buffers.Binary;

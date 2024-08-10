@@ -1,7 +1,7 @@
-﻿namespace Kitty.OpenAL
+﻿namespace Hexa.NET.Kitty.OpenAL
 {
     using Silk.NET.OpenAL;
-    using static Kitty.OpenAL.Helper;
+    using static Hexa.NET.Kitty.OpenAL.Helper;
 
     public unsafe class OpenALWaveAudioStream : OpenALAudioStream
     {

@@ -1,13 +1,11 @@
-﻿namespace Kitty
+﻿namespace Hexa.NET.Kitty
 {
-    using Kitty.Audio;
-    using Kitty.D3D11;
-    using Kitty.Debugging;
-    using Kitty.Graphics;
-    using Kitty.Input;
-    using Kitty.OpenAL;
-    using Kitty.Windows;
-    using Kitty.Windows.Events;
+    using Hexa.NET.Kitty.Audio;
+    using Hexa.NET.Kitty.Debugging;
+    using Hexa.NET.Kitty.Input;
+    using Hexa.NET.Kitty.OpenAL;
+    using Hexa.NET.Kitty.Windows;
+    using Hexa.NET.Kitty.Windows.Events;
     using Silk.NET.SDL;
     using System.Collections.Generic;
     using static Extensions.SdlErrorHandlingExtensions;
@@ -25,10 +23,9 @@
 #nullable disable
         private static IRenderWindow mainWindow;
         private static AppBuilder builder;
-        private static IGraphicsAdapter graphicsAdapter;
-        private static IGraphicsDevice graphicsDevice;
-        private static IGraphicsContext graphicsContext;
+
         private static IAudioDevice audioDevice;
+        private static bool supressQuitApp;
 #nullable restore
 
         /// <summary>
@@ -36,52 +33,9 @@
         /// </summary>
         public static IRenderWindow MainWindow => mainWindow;
 
-        /// <summary>
-        /// Gets the graphics device used by the application.
-        /// </summary>
-        public static IGraphicsDevice GraphicsDevice => graphicsDevice;
-
-        /// <summary>
-        /// Gets the graphics context used by the application.
-        /// </summary>
-        public static IGraphicsContext GraphicsContext => graphicsContext;
-
-        /// <summary>
-        /// Gets the graphics backend, eg. D3D11, D3D11On12, D3D12, OpenGL, Vulkan, Metal.
-        /// </summary>
-        public static GraphicsBackend Backend => GraphicsAdapter.Backend;
-
-        public static bool IsD3D11()
-        {
-            return Backend == GraphicsBackend.D3D11 || Backend == GraphicsBackend.D3D11On12;
-        }
-
-        public static bool IsD3D11On12()
-        {
-            return Backend == GraphicsBackend.D3D11On12;
-        }
-
-        public static bool IsD3D12()
-        {
-            return Backend == GraphicsBackend.D3D12;
-        }
-
-        public static bool IsOpenGL()
-        {
-            return Backend == GraphicsBackend.OpenGL;
-        }
-
-        public static bool IsVulkan()
-        {
-            return Backend == GraphicsBackend.Vulkan;
-        }
-
-        public static bool IsMetal()
-        {
-            return Backend == GraphicsBackend.Metal;
-        }
-
         public static bool GraphicsDebugging { get; set; }
+
+        public static GraphicsBackend GraphicsBackend => ((SdlWindow)mainWindow).Backend;
 
         public static void Run()
         {
@@ -98,7 +52,7 @@
             Init(mainWindow, builder);
             Application.mainWindow = mainWindow;
             Application.builder = builder;
-            mainWindow.Closing += MainWindow_Closing;
+            mainWindow.Closed += MainWindowClosed;
 
             mainWindow.Show();
             PlatformRun();
@@ -107,7 +61,6 @@
         private static void Init(IRenderWindow mainWindow, AppBuilder builder)
         {
             CrashLogger.Initialize();
-            DXGIAdapterD3D11.Init(mainWindow, GraphicsDebugging);
             OpenALAdapter.Init();
 
 #if DEBUG
@@ -126,14 +79,11 @@
             Gamepads.Init();
             TouchDevices.Init();
 
-            graphicsAdapter = GraphicsAdapter.ChooseAdapter(GraphicsBackend.Auto);
-            graphicsDevice = graphicsAdapter.CreateGraphicsDevice(GraphicsDebugging);
-            graphicsContext = graphicsDevice.Context;
             audioDevice = AudioAdapter.CreateAudioDevice(AudioBackend.Auto, null);
 
             for (int i = 0; i < windows.Count; i++)
             {
-                windows[i].Initialize(builder, audioDevice, graphicsDevice);
+                windows[i].Initialize(builder, audioDevice);
             }
 
             initialized = true;
@@ -144,13 +94,20 @@
             windows.Add(window);
             windowIdToWindow.Add(window.WindowID, window);
             if (initialized)
-                window.Initialize(builder, audioDevice, graphicsDevice);
+                window.Initialize(builder, audioDevice);
         }
 
-        private static void MainWindow_Closing(object? sender, CloseEventArgs e)
+        /// <summary>
+        /// Suppresses the quit application action. Will be automatically reset.
+        /// </summary>
+        internal static void SuppressQuitApp()
         {
-            if (!e.Handled)
-                exiting = true;
+            supressQuitApp = true;
+        }
+
+        private static void MainWindowClosed(object? sender, CloseEventArgs e)
+        {
+            exiting = true;
         }
 
         public static void RegisterHook(Func<Event, bool> hook)
@@ -180,7 +137,11 @@
                             break;
 
                         case EventType.Quit:
-                            exiting = true;
+                            if (!supressQuitApp)
+                            {
+                                exiting = true;
+                            }
+                            supressQuitApp = false;
                             break;
 
                         case EventType.AppTerminating:
@@ -214,10 +175,6 @@
                                 if (even.WindowID == mainWindow.WindowID)
                                 {
                                     ((SdlWindow)mainWindow).ProcessEvent(even);
-                                    if ((WindowEventID)evnt.Window.Event == WindowEventID.Close)
-                                    {
-                                        exiting = true;
-                                    }
                                 }
                             }
 
@@ -490,9 +447,9 @@
                     }
                 }
 
-                mainWindow.Render(graphicsContext);
+                mainWindow.Render();
                 mainWindow.ClearState();
-                graphicsAdapter.PumpDebugMessages();
+
                 Time.FrameUpdate();
             }
 

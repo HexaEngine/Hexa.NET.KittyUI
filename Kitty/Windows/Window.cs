@@ -1,17 +1,21 @@
-﻿namespace Kitty.Windows
+﻿namespace Hexa.NET.Kitty.Windows
 {
-    using Kitty;
-    using Kitty.Audio;
-    using Kitty.Debugging;
-    using Kitty.Graphics;
-    using Kitty.ImGuiBackend;
-    using Hexa.NET.Mathematics;
-    using Kitty.Threading;
-    using Kitty.UI;
-    using Kitty.Windows.Events;
+    using Hexa.NET.Kitty;
+    using Hexa.NET.Kitty.Audio;
+    using Hexa.NET.Kitty.D3D11;
+    using Hexa.NET.Kitty.Debugging;
+    using Hexa.NET.Kitty.ImGuiBackend;
+    using Hexa.NET.Kitty.Threading;
+    using Hexa.NET.Kitty.UI;
+    using Hexa.NET.Kitty.UI.Dialogs;
+    using Hexa.NET.Kitty.Windows.Events;
+    using Kitty.OpenGL;
+    using Silk.NET.Core.Contexts;
+    using Silk.NET.Core.Native;
+    using Silk.NET.Direct3D11;
+    using Silk.NET.OpenGL;
     using System;
     using System.Numerics;
-    using Kitty.UI.Dialogs;
 
     public class Window : SdlWindow, IRenderWindow
     {
@@ -19,56 +23,113 @@
         private ThreadDispatcher renderDispatcher;
         private bool firstFrame;
         private IAudioDevice audioDevice;
-        private IGraphicsDevice graphicsDevice;
-        private IGraphicsContext graphicsContext;
-        private ISwapChain swapChain;
 #nullable restore
         private bool resize = false;
         private ImGuiManager? imGuiRenderer;
+        private DXGISwapChain swapChain;
+        private GL gl;
+        private IGLContext glContext;
 
         public IThreadDispatcher Dispatcher => renderDispatcher;
 
-        public IGraphicsDevice Device => graphicsDevice;
-
-        public IGraphicsContext Context => graphicsContext;
-
         public IAudioDevice AudioDevice => audioDevice;
 
-        public ISwapChain SwapChain => swapChain;
-
-        public Viewport RenderViewport => default;
-
-        public event Action<IGraphicsContext>? Draw;
+        public event Action? Draw;
 
         public Window()
         {
         }
 
-        public virtual void Initialize(AppBuilder appBuilder, IAudioDevice audioDevice, IGraphicsDevice graphicsDevice)
+        public virtual unsafe void Initialize(AppBuilder appBuilder, IAudioDevice audioDevice)
         {
             this.audioDevice = audioDevice;
-            this.graphicsDevice = graphicsDevice;
-            graphicsContext = graphicsDevice.Context;
-            swapChain = graphicsDevice.CreateSwapChain(this) ?? throw new PlatformNotSupportedException();
-            swapChain.Active = true;
-            swapChain.LimitFPS = false;
-            swapChain.VSync = true;
+
             renderDispatcher = new(Thread.CurrentThread);
 
             if (Application.MainWindow == this)
             {
                 AudioManager.Initialize(audioDevice);
-                PipelineManager.Initialize(graphicsDevice);
             }
 
-            imGuiRenderer = new(this, appBuilder, graphicsDevice, graphicsContext);
+            imGuiRenderer = new(appBuilder);
 
-            WidgetManager.Init(graphicsDevice);
+            WidgetManager.Init();
 
-            OnRendererInitialize(graphicsDevice);
+            OnRendererInitialize();
+
+            switch (Backend)
+            {
+                case GraphicsBackend.D3D11:
+                    swapChain = D3D11Adapter.CreateSwapChainForWindow(this);
+                    swapChain.Active = true;
+                    swapChain.LimitFPS = false;
+                    swapChain.VSync = true;
+                    var dev = D3D11GraphicsDevice.Device;
+                    var ctx = D3D11GraphicsDevice.DeviceContext;
+                    ImGuiSDL2Platform.InitForD3D(GetWindow());
+                    ImGuiD3D11Renderer.Init(*(ComPtr<ID3D11Device>*)&dev, *(ComPtr<ID3D11DeviceContext>*)&ctx);
+                    imGuiRenderer.RenderDrawData = (data) => ImGuiD3D11Renderer.RenderDrawData(data);
+                    break;
+
+                case GraphicsBackend.OpenGL:
+                    gl = OpenGLAdapter.GL;
+                    glContext = OpenGLAdapter.Context;
+                    glContext.SwapInterval(1);
+                    ImGuiSDL2Platform.InitForOpenGL(GetWindow(), (void*)glContext.Handle);
+                    ImGuiOpenGL3Renderer.Init(gl, null);
+                    imGuiRenderer.RenderDrawData = (data) => ImGuiOpenGL3Renderer.RenderDrawData(data);
+                    break;
+            }
         }
 
-        public void Render(IGraphicsContext context)
+        public void Render()
+        {
+            switch (Backend)
+            {
+                case GraphicsBackend.D3D11:
+                    RenderD3D11();
+                    break;
+
+                case GraphicsBackend.OpenGL:
+                    RenderOpenGL();
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        private void RenderOpenGL()
+        {
+            glContext.MakeCurrent();
+            if (resize)
+            {
+                gl.Viewport(0, 0, (uint)Width, (uint)Height);
+            }
+
+            gl.Clear((uint)ClearBufferMask.ColorBufferBit);
+
+            renderDispatcher.ExecuteQueue();
+
+            imGuiRenderer?.NewFrame();
+
+            OnRenderBegin();
+
+            WidgetManager.Draw();
+            DialogManager.Draw();
+            ImGuiConsole.Draw();
+            MessageBoxes.Draw();
+
+            OnRender();
+
+            gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            imGuiRenderer?.EndFrame();
+
+            glContext.MakeCurrent();
+            glContext.SwapBuffers();
+        }
+
+        private unsafe void RenderD3D11()
         {
             if (resize)
             {
@@ -76,29 +137,25 @@
                 resize = false;
             }
 
-            if (firstFrame)
-            {
-                Time.Initialize();
-                firstFrame = false;
-            }
-
-            context.ClearDepthStencilView(swapChain.BackbufferDSV, DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 1, 0);
-            context.ClearRenderTargetView(swapChain.BackbufferRTV, Vector4.Zero);
+            var context = D3D11GraphicsDevice.DeviceContext;
+            var color = Vector4.Zero;
+            context.ClearRenderTargetView(swapChain.BackbufferRTV, (float*)&color);
 
             renderDispatcher.ExecuteQueue();
 
             imGuiRenderer?.NewFrame();
 
-            OnRenderBegin(context);
+            OnRenderBegin();
 
-            WidgetManager.Draw(context);
+            WidgetManager.Draw();
             DialogManager.Draw();
             ImGuiConsole.Draw();
             MessageBoxes.Draw();
 
-            OnRender(context);
+            OnRender();
 
-            context.SetRenderTarget(swapChain.BackbufferRTV, null);
+            var rtv = swapChain.BackbufferRTV.Handle;
+            context.OMSetRenderTargets(1, ref rtv, (ID3D11DepthStencilView*)null);
             imGuiRenderer?.EndFrame();
 
             swapChain.Present();
@@ -116,22 +173,31 @@
 
             renderDispatcher.Dispose();
             AudioManager.Release();
-            swapChain.Dispose();
-            graphicsContext.Dispose();
-            graphicsDevice.Dispose();
+
+            switch (Backend)
+            {
+                case GraphicsBackend.D3D11:
+                    ImGuiD3D11Renderer.Shutdown();
+                    swapChain.Dispose();
+                    break;
+
+                case GraphicsBackend.OpenGL:
+                    ImGuiOpenGL3Renderer.Shutdown();
+                    break;
+            }
         }
 
-        protected virtual void OnRendererInitialize(IGraphicsDevice device)
+        protected virtual void OnRendererInitialize()
         {
         }
 
-        protected virtual void OnRenderBegin(IGraphicsContext context)
+        protected virtual void OnRenderBegin()
         {
         }
 
-        protected virtual void OnRender(IGraphicsContext context)
+        protected virtual void OnRender()
         {
-            Draw?.Invoke(context);
+            Draw?.Invoke();
         }
 
         protected virtual void OnRendererDispose()

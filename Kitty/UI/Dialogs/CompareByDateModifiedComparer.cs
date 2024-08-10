@@ -1,4 +1,6 @@
-﻿namespace Kitty.UI.Dialogs
+﻿using Kitty.UI.Dialogs;
+
+namespace Hexa.NET.Kitty.UI.Dialogs
 {
     public readonly struct CompareByDateModifiedComparer : IComparer<FileSystemItem>
     {

@@ -1,9 +1,8 @@
 ﻿namespace Kitty.UI.Dialogs
 {
-    using Hexa.NET.Utilities;
+    using Hexa.NET.Kitty.Extensions;
+    using Hexa.NET.Kitty.Logging;
     using HexaEngine.Editor;
-    using Kitty.Extensions;
-    using Kitty.Logging;
     using System;
     using System.Collections.Generic;
     using System.IO;

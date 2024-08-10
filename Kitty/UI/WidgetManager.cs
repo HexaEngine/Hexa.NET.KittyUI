@@ -1,13 +1,10 @@
-﻿namespace Kitty.UI
+﻿namespace Hexa.NET.Kitty.UI
 {
     using Hexa.NET.ImGui;
-    using Kitty.Graphics;
-    using Kitty.UI.Dialogs;
-    using System;
 
     public static class WidgetManager
     {
-        private static IGraphicsDevice? device;
+        private static bool initialized;
         private static readonly List<IImGuiWindow> widgets = new();
 
         static WidgetManager()
@@ -26,7 +23,7 @@
             IImGuiWindow? window = widgets.FirstOrDefault(x => x is T);
             if (window != null)
             {
-                if (device != null)
+                if (initialized)
                 {
                     window.Dispose();
                 }
@@ -42,35 +39,35 @@
                 widget.Show();
             }
 
-            if (device == null)
+            if (!initialized)
             {
                 widgets.Add(widget);
                 return false;
             }
             else
             {
-                widget.Init(device);
+                widget.Init();
                 widgets.Add(widget);
                 return true;
             }
         }
 
-        public static void Init(IGraphicsDevice device)
+        public static void Init()
         {
-            WidgetManager.device = device;
             for (int i = 0; i < widgets.Count; i++)
             {
                 var widget = widgets[i];
-                widget.Init(device);
+                widget.Init();
             }
+            initialized = true;
         }
 
-        public static void Draw(IGraphicsContext context)
+        public static void Draw()
         {
             ImGui.BeginDisabled(BlockInput);
             for (int i = 0; i < widgets.Count; i++)
             {
-                widgets[i].DrawWindow(context);
+                widgets[i].DrawWindow();
             }
             ImGui.EndDisabled();
         }
@@ -90,6 +87,7 @@
                 widgets[i].Dispose();
             }
             widgets.Clear();
+            initialized = false;
         }
     }
 }

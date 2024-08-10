@@ -1,4 +1,4 @@
-﻿namespace Kitty.Debugging
+﻿namespace Hexa.NET.Kitty.Debugging
 {
     using System.Collections.Generic;
     using System.Diagnostics;

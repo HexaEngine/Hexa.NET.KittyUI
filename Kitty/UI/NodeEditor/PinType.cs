@@ -1,4 +1,4 @@
-﻿namespace Kitty.UI.NodeEditor
+﻿namespace Hexa.NET.Kitty.UI.NodeEditor
 {
     public enum PinType
     {

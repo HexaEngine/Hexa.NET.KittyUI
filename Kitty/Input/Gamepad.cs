@@ -1,6 +1,6 @@
-﻿namespace Kitty.Input
+﻿namespace Hexa.NET.Kitty.Input
 {
-    using Kitty.Input.Events;
+    using Hexa.NET.Kitty.Input.Events;
     using Silk.NET.SDL;
     using System.Numerics;
     using System.Runtime.CompilerServices;
@@ -22,7 +22,7 @@
         private readonly Sdl sdl;
         private readonly int id;
         private readonly GameController* controller;
-        internal readonly Silk.NET.SDL.Joystick* joystick;
+        internal readonly Joystick* joystick;
         private readonly Dictionary<GamepadAxis, short> axisStates = new();
         private readonly Dictionary<GamepadButton, GamepadButtonState> buttonStates = new();
         private readonly Dictionary<GamepadSensorType, GamepadSensor> sensors = new();
@@ -114,7 +114,7 @@
             SdlCheckError();
             var buffer = AllocT<byte>(33);
             sdl.JoystickGetGUIDString(guid, buffer, 33);
-            var size = StringSizeNullTerminated(buffer);
+            var size = StrLen(buffer);
             var value = Encoding.ASCII.GetString(buffer, size - 1);
             Free(buffer);
             this.guid = value;

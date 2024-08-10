@@ -1,4 +1,4 @@
-﻿namespace Kitty.Windows
+﻿namespace Hexa.NET.Kitty.Windows
 {
     public enum DisplayOrientation
     {

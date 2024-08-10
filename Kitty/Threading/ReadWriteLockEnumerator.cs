@@ -1,4 +1,4 @@
-﻿namespace Kitty.Threading
+﻿namespace Hexa.NET.Kitty.Threading
 {
     using System;
     using System.Collections;

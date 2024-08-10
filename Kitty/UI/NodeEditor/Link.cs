@@ -1,4 +1,4 @@
-﻿namespace Kitty.UI.NodeEditor
+﻿namespace Hexa.NET.Kitty.UI.NodeEditor
 {
     using Hexa.NET.ImNodes;
     using Newtonsoft.Json;

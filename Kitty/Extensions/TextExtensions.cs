@@ -1,6 +1,6 @@
-﻿namespace Kitty.Extensions
+﻿namespace Hexa.NET.Kitty.Extensions
 {
-    using Kitty.Text;
+    using Hexa.NET.Kitty.Text;
 
     /// <summary>
     /// Provides extension methods for formatting data sizes into human-readable formats.

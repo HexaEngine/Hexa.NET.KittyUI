@@ -1,8 +1,11 @@
-﻿namespace Kitty.UI.Dialogs
+﻿using Kitty.UI.Dialogs;
+
+namespace Hexa.NET.Kitty.UI.Dialogs
 {
     using Hexa.NET.ImGui;
+    using Hexa.NET.Kitty.Text;
+    using Hexa.NET.Kitty.UI;
     using HexaEngine.Editor;
-    using Kitty.Text;
     using System.IO;
     using System.Numerics;
     using System.Text;

@@ -1,6 +1,5 @@
-﻿namespace Kitty.Input.Events
+﻿namespace Hexa.NET.Kitty.Input.Events
 {
-    using Kitty.Input;
     using System.Numerics;
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿namespace Kitty.Input
+﻿namespace Hexa.NET.Kitty.Input
 {
     using Kitty.Input.Events;
     using Silk.NET.SDL;

@@ -1,8 +1,8 @@
-﻿namespace Kitty.OpenAL
+﻿namespace Hexa.NET.Kitty.OpenAL
 {
-    using Kitty.Audio;
+    using Hexa.NET.Kitty.Audio;
     using Silk.NET.OpenAL;
-    using static Kitty.OpenAL.Helper;
+    using static Hexa.NET.Kitty.OpenAL.Helper;
 
     public unsafe class OpenALAudioDevice : IAudioDevice
     {
@@ -52,7 +52,7 @@
             {
                 delegate*<Device*, int*, int> alcResetDeviceSOFT = (delegate*<Device*, int*, int>)al.GetProcAddress("alcResetDeviceSOFT");
 
-                int* attributes = AllocT<int>(3);
+                int* attributes = AllocT(3);
                 attributes[0] = ALC_HRTF_SOFT;
                 attributes[1] = enable ? ALC_TRUE : ALC_FALSE;
                 attributes[2] = 0;

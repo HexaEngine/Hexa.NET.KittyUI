@@ -1,4 +1,4 @@
-﻿namespace Kitty.Logging
+﻿namespace Hexa.NET.Kitty.Logging
 {
     using System;
 

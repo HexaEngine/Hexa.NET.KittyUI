@@ -18,7 +18,7 @@
 
 using System.Collections;
 
-namespace Kitty.Collections
+namespace Hexa.NET.Kitty.Collections
 {
     /// <summary>
     /// Ternary Search Tree Dictionary
@@ -183,7 +183,7 @@ namespace Kitty.Collections
         {
             get
             {
-                if (!TryGetNode(key, null, out TernarySearchTreeDictionary<T>.TstDictionaryEntry<T>? entry))
+                if (!TryGetNode(key, null, out TstDictionaryEntry<T>? entry))
                     throw new KeyNotFoundException();
                 if (entry == null)
                     throw new KeyNotFoundException();
@@ -372,7 +372,7 @@ namespace Kitty.Collections
             ++_version;
 
             var stack = new Stack<TstDictionaryEntry<T>>();
-            if (!TryGetNode(key, stack, out TernarySearchTreeDictionary<T>.TstDictionaryEntry<T>? p))
+            if (!TryGetNode(key, stack, out TstDictionaryEntry<T>? p))
                 return false;
             stack.Pop();
 
@@ -453,7 +453,7 @@ namespace Kitty.Collections
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
 
-            if (!TryGetNode(key, null, out TernarySearchTreeDictionary<T>.TstDictionaryEntry<T>? entry))
+            if (!TryGetNode(key, null, out TstDictionaryEntry<T>? entry))
                 return false;
 
             if (entry == null)
@@ -470,7 +470,7 @@ namespace Kitty.Collections
         /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
         protected virtual TstDictionaryEntry<T>? Find(string key)
         {
-            if (TryGetNode(key, null, out TernarySearchTreeDictionary<T>.TstDictionaryEntry<T>? result))
+            if (TryGetNode(key, null, out TstDictionaryEntry<T>? result))
                 return result;
             return null;
         }

@@ -1,4 +1,4 @@
-﻿namespace Kitty.D3D11
+﻿namespace Hexa.NET.Kitty.D3D11
 {
     using System;
     using System.Runtime.InteropServices;

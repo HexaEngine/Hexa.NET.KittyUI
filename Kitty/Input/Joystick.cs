@@ -1,10 +1,11 @@
-﻿namespace Kitty.Input
+﻿namespace Hexa.NET.Kitty.Input
 {
-    using Kitty.Input.Events;
+    using Hexa.NET.Kitty;
+    using Hexa.NET.Kitty.Input.Events;
     using Silk.NET.SDL;
     using System.Numerics;
     using System.Text;
-    using static Extensions.SdlErrorHandlingExtensions;
+    using static Hexa.NET.Kitty.Extensions.SdlErrorHandlingExtensions;
 
     /// <summary>
     /// Represents a generic delegate for handling joystick events.
@@ -83,7 +84,7 @@
             SdlCheckError();
             var buffer = AllocT<byte>(33);
             sdl.JoystickGetGUIDString(guid, buffer, 33);
-            var size = StringSizeNullTerminated(buffer);
+            var size = StrLen(buffer);
             var value = Encoding.ASCII.GetString(buffer, size - 1);
             Free(buffer);
             this.guid = value;
