@@ -928,28 +928,10 @@
             sdl.ShowWindow(vd->Window);
         }
 
-        private static unsafe Vector2* GetWindowPos(Vector2* size, ImGuiViewport* viewport)
-        {
-            ViewportData* vd = (ViewportData*)viewport->PlatformUserData;
-            int x = 0, y = 0;
-            sdl.GetWindowPosition(vd->Window, &x, &y);
-            *size = new Vector2(x, y);
-            return size;
-        }
-
         private static unsafe void SetWindowPos(ImGuiViewport* viewport, Vector2 pos)
         {
             ViewportData* vd = (ViewportData*)viewport->PlatformUserData;
             sdl.SetWindowPosition(vd->Window, (int)pos.X, (int)pos.Y);
-        }
-
-        private static unsafe Vector2* GetWindowSize(Vector2* size, ImGuiViewport* viewport)
-        {
-            ViewportData* vd = (ViewportData*)viewport->PlatformUserData;
-            int w = 0, h = 0;
-            sdl.GetWindowSize(vd->Window, &w, &h);
-            *size = new Vector2(w, h);
-            return size;
         }
 
         private static unsafe void SetWindowSize(ImGuiViewport* viewport, Vector2 size)
@@ -1014,6 +996,48 @@
             return ret == SdlBool.True ? 0 : 1; // ret ? VK_SUCCESS : VK_NOT_READY
         }
 
+        private static unsafe Vector2* GetWindowSize(Vector2* size, ImGuiViewport* viewport)
+        {
+            ViewportData* vd = (ViewportData*)viewport->PlatformUserData;
+            int w = 0, h = 0;
+            sdl.GetWindowSize(vd->Window, &w, &h);
+            *size = new Vector2(w, h);
+            return size;
+        }
+
+        private static unsafe Vector2* GetWindowPos(Vector2* size, ImGuiViewport* viewport)
+        {
+            ViewportData* vd = (ViewportData*)viewport->PlatformUserData;
+            int x = 0, y = 0;
+            sdl.GetWindowPosition(vd->Window, &x, &y);
+            *size = new Vector2(x, y);
+            return size;
+        }
+
+        private static unsafe Vector2 GetWindowSize(ImGuiViewport* viewport)
+        {
+            ViewportData* vd = (ViewportData*)viewport->PlatformUserData;
+            int w = 0, h = 0;
+            sdl.GetWindowSize(vd->Window, &w, &h);
+            var size = new Vector2(w, h);
+            return size;
+        }
+
+        private static unsafe Vector2 GetWindowPos(ImGuiViewport* viewport)
+        {
+            ViewportData* vd = (ViewportData*)viewport->PlatformUserData;
+            int x = 0, y = 0;
+            sdl.GetWindowPosition(vd->Window, &x, &y);
+            var size = new Vector2(x, y);
+            return size;
+        }
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public unsafe delegate Vector2 PlatformGetWindowPosDefault(ImGuiViewport* viewport);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public unsafe delegate Vector2 PlatformGetWindowSizeDefault(ImGuiViewport* viewport);
+
         private static unsafe void InitPlatformInterface(Window* window, void* sdl_gl_context)
         {
             ImGuiPlatformIO* platform_io = ImGui.GetPlatformIO();
@@ -1022,9 +1046,7 @@
             platform_io->PlatformDestroyWindow = (void*)Marshal.GetFunctionPointerForDelegate<PlatformDestroyWindow>(DestroyWindow);
             platform_io->PlatformShowWindow = (void*)Marshal.GetFunctionPointerForDelegate<PlatformShowWindow>(ShowWindow);
             platform_io->PlatformSetWindowPos = (void*)Marshal.GetFunctionPointerForDelegate<PlatformSetWindowPos>(SetWindowPos);
-            platform_io->PlatformGetWindowPos = (void*)Marshal.GetFunctionPointerForDelegate<PlatformGetWindowPos>(GetWindowPos);
             platform_io->PlatformSetWindowSize = (void*)Marshal.GetFunctionPointerForDelegate<PlatformSetWindowSize>(SetWindowSize);
-            platform_io->PlatformGetWindowSize = (void*)Marshal.GetFunctionPointerForDelegate<PlatformGetWindowSize>(GetWindowSize);
             platform_io->PlatformSetWindowFocus = (void*)Marshal.GetFunctionPointerForDelegate<PlatformSetWindowFocus>(DestroyWindow);
             platform_io->PlatformGetWindowFocus = (void*)Marshal.GetFunctionPointerForDelegate<PlatformGetWindowFocus>(GetWindowFocus);
             platform_io->PlatformGetWindowMinimized = (void*)Marshal.GetFunctionPointerForDelegate<PlatformGetWindowMinimized>(GetWindowMinimized);
@@ -1033,6 +1055,16 @@
             platform_io->PlatformSwapBuffers = (void*)Marshal.GetFunctionPointerForDelegate<PlatformSwapBuffers>(SwapBuffers);
             platform_io->PlatformSetWindowAlpha = (void*)Marshal.GetFunctionPointerForDelegate<PlatformSetWindowAlpha>(SetWindowAlpha);
             platform_io->PlatformCreateVkSurface = (void*)Marshal.GetFunctionPointerForDelegate<PlatformCreateVkSurface>(CreateVkSurface);
+            if (OperatingSystem.IsWindows())
+            {
+                platform_io->PlatformGetWindowPos = (void*)Marshal.GetFunctionPointerForDelegate<PlatformGetWindowPos>(GetWindowPos);
+                platform_io->PlatformGetWindowSize = (void*)Marshal.GetFunctionPointerForDelegate<PlatformGetWindowSize>(GetWindowSize);
+            }
+            else
+            {
+                platform_io->PlatformGetWindowPos = (void*)Marshal.GetFunctionPointerForDelegate<PlatformGetWindowPosDefault>(GetWindowPos);
+                platform_io->PlatformGetWindowSize = (void*)Marshal.GetFunctionPointerForDelegate<PlatformGetWindowSizeDefault>(GetWindowSize);
+            }
 
             ImGuiViewport* main_viewport = ImGui.GetMainViewport().Handle;
             ViewportData* vd = AllocT<ViewportData>();
