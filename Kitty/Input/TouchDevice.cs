@@ -34,7 +34,7 @@
         {
             id = sdl.GetTouchDevice(index);
             name = sdl.GetTouchNameS(index);
-            type = sdl.GetTouchDeviceType(id);
+            type = (TouchDeviceType)sdl.GetTouchDeviceType(id);
 
             var fingerCount = sdl.GetNumTouchFingers(id);
             fingers = new Finger[fingerCount];
@@ -54,7 +54,7 @@
         {
             this.id = id;
             name = "Unknown";
-            type = sdl.GetTouchDeviceType(id);
+            type = (TouchDeviceType)sdl.GetTouchDeviceType(id);
 
             var fingerCount = sdl.GetNumTouchFingers(id);
             fingers = new Finger[fingerCount];

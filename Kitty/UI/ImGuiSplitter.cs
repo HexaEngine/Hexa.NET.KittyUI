@@ -1,8 +1,8 @@
-﻿using Hexa.NET.ImGui;
-using System.Numerics;
-
-namespace Hexa.NET.Kitty.UI
+﻿namespace Hexa.NET.Kitty.UI
 {
+    using Hexa.NET.ImGui;
+    using System.Numerics;
+
     public static unsafe class ImGuiSplitter
     {
         public static bool VerticalSplitter(string strId, ref float width)

@@ -60,7 +60,7 @@
         /// <returns>A <see cref="Haptic"/> instance representing the haptic feedback device.</returns>
         public static Haptic OpenFromGamepad(Gamepad gamepad)
         {
-            return new(sdl.HapticOpenFromJoystick(gamepad.joystick));
+            return new(sdl.HapticOpenFromJoystick((Silk.NET.SDL.Joystick*)gamepad.joystick));
         }
 
         /// <summary>

@@ -55,7 +55,7 @@
         private readonly TouchEventArgs touchEventArgs = new();
         private readonly TouchMotionEventArgs touchMotionEventArgs = new();
 
-        private Window* window;
+        private Silk.NET.SDL.Window* window;
         private bool created;
         private bool destroyed;
         private int width = 1280;
@@ -248,7 +248,7 @@
             return new SdlContext(sdl, window, null, (GLattr.ContextMajorVersion, 4), (GLattr.ContextMinorVersion, 5));
         }
 
-        public Window* GetWindow() => window;
+        public Silk.NET.SDL.Window* GetWindow() => window;
 
         public uint WindowID { get; private set; }
 

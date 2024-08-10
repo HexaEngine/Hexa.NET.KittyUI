@@ -13,21 +13,21 @@
         public static DisplayMode GetClosestDisplayMode(int displayIndex, DisplayMode mode)
         {
             DisplayMode closest;
-            Sdl.GetClosestDisplayMode(displayIndex, &mode, &closest);
+            Sdl.GetClosestDisplayMode(displayIndex, (Silk.NET.SDL.DisplayMode*)&mode, (Silk.NET.SDL.DisplayMode*)&closest);
             return closest;
         }
 
         public static DisplayMode GetCurrentDisplayMode(int displayIndex)
         {
             DisplayMode mode;
-            Sdl.GetCurrentDisplayMode(displayIndex, &mode);
+            Sdl.GetCurrentDisplayMode(displayIndex, (Silk.NET.SDL.DisplayMode*)&mode);
             return mode;
         }
 
         public static DisplayMode GetDesktopDisplayMode(int displayIndex)
         {
             DisplayMode mode;
-            Sdl.GetDesktopDisplayMode(displayIndex, &mode);
+            Sdl.GetDesktopDisplayMode(displayIndex, (Silk.NET.SDL.DisplayMode*)&mode);
             return mode;
         }
 
@@ -38,7 +38,7 @@
 
         public static DisplayOrientation GetDisplayOrientation(int displayIndex)
         {
-            return Sdl.GetDisplayOrientation(displayIndex);
+            return (DisplayOrientation)Sdl.GetDisplayOrientation(displayIndex);
         }
 
         public static void GetDisplayDPI(int displayIndex, ref float ddpi, ref float hdpi, ref float vdpi)
@@ -69,7 +69,7 @@
         public static DisplayMode GetDisplayMode(int displayIndex, int modeIndex)
         {
             DisplayMode mode;
-            Sdl.GetDisplayMode(displayIndex, modeIndex, &mode);
+            Sdl.GetDisplayMode(displayIndex, modeIndex, (Silk.NET.SDL.DisplayMode*)&mode);
             return mode;
         }
 
@@ -98,7 +98,7 @@
         public static DisplayMode GetWindowDisplayMode(SdlWindow window)
         {
             DisplayMode mode;
-            Sdl.GetWindowDisplayMode(window.GetWindow(), &mode);
+            Sdl.GetWindowDisplayMode(window.GetWindow(), (Silk.NET.SDL.DisplayMode*)&mode);
             return mode;
         }
     }
