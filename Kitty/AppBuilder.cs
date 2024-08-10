@@ -1,6 +1,7 @@
 ﻿namespace Hexa.NET.Kitty
 {
     using Hexa.NET.ImGui;
+    using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.Kitty.ImGuiBackend;
     using Hexa.NET.Kitty.UI;
     using System;
@@ -12,6 +13,7 @@
     {
         internal readonly List<(ImGuiFontBuilderCallback, string? alias)> fontBuilders = new();
         internal readonly List<ImGuiFontBuilder> builders = new();
+
         internal void BuildFonts(ImGuiIOPtr io, Dictionary<string, ImFontPtr> aliasToFont)
         {
             if (fontBuilders.Count == 0)
@@ -19,7 +21,6 @@
                 AddDefaultFont();
             }
 
-            
             for (int i = 0; i < fontBuilders.Count; i++)
             {
                 (ImGuiFontBuilderCallback fontBuilder, string? alias) = fontBuilders[i];
@@ -72,15 +73,17 @@
 
             protected override string Name => name;
 
-            public override unsafe void DrawWindow()
+            public override unsafe void DrawWindow(ImGuiWindowFlags overwriteFlags)
             {
                 ImGuiWindowClass windowClass;
                 windowClass.DockNodeFlagsOverrideSet = (ImGuiDockNodeFlags)ImGuiDockNodeFlagsPrivate.NoTabBar;
                 ImGui.SetNextWindowClass(&windowClass);
-                ImGui.DockBuilderDockWindow(Name, ImGuiManager.DockSpaceId);
+                ImGui.DockBuilderDockWindow(Name, WidgetManager.DockSpaceId);
+
+                var flags = Flags | overwriteFlags;
 
                 if (!IsShown) return;
-                if (!ImGui.Begin(Name, Flags))
+                if (!ImGui.Begin(Name, flags))
                 {
                     ImGui.End();
                     return;

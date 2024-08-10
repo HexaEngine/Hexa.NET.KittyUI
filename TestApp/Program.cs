@@ -1,8 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Hexa.NET.ImGui;
+using Hexa.NET.ImGui.Widgets;
+using Hexa.NET.ImGui.Widgets.Dialogs;
 using Hexa.NET.Kitty;
-using Hexa.NET.Kitty.UI;
-using Hexa.NET.Kitty.UI.Dialogs;
 using TestApp;
 
 WidgetManager.Register<MainWindow>(show: true);

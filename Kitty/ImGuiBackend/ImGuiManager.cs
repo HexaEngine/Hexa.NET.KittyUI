@@ -178,13 +178,7 @@
             ImGuiSDL2Platform.NewFrame();
             ImGui.NewFrame();
             ImGuizmo.BeginFrame();
-
-            ImGui.PushStyleColor(ImGuiCol.WindowBg, Vector4.Zero);
-            DockSpaceId = ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null);
-            ImGui.PopStyleColor(1);
         }
-
-        public static uint DockSpaceId { get; private set; }
 
         public Action<ImDrawDataPtr> RenderDrawData;
 

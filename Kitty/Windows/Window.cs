@@ -1,13 +1,12 @@
 ﻿namespace Hexa.NET.Kitty.Windows
 {
+    using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.Kitty;
     using Hexa.NET.Kitty.Audio;
     using Hexa.NET.Kitty.D3D11;
     using Hexa.NET.Kitty.Debugging;
     using Hexa.NET.Kitty.ImGuiBackend;
     using Hexa.NET.Kitty.Threading;
-    using Hexa.NET.Kitty.UI;
-    using Hexa.NET.Kitty.UI.Dialogs;
     using Hexa.NET.Kitty.Windows.Events;
     using Kitty.OpenGL;
     using Silk.NET.Core.Contexts;
@@ -116,9 +115,6 @@
             OnRenderBegin();
 
             WidgetManager.Draw();
-            DialogManager.Draw();
-            ImGuiConsole.Draw();
-            MessageBoxes.Draw();
 
             OnRender();
 
@@ -148,9 +144,6 @@
             OnRenderBegin();
 
             WidgetManager.Draw();
-            DialogManager.Draw();
-            ImGuiConsole.Draw();
-            MessageBoxes.Draw();
 
             OnRender();
 

@@ -13,4 +13,13 @@
 		<ProjectReference Include="..\Kitty\Hexa.NET.Kitty.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="cimgui.dll">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="cimgui.pdb">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 </Project>
