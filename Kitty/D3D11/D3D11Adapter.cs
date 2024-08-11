@@ -8,12 +8,12 @@
     using Silk.NET.Direct3D11;
     using Silk.NET.DXGI;
     using Silk.NET.Maths;
-    using Silk.NET.SDL;
+    using Hexa.NET.SDL2;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Text;
     using InfoQueueFilter = Silk.NET.DXGI.InfoQueueFilter;
-    using Window = Silk.NET.SDL.Window;
+    using Window = Hexa.NET.SDL2.SDLWindow;
 
     public static unsafe class D3D11Adapter
     {
@@ -192,17 +192,16 @@
         [SupportedOSPlatform("windows")]
         internal static DXGISwapChain CreateSwapChainForWindow(Window* window)
         {
-            Sdl sdl = Application.sdl;
-            SysWMInfo info;
-            sdl.GetVersion(&info.Version);
-            sdl.GetWindowWMInfo(window, &info);
+            SDLSysWMInfo info;
+            SDL.SDLGetVersion(&info.Version);
+            SDL.SDLGetWindowWMInfo(window, &info);
 
             int width = 0;
             int height = 0;
 
-            sdl.GetWindowSize(window, &width, &height);
+            SDL.SDLGetWindowSize(window, &width, &height);
 
-            var Hwnd = info.Info.Win.Hwnd;
+            var Hwnd = info.Info.Win.Window;
 
             SwapChainDesc1 desc = new()
             {

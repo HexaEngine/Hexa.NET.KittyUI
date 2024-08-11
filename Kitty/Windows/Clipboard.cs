@@ -1,35 +1,33 @@
 ﻿namespace Hexa.NET.Kitty.Windows
 {
     using Hexa.NET.Kitty;
-    using Silk.NET.SDL;
+    using Hexa.NET.SDL2;
 
     public static unsafe class Clipboard
     {
-        private static readonly Sdl Sdl = Application.sdl;
-
         public static char* GetClipboardText()
         {
-            return (char*)Sdl.GetClipboardText();
+            return (char*)SDL.SDLGetClipboardText();
         }
 
         public static string GetClipboardTextS()
         {
-            return Sdl.GetClipboardTextS();
+            return SDL.SDLGetClipboardTextS();
         }
 
         public static void SetClipboardText(char* text)
         {
-            Sdl.SetClipboardText((byte*)text);
+            SDL.SDLSetClipboardText((byte*)text);
         }
 
         public static void SetClipboardText(string text)
         {
-            Sdl.SetClipboardText(text);
+            SDL.SDLSetClipboardText(text);
         }
 
         public static void Free(char* text)
         {
-            Sdl.Free(text);
+            SDL.SDLFree(text);
         }
     }
 }

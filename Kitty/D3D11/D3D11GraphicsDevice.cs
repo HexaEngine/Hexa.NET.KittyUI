@@ -64,7 +64,11 @@
 
         public static void Shutdown()
         {
+            DeviceContext.Release();
             Device.Release();
+
+            DeviceContext = default;
+            Device = default;
 
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
 
@@ -72,6 +76,7 @@
             {
                 DebugDevice.ReportLiveDeviceObjects(RldoFlags.Detail | RldoFlags.IgnoreInternal);
                 DebugDevice.Release();
+                DebugDevice = default;
             }
 
             LeakTracer.ReportLiveInstances();

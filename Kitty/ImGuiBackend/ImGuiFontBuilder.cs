@@ -15,7 +15,7 @@
 
         public GlyphRanges(ReadOnlySpan<char> glyphs)
         {
-            this.glyphs = new UnsafeList<char>((uint)glyphs.Length);
+            this.glyphs = new UnsafeList<char>(glyphs.Length);
             for (int i = 0; i < glyphs.Length; i++)
             {
                 this.glyphs.Add(glyphs[i]);

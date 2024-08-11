@@ -74,7 +74,7 @@
                     gl = OpenGLAdapter.GL;
                     glContext = OpenGLAdapter.Context;
                     glContext.SwapInterval(1);
-                    ImGuiSDL2Platform.InitForOpenGL(GetWindow(), (void*)glContext.Handle);
+                    ImGuiSDL2Platform.InitForOpenGL(GetWindow(), glContext.Handle);
                     ImGuiOpenGL3Renderer.Init(gl, null);
                     imGuiRenderer.RenderDrawData = (data) => ImGuiOpenGL3Renderer.RenderDrawData(data);
                     break;
@@ -134,6 +134,10 @@
             }
 
             var context = D3D11GraphicsDevice.DeviceContext;
+            if (context.Handle == null)
+            {
+                return;
+            }
             var color = Vector4.Zero;
             context.ClearRenderTargetView(swapChain.BackbufferRTV, (float*)&color);
 
@@ -162,10 +166,10 @@
 
             WidgetManager.Dispose();
 
-            imGuiRenderer?.Dispose();
-
             renderDispatcher.Dispose();
             AudioManager.Release();
+
+            ImGuiSDL2Platform.Shutdown();
 
             switch (Backend)
             {

@@ -196,10 +196,5 @@
                 ImGui.RenderPlatformWindowsDefault();
             }
         }
-
-        public void Dispose()
-        {
-            ImGuiSDL2Platform.Shutdown();
-        }
     }
 }

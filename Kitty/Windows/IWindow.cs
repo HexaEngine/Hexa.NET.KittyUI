@@ -90,7 +90,7 @@
         /// <summary>
         /// Gets the windows border size.
         /// </summary>
-        Rectangle BorderSize { get; }
+        Rect BorderSize { get; }
 
         /// <summary>
         /// Event triggered when the window is closing.
@@ -255,7 +255,7 @@
         /// Gets the underlying native window pointer.
         /// </summary>
         /// <returns>A pointer to the native window.</returns>
-        unsafe Silk.NET.SDL.Window* GetWindow();
+        unsafe Hexa.NET.SDL2.SDLWindow* GetWindow();
 
         /// <summary>
         /// Clears the input state for the window.

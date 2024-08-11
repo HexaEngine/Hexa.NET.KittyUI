@@ -520,68 +520,68 @@ namespace Hexa.NET.Kitty.D3D11
             if (bd->fontSampler.Handle != null)
             {
                 bd->fontSampler.Release();
-                bd->fontSampler = null;
+                bd->fontSampler = default;
             }
 
             if (bd->fontTextureView.Handle != null)
             {
                 bd->fontTextureView.Release();
-                bd->fontTextureView = null;
+                bd->fontTextureView = default;
                 ImGui.GetIO().Fonts.SetTexID(0); // We copied data->pFontTextureView to io.Fonts->TexID so let's clear that as well.
             }
 
             if (bd->indexBuffer.Handle != null)
             {
                 bd->indexBuffer.Release();
-                bd->indexBuffer = null;
+                bd->indexBuffer = default;
             }
 
             if (bd->vertexBuffer.Handle != null)
             {
                 bd->vertexBuffer.Release();
-                bd->vertexBuffer = null;
+                bd->vertexBuffer = default;
             }
 
             if (bd->blendState.Handle != null)
             {
                 bd->blendState.Release();
-                bd->blendState = null;
+                bd->blendState = default;
             }
 
             if (bd->depthStencilState.Handle != null)
             {
                 bd->depthStencilState.Release();
-                bd->depthStencilState = null;
+                bd->depthStencilState = default;
             }
 
             if (bd->rasterizerState.Handle != null)
             {
                 bd->rasterizerState.Release();
-                bd->rasterizerState = null;
+                bd->rasterizerState = default;
             }
 
             if (bd->pixelShader.Handle != null)
             {
                 bd->pixelShader.Release();
-                bd->pixelShader = null;
+                bd->pixelShader = default;
             }
 
             if (bd->constantBuffer.Handle != null)
             {
                 bd->constantBuffer.Release();
-                bd->constantBuffer = null;
+                bd->constantBuffer = default;
             }
 
             if (bd->inputLayout.Handle != null)
             {
                 bd->inputLayout.Release();
-                bd->inputLayout = null;
+                bd->inputLayout = default;
             }
 
             if (bd->vertexShader.Handle != null)
             {
                 bd->vertexShader.Release();
-                bd->vertexShader = null;
+                bd->vertexShader = default;
             }
         }
 
@@ -592,6 +592,7 @@ namespace Hexa.NET.Kitty.D3D11
 
             // Setup backend capabilities flags
             var bd = AllocT<RendererData>();
+            ZeroMemoryT(bd);
             io.BackendRendererUserData = bd;
             io.BackendRendererName = "imgui_impl_dx11".ToUTF8Ptr();
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset; // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.

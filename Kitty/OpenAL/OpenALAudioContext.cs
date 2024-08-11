@@ -1,5 +1,6 @@
 ﻿namespace Hexa.NET.Kitty.OpenAL
 {
+    using Hexa.NET.Utilities;
     using Kitty.Audio;
     using Silk.NET.OpenAL;
     using static Kitty.OpenAL.Helper;
@@ -7,8 +8,13 @@
     public unsafe class OpenALAudioContext : IAudioContext
     {
         internal readonly OpenALAudioDevice AudioDevice;
+
+        [SuppressFreeWarning]
         internal readonly Device* Device;
+
+        [SuppressFreeWarning]
         public readonly Context* Context;
+
         private bool disposedValue;
 
         public nint NativePointer => (nint)Context;

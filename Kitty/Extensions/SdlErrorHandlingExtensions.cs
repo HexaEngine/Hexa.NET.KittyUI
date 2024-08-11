@@ -2,7 +2,7 @@
 {
     using Hexa.NET.Kitty;
     using Hexa.NET.Kitty.Logging;
-    using Silk.NET.SDL;
+    using Hexa.NET.SDL2;
     using System.Runtime.CompilerServices;
 
     /// <summary>
@@ -10,7 +10,7 @@
     /// </summary>
     public static unsafe class SdlErrorHandlingExtensions
     {
-        private static readonly ILogger Logger = LoggerFactory.GetLogger(nameof(Sdl));
+        private static readonly ILogger Logger = LoggerFactory.GetLogger(nameof(SDL));
 
         /// <summary>
         /// Checks the SDL function result and throws an exception if it's equal to 0.
@@ -23,7 +23,7 @@
 #if DEBUG
             if (result == 0)
             {
-                Logger.ThrowIfNotNull(Application.sdl.GetErrorAsException());
+                Logger.ThrowIfNotNull(SDL.GetErrorAsException());
             }
             return result;
 #else
@@ -42,7 +42,7 @@
 #if DEBUG
             if (result < 0)
             {
-                Logger.ThrowIfNotNull(Application.sdl.GetErrorAsException());
+                Logger.ThrowIfNotNull(SDL.GetErrorAsException());
             }
             return result;
 #else
@@ -60,7 +60,7 @@
         {
             if (result == 0)
             {
-                Logger.ThrowIfNotNull(Application.sdl.GetErrorAsException());
+                Logger.ThrowIfNotNull(SDL.GetErrorAsException());
             }
             return result;
         }
@@ -71,7 +71,7 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SdlCheckError()
         {
-            Logger.ThrowIfNotNull(Application.sdl.GetErrorAsException());
+            Logger.ThrowIfNotNull(SDL.GetErrorAsException());
         }
 
         /// <summary>
@@ -84,7 +84,7 @@
         {
             if (ptr == null)
             {
-                Logger.ThrowIfNotNull(Application.sdl.GetErrorAsException());
+                Logger.ThrowIfNotNull(SDL.GetErrorAsException());
             }
             return ptr;
         }
@@ -101,7 +101,7 @@
 #if DEBUG
             if (ptr == null)
             {
-                Logger.ThrowIfNotNull(Application.sdl.GetErrorAsException());
+                Logger.ThrowIfNotNull(SDL.GetErrorAsException());
             }
             return ptr;
 #else

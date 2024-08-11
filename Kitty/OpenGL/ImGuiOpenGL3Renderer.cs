@@ -22,6 +22,7 @@ namespace Hexa.NET.Kitty.OpenGL
 
         private struct RenderData
         {
+#pragma warning disable MNF001 // Class/Struct Member Not Freed
             public uint GlVersion;               // Extracted at runtime using GL_MAJOR_VERSION, GL_MINOR_VERSION queries (e.g. 320 for GL 3.2)
             public byte* GlslVersionString;   // Specified by user or detected based on compile time GL settings.
             public bool GlProfileIsES2;
@@ -41,6 +42,7 @@ namespace Hexa.NET.Kitty.OpenGL
             public bool HasPolygonMode;
             public bool HasClipOrigin;
             public bool UseBufferSubData;
+#pragma warning restore MNF001 // Class/Struct Member Not Freed
         };
 
         private static RenderData* GetBackendData()
@@ -631,7 +633,7 @@ namespace Hexa.NET.Kitty.OpenGL
             if (log_length > 1)
             {
                 UnsafeList<byte> buf = default;
-                buf.Resize((uint)log_length + 1);
+                buf.Resize(log_length + 1);
                 GL.GetShaderInfoLog(handle, (uint)log_length, null, buf.Data);
                 Debug.WriteLine(ToStringFromUTF8(buf.Data));
                 buf.Release();
@@ -654,7 +656,7 @@ namespace Hexa.NET.Kitty.OpenGL
             if (log_length > 1)
             {
                 UnsafeList<byte> buf = default;
-                buf.Resize((uint)log_length + 1);
+                buf.Resize(log_length + 1);
                 GL.GetShaderInfoLog(handle, (uint)log_length, null, buf.Data);
                 Debug.WriteLine(ToStringFromUTF8(buf.Data));
                 buf.Release();

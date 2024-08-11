@@ -7,7 +7,7 @@
     /// </summary>
     public unsafe class Finger
     {
-        private readonly Silk.NET.SDL.Finger* finger;
+        private readonly Hexa.NET.SDL2.SDLFinger* finger;
         private readonly long id;
         private FingerState state;
 
@@ -15,7 +15,7 @@
         /// Initializes a new instance of the <see cref="Finger"/> class.
         /// </summary>
         /// <param name="finger">A pointer to the native SDL finger.</param>
-        public Finger(Silk.NET.SDL.Finger* finger)
+        public Finger(Hexa.NET.SDL2.SDLFinger* finger)
         {
             this.finger = finger;
             id = finger->Id;
