@@ -4,104 +4,6 @@
     using System.Runtime.InteropServices;
     using System.Security.Cryptography;
 
-    public unsafe class SecureMemoryWin
-    {
-        private void* _memoryPtr;
-        private int _length;
-        private int _paddedLength;
-
-        private const uint CRYPTPROTECTMEMORY_BLOCK_SIZE = 16;
-        private const uint CRYPTPROTECTMEMORY_SAME_PROCESS = 0x00;
-
-        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-        private static extern void* VirtualAlloc(void* lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
-
-        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-        private static extern bool VirtualFree(void* lpAddress, uint dwSize, uint dwFreeType);
-
-        [DllImport("crypt32.dll", SetLastError = true, ExactSpelling = true)]
-        private static extern bool CryptProtectMemory(void* pDataIn, uint cbDataIn, uint dwFlags);
-
-        [DllImport("crypt32.dll", SetLastError = true, ExactSpelling = true)]
-        private static extern bool CryptUnprotectMemory(void* pDataIn, uint cbDataIn, uint dwFlags);
-
-        private const uint MEM_COMMIT = 0x1000;
-        private const uint MEM_RESERVE = 0x2000;
-        private const uint MEM_RELEASE = 0x8000;
-        private const uint PAGE_READWRITE = 0x04;
-
-        public unsafe void StoreSensitiveData(byte* data, int length)
-        {
-            _length = length;
-            _paddedLength = (_length + (int)CRYPTPROTECTMEMORY_BLOCK_SIZE - 1) & ~((int)CRYPTPROTECTMEMORY_BLOCK_SIZE - 1);
-
-            // Step 1: Allocate unmanaged memory
-            _memoryPtr = VirtualAlloc(null, (uint)_paddedLength, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-            if (_memoryPtr == null)
-            {
-                throw new InvalidOperationException("Failed to allocate memory.");
-            }
-
-            // Step 2: Copy the data into the allocated memory
-            Memcpy(data, _memoryPtr, _length, _length);
-
-            // Zero out any padded bytes
-            if (_paddedLength > _length)
-            {
-                ZeroMemory((byte*)_memoryPtr + _length, _paddedLength - _length);
-            }
-
-            // Step 3: Encrypt the memory using CryptProtectMemory
-            ProtectMemoryContent();
-
-            for (int i = 0; i < _length; i++)
-            {
-                Console.WriteLine(((byte*)_memoryPtr)[i]);
-            }
-        }
-
-        public unsafe void AccessSensitiveData(byte* outputBuffer, int length)
-        {
-            // Step 1: Decrypt the memory using CryptUnprotectMemory
-            UnprotectMemoryContent();
-
-            // Step 2: Copy the data into the output buffer
-            Memcpy(_memoryPtr, outputBuffer, length, _length);
-
-            // Step 3: Re-encrypt the memory content
-            ProtectMemoryContent();
-        }
-
-        public void SecureClear()
-        {
-            // Step 1: Decrypt the memory using CryptUnprotectMemory
-            UnprotectMemoryContent();
-
-            // Step 2: Securely clear the memory
-            ZeroMemory(_memoryPtr, _paddedLength);
-            VirtualFree(_memoryPtr, 0, MEM_RELEASE);
-            _memoryPtr = null;
-            _length = 0;
-            _paddedLength = 0;
-        }
-
-        private void ProtectMemoryContent()
-        {
-            if (!CryptProtectMemory(_memoryPtr, (uint)_paddedLength, CRYPTPROTECTMEMORY_SAME_PROCESS))
-            {
-                throw new InvalidOperationException("Failed to protect memory content.");
-            }
-        }
-
-        private void UnprotectMemoryContent()
-        {
-            if (!CryptUnprotectMemory(_memoryPtr, (uint)_paddedLength, CRYPTPROTECTMEMORY_SAME_PROCESS))
-            {
-                throw new InvalidOperationException("Failed to unprotect memory content.");
-            }
-        }
-    }
-
     public unsafe class SecureMemoryLinux
     {
         private static int keyringId = -1;
@@ -119,16 +21,7 @@
         private const int PROT_READ_WRITE = PROT_READ | PROT_WRITE;
 
         private const int MAP_PRIVATE = 0x02;
-        private const int MAP_ANONYMOUS = 0x20;
-
-        [DllImport("libkeyutils.so")]
-        private static extern int keyctl_join_session_keyring(void* name);
-
-        [DllImport("libkeyutils.so")]
-        private static extern int add_key(string type, string description, void* payload, uint plen, int ringid);
-
-        [DllImport("libkeyutils.so")]
-        private static extern int keyctl(int operation, int key, void* value, IntPtr value_len, int keyring);
+        private const int MAP_LOCKED = 0x20;
 
         [DllImport("libc.so.6", SetLastError = true, ExactSpelling = true)]
         private static extern int mprotect(void* addr, uint len, int prot);
@@ -139,22 +32,13 @@
         [DllImport("libc.so.6", SetLastError = true, ExactSpelling = true)]
         private static extern int munmap(void* addr, uint length);
 
-        static SecureMemoryLinux()
-        {
-            keyringId = keyctl_join_session_keyring(null);
-            if (keyringId < 0)
-            {
-                throw new InvalidOperationException("Failed to create session keyring.");
-            }
-        }
-
         public unsafe void StoreSensitiveData(byte* data, int length)
         {
             _length = length;
             _paddedLength = _length + AES_TAG_SIZE + AES_NONCE_SIZE;
 
             // Step 1: Allocate memory using mmap
-            _memoryPtr = mmap(null, (uint)_paddedLength, PROT_READ_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+            _memoryPtr = mmap(null, (uint)_paddedLength, PROT_READ_WRITE, MAP_PRIVATE | MAP_LOCKED, -1, 0);
             if (_memoryPtr == null)
             {
                 throw new InvalidOperationException("Failed to allocate memory.");
@@ -210,12 +94,12 @@
         private void ProtectMemoryContent()
         {
             // Allocate the key and nonce
-            Span<byte> key = stackalloc byte[AES_KEY_SIZE];
+            byte* key = stackalloc byte[AES_KEY_SIZE];
             Span<byte> nonce = stackalloc byte[AES_NONCE_SIZE];
             Span<byte> tag = stackalloc byte[AES_TAG_SIZE];
 
             // Retrieve the key from the keyring
-            RetrieveKeyFromKeyring(key);
+            RetrieveKeyFromKeyring(key, AES_TAG_SIZE);
 
             // Generate a random nonce
             RandomNumberGenerator.Fill(nonce);
@@ -227,7 +111,7 @@
             // Copy the nonce to the beginning of the ciphertext
             nonce.CopyTo(ciphertext.Slice(0, AES_NONCE_SIZE));
 
-            using (var aesGcm = new AesGcm(key))
+            using (var aesGcm = new AesGcm(new Span<byte>(key, AES_KEY_SIZE), AES_TAG_SIZE))
             {
                 aesGcm.Encrypt(nonce, memorySpan, ciphertext.Slice(AES_NONCE_SIZE, _length), tag);
                 tag.CopyTo(ciphertext.Slice(AES_NONCE_SIZE + _length, AES_TAG_SIZE));
@@ -237,12 +121,12 @@
         private void UnprotectMemoryContent()
         {
             // Allocate the key and nonce
-            Span<byte> key = stackalloc byte[AES_KEY_SIZE];
+            byte* key = stackalloc byte[AES_KEY_SIZE];
             Span<byte> nonce = stackalloc byte[AES_NONCE_SIZE];
             Span<byte> tag = stackalloc byte[AES_TAG_SIZE];
 
             // Retrieve the key from the keyring
-            RetrieveKeyFromKeyring(key);
+            RetrieveKeyFromKeyring(key, AES_KEY_SIZE);
 
             // Decrypt the memory
             Span<byte> ciphertext = new Span<byte>(_memoryPtr, _paddedLength);
@@ -252,15 +136,48 @@
             ciphertext.Slice(0, AES_NONCE_SIZE).CopyTo(nonce);
             ciphertext.Slice(_length + AES_NONCE_SIZE, AES_TAG_SIZE).CopyTo(tag);
 
-            using (var aesGcm = new AesGcm(key))
+            using (var aesGcm = new AesGcm(new Span<byte>(key, AES_KEY_SIZE), AES_TAG_SIZE))
             {
                 aesGcm.Decrypt(nonce, ciphertext.Slice(AES_NONCE_SIZE, _length), tag, memorySpan);
             }
         }
 
-        private void RetrieveKeyFromKeyring(Span<byte> key)
+        static SecureMemoryLinux()
         {
-            if (keyctl(KEYCTL_GET_KEY, keyringId, (void*)key.GetPinnableReference(), (IntPtr)AES_KEY_SIZE, keyringId) < 0)
+            keyringId = keyctl_join_session_keyring(null);
+            if (keyringId < 0)
+            {
+                throw new InvalidOperationException("Failed to create session keyring.");
+            }
+        }
+
+        private int keyId = -1;
+
+        private const int KEYCTL_GET_KEY = 0x15;
+
+        [DllImport("libkeyutils.so")]
+        private static extern int keyctl_join_session_keyring(void* name);
+
+        [DllImport("libkeyutils.so")]
+        private static extern int add_key(string type, string description, void* payload, uint plen, int ringid);
+
+        [DllImport("libkeyutils.so")]
+        private static extern int keyctl(int operation, int key, void* value, IntPtr value_len, int keyring);
+
+        private void RetrieveKeyFromKeyring(byte* key, int size)
+        {
+            if (keyId == -1)
+            {
+                RandomNumberGenerator.Fill(new Span<byte>(key, size));
+                keyId = add_key("user", "aes_key", key, (uint)size, keyringId);
+                if (keyId < 0)
+                {
+                    throw new InvalidOperationException("Failed to add key to keyring.");
+                }
+                return;
+            }
+
+            if (keyctl(KEYCTL_GET_KEY, keyId, key, size, keyringId) < 0)
             {
                 throw new InvalidOperationException("Failed to retrieve key from keyring.");
             }

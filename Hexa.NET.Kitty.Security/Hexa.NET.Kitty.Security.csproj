@@ -8,6 +8,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.2" />
+		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.4" />
 	</ItemGroup>
 </Project>

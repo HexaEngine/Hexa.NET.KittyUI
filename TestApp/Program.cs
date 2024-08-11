@@ -12,7 +12,7 @@ namespace TestApp
 {
     public class MainWindow : ImWindow
     {
-        private string file;
+        private string? file;
 
         public MainWindow()
         {
