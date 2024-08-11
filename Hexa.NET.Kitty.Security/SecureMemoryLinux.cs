@@ -44,12 +44,8 @@
                 throw new InvalidOperationException("Failed to allocate memory.");
             }
 
-            // Step 2: Copy the data into the allocated memory
-            Span<byte> memorySpan = new Span<byte>(_memoryPtr, _length);
-            new Span<byte>(data, _length).CopyTo(memorySpan);
-
-            // Step 3: Encrypt the memory using AesGcm
-            ProtectMemoryContent();
+            // Step 3: Encrypt the memory using AesGcm (implicit copy)
+            ProtectMemoryContent(data, length);
 
             // Step 4: Protect the memory using mprotect
             ProtectMemory(PROT_NONE);
@@ -60,16 +56,8 @@
             // Step 1: Unprotect the memory using mprotect
             ProtectMemory(PROT_READ_WRITE);
 
-            // Step 2: Decrypt the memory
-            UnprotectMemoryContent();
-
-            // Step 3: Copy the data into the output buffer
-            Span<byte> outputSpan = new Span<byte>(outputBuffer, length);
-            Span<byte> memorySpan = new Span<byte>(_memoryPtr, _length);
-            memorySpan.CopyTo(outputSpan);
-
-            // Step 4: Re-encrypt the memory content
-            ProtectMemoryContent();
+            // Step 2: Decrypt the memory and rotate the key. (implicit copy)
+            RetieveDataAndRotate(outputBuffer, length);
 
             // Step 5: Protect the memory again
             ProtectMemory(PROT_NONE);
@@ -81,7 +69,7 @@
             ProtectMemory(PROT_READ_WRITE);
 
             // Step 2: Securely clear the memory
-            Span<byte> memorySpan = new Span<byte>(_memoryPtr, _paddedLength);
+            Span<byte> memorySpan = new(_memoryPtr, _paddedLength);
             memorySpan.Clear();
 
             // Step 3: Free the memory using munmap
@@ -91,55 +79,54 @@
             _paddedLength = 0;
         }
 
-        private void ProtectMemoryContent()
+        private void ProtectMemoryContent(byte* inBuffer, int size)
         {
             // Allocate the key and nonce
             byte* key = stackalloc byte[AES_KEY_SIZE];
-            Span<byte> nonce = stackalloc byte[AES_NONCE_SIZE];
-            Span<byte> tag = stackalloc byte[AES_TAG_SIZE];
 
             // Retrieve the key from the keyring
-            RetrieveKeyFromKeyring(key, AES_TAG_SIZE);
+            RetrieveKeyFromKeyring(key, AES_TAG_SIZE, renew: true);
+
+            // Encrypt the memory
+            Span<byte> plaintext = new(inBuffer, size);
+            Span<byte> buffer = new((byte*)_memoryPtr, _length + AES_TAG_SIZE + AES_NONCE_SIZE);
+
+            Span<byte> nonce = buffer[..AES_NONCE_SIZE];
+            Span<byte> tag = buffer.Slice(AES_NONCE_SIZE, AES_TAG_SIZE);
+            Span<byte> ciphertext = buffer.Slice(AES_NONCE_SIZE + AES_TAG_SIZE, _length);
 
             // Generate a random nonce
             RandomNumberGenerator.Fill(nonce);
 
-            // Encrypt the memory
-            Span<byte> memorySpan = new Span<byte>(_memoryPtr, _length);
-            Span<byte> ciphertext = new Span<byte>((byte*)_memoryPtr, _length + AES_TAG_SIZE + AES_NONCE_SIZE);
+            using var aesGcm = new AesGcm(new Span<byte>(key, AES_KEY_SIZE), AES_TAG_SIZE);
+            aesGcm.Encrypt(nonce, plaintext, ciphertext, tag);
 
-            // Copy the nonce to the beginning of the ciphertext
-            nonce.CopyTo(ciphertext.Slice(0, AES_NONCE_SIZE));
-
-            using (var aesGcm = new AesGcm(new Span<byte>(key, AES_KEY_SIZE), AES_TAG_SIZE))
-            {
-                aesGcm.Encrypt(nonce, memorySpan, ciphertext.Slice(AES_NONCE_SIZE, _length), tag);
-                tag.CopyTo(ciphertext.Slice(AES_NONCE_SIZE + _length, AES_TAG_SIZE));
-            }
+            new Span<byte>(key, AES_KEY_SIZE).Clear(); // this is not necessary, since stackalloc get's cleared automatically, but it's good practice.
         }
 
-        private void UnprotectMemoryContent()
+        private void RetieveDataAndRotate(byte* outBuffer, int size)
         {
             // Allocate the key and nonce
             byte* key = stackalloc byte[AES_KEY_SIZE];
-            Span<byte> nonce = stackalloc byte[AES_NONCE_SIZE];
-            Span<byte> tag = stackalloc byte[AES_TAG_SIZE];
 
             // Retrieve the key from the keyring
-            RetrieveKeyFromKeyring(key, AES_KEY_SIZE);
+            RetrieveKeyFromKeyring(key, AES_KEY_SIZE, false);
 
             // Decrypt the memory
-            Span<byte> ciphertext = new Span<byte>(_memoryPtr, _paddedLength);
-            Span<byte> memorySpan = new Span<byte>(_memoryPtr, _length);
+            Span<byte> buffer = new Span<byte>(_memoryPtr, _paddedLength);
+            Span<byte> plaintext = new Span<byte>(outBuffer, size);
 
             // Extract the nonce and tag from the ciphertext
-            ciphertext.Slice(0, AES_NONCE_SIZE).CopyTo(nonce);
-            ciphertext.Slice(_length + AES_NONCE_SIZE, AES_TAG_SIZE).CopyTo(tag);
+            Span<byte> nonce = buffer[..AES_NONCE_SIZE];
+            Span<byte> tag = buffer.Slice(AES_NONCE_SIZE, AES_TAG_SIZE);
+            Span<byte> ciphertext = buffer.Slice(AES_NONCE_SIZE + AES_TAG_SIZE, _length);
 
-            using (var aesGcm = new AesGcm(new Span<byte>(key, AES_KEY_SIZE), AES_TAG_SIZE))
-            {
-                aesGcm.Decrypt(nonce, ciphertext.Slice(AES_NONCE_SIZE, _length), tag, memorySpan);
-            }
+            using var aesGcm = new AesGcm(new Span<byte>(key, AES_KEY_SIZE), AES_TAG_SIZE);
+            aesGcm.Decrypt(nonce, ciphertext, tag, plaintext);
+
+            new Span<byte>(key, AES_KEY_SIZE).Clear(); // this is not necessary, since stackalloc get's cleared automatically, but it's good practice.
+
+            ProtectMemoryContent(outBuffer, size);
         }
 
         static SecureMemoryLinux()
@@ -162,15 +149,25 @@
         private static extern int add_key(string type, string description, void* payload, uint plen, int ringid);
 
         [DllImport("libkeyutils.so")]
-        private static extern int keyctl(int operation, int key, void* value, IntPtr value_len, int keyring);
+        private static extern int keyctl_revoke(int key);
 
         [DllImport("libkeyutils.so")]
         private static extern int keyctl_read(int keyId, void* buffer, int size);
 
-        private void RetrieveKeyFromKeyring(byte* key, int size)
+        private void RetrieveKeyFromKeyring(byte* key, int size, bool renew)
         {
-            if (keyId == -1)
+            if (keyId == -1 || renew)
             {
+                if (keyId != -1)
+                {
+                    var result = keyctl_revoke(keyId);
+                    if (keyId < 0)
+                    {
+                        throw new InvalidOperationException("Failed to revoke key.");
+                    }
+                    keyId = -1;
+                }
+
                 RandomNumberGenerator.Fill(new Span<byte>(key, size));
                 keyId = add_key("user", "aes_key", key, (uint)size, keyringId);
                 if (keyId < 0)
