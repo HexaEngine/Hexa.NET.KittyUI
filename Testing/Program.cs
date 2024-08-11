@@ -76,11 +76,19 @@
 
         private static void Main(string[] args)
         {
-            SecureMemoryLinux memory = new();
+            SecureMemoryLinux memory = new("Test");
             byte* data = stackalloc byte[16];
             Encoding.UTF8.GetBytes("Hello, World!", new Span<byte>(data, 16));
 
-            memory.StoreSensitiveData(data, 16);
+            try
+            {
+                memory.StoreSensitiveData(data, 16);
+            }
+            catch (Exception)
+            {
+                new Span<byte>(data, 16).Clear();
+            }
+
             byte* output = stackalloc byte[16];
             memory.AccessSensitiveData(output, 16);
 
