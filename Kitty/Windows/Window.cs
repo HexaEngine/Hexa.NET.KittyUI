@@ -165,17 +165,15 @@
             OnRendererDispose();
 
             WidgetManager.Dispose();
-
             renderDispatcher.Dispose();
             AudioManager.Release();
-
             ImGuiSDL2Platform.Shutdown();
 
             switch (Backend)
             {
                 case GraphicsBackend.D3D11:
                     ImGuiD3D11Renderer.Shutdown();
-                    swapChain.Dispose();
+                    swapChain?.Dispose();
                     break;
 
                 case GraphicsBackend.OpenGL:

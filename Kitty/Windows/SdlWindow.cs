@@ -360,7 +360,7 @@
             {
                 case GraphicsBackend.D3D11:
                     if (OperatingSystem.IsWindows())
-                        D3D11Adapter.Init(this, false);
+                        D3D11Adapter.Init(this, true);
                     break;
 
                 case GraphicsBackend.OpenGL:

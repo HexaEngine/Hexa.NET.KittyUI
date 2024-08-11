@@ -509,13 +509,13 @@
             Trace.Assert(bd != null, "No platform backend to shutdown, or already shutdown?");
             var io = ImGui.GetIO();
 
-            var bo = Application.UnregisterHook(ProcessEvent);
+            Application.UnregisterHook(ProcessEvent);
             ShutdownPlatformInterface();
 
             if (bd->ClipboardTextData != null)
                 SDL.SDLFree(bd->ClipboardTextData);
             for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor.Count; cursor_n++)
-                SDL.SDLFree(bd->MouseCursors[(int)cursor_n]);
+                SDL.SDLFreeCursor(bd->MouseCursors[(int)cursor_n]);
             Free(bd->MouseCursors);
             CloseGamepads();
 
@@ -857,7 +857,7 @@
             ViewportData* main_viewport_data = (ViewportData*)main_viewport->PlatformUserData;
 
             // Share GL resources with main context
-            bool use_opengl = main_viewport_data->GLContext != null;
+            bool use_opengl = !main_viewport_data->GLContext.IsNull;
             SDLGLContext backup_context = default;
             if (use_opengl)
             {
@@ -882,7 +882,7 @@
                 vd->GLContext = SDL.SDLGLCreateContext(vd->Window);
                 SDL.SDLGLSetSwapInterval(0);
             }
-            if (use_opengl && backup_context != null)
+            if (use_opengl && !backup_context.IsNull)
                 SDL.SDLGLMakeCurrent(vd->Window, backup_context);
 
             viewport->PlatformHandle = vd->Window;
@@ -908,7 +908,7 @@
             ViewportData* vd = (ViewportData*)viewport->PlatformUserData;
             if (vd != null)
             {
-                if (vd->GLContext != null && vd->WindowOwned)
+                if (!vd->GLContext.IsNull && vd->WindowOwned)
                     SDL.SDLGLDeleteContext(vd->GLContext);
                 if (vd->Window != null && vd->WindowOwned)
                     SDL.SDLDestroyWindow(vd->Window);
@@ -972,14 +972,14 @@
         private static unsafe void RenderWindow(ImGuiViewport* viewport, void* unknown)
         {
             ViewportData* vd = (ViewportData*)viewport->PlatformUserData;
-            if (vd->GLContext != null)
+            if (!vd->GLContext.IsNull)
                 SDL.SDLGLMakeCurrent(vd->Window, vd->GLContext);
         }
 
         private static unsafe void SwapBuffers(ImGuiViewport* viewport, void* unknown)
         {
             ViewportData* vd = (ViewportData*)viewport->PlatformUserData;
-            if (vd->GLContext != null)
+            if (!vd->GLContext.IsNull)
             {
                 SDL.SDLGLMakeCurrent(vd->Window, vd->GLContext);
                 SDL.SDLGLSwapWindow(vd->Window);
