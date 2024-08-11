@@ -164,6 +164,9 @@
         [DllImport("libkeyutils.so")]
         private static extern int keyctl(int operation, int key, void* value, IntPtr value_len, int keyring);
 
+        [DllImport("libkeyutils.so")]
+        private static extern int keyctl_read(int keyId, void* buffer, int size);
+
         private void RetrieveKeyFromKeyring(byte* key, int size)
         {
             if (keyId == -1)
@@ -177,7 +180,7 @@
                 return;
             }
 
-            if (keyctl(KEYCTL_GET_KEY, keyId, key, size, keyringId) < 0)
+            if (keyctl_read(keyId, key, size) < 0)
             {
                 throw new InvalidOperationException("Failed to retrieve key from keyring.");
             }

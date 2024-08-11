@@ -76,7 +76,7 @@
 
         private static void Main(string[] args)
         {
-            SecureMemoryWin memory = new();
+            SecureMemoryLinux memory = new();
             byte* data = stackalloc byte[16];
             Encoding.UTF8.GetBytes("Hello, World!", new Span<byte>(data, 16));
 
