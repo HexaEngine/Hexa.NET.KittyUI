@@ -10,10 +10,22 @@
 
         public static IGLContext Context { get; private set; }
 
+        public static UploadQueue UploadQueue { get; private set; }
+
+        public static DeleteQueue DeleteQueue { get; private set; }
+
         public static void Init(IWindow window)
         {
             Context = window.OpenGLCreateContext();
             GL = GL.GetApi(Context);
+            UploadQueue = new(GL, Thread.CurrentThread);
+            DeleteQueue = new(GL, Thread.CurrentThread);
+        }
+
+        public static void ProcessQueues()
+        {
+            DeleteQueue.ProcessQueue();
+            UploadQueue.ProcessQueue();
         }
 
         public static void Shutdown()

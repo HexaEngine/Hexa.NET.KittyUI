@@ -108,6 +108,7 @@
         private void RenderOpenGL()
         {
             glContext.MakeCurrent();
+            OpenGLAdapter.ProcessQueues(); // Process all pending uploads
             if (resize)
             {
                 gl.Viewport(0, 0, (uint)Width, (uint)Height);

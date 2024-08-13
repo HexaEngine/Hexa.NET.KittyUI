@@ -2,6 +2,7 @@
 {
     using Hexa.NET.DirectXTex;
     using Hexa.NET.Kitty.D3D11;
+    using Hexa.NET.Kitty.OpenGL;
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
     using Silk.NET.DXGI;
@@ -160,76 +161,63 @@
             return resource;
         }
 
-        public uint CreateTexture1D(GL gl, TextureWrapMode wrapS = TextureWrapMode.Repeat, TextureMinFilter minFilter = TextureMinFilter.LinearMipmapLinear, TextureMagFilter magFilter = TextureMagFilter.Linear)
+        public uint CreateTexture2D(GL gl, TextureWrapMode wrapS = TextureWrapMode.ClampToEdge, TextureWrapMode wrapT = TextureWrapMode.ClampToEdge, TextureMinFilter minFilter = TextureMinFilter.Linear, TextureMagFilter magFilter = TextureMagFilter.Linear)
         {
-            // Generate a texture ID for OpenGL
-            gl.GenTextures(1, out uint _textureID);
-
             var metadata = scImage.GetMetadata();
-            TextureTarget textureTarget = metadata.ArraySize > 1 ? TextureTarget.Texture1DArray : TextureTarget.Texture1D;
-
-            // Bind the texture
-            gl.BindTexture(textureTarget, _textureID);
-
-            // Set wrapping mode
-            gl.TexParameter(textureTarget, TextureParameterName.TextureWrapS, (int)wrapS);
-
-            // Set filtering modes
-            gl.TexParameter(textureTarget, TextureParameterName.TextureMinFilter, (int)minFilter);
-            gl.TexParameter(textureTarget, TextureParameterName.TextureMagFilter, (int)magFilter);
-
             var (internalFormat, pixelFormat, pixelType) = Convert((Format)metadata.Format);
-            var compressed = DirectXTex.IsCompressed(metadata.Format);
 
-            // Upload the image data to OpenGL
-            for (ulong mip = 0; mip < metadata.MipLevels; mip++)
+            OpenGLTextureTask* task = stackalloc OpenGLTextureTask[1];
+            task->Desc = new OpenGLTexture2DDesc
             {
-                for (uint item = 0; item < metadata.ArraySize; item++)
-                {
-                    var image = scImage.GetImage(mip, item, 0);
+                Width = (uint)metadata.Width,
+                Height = (uint)metadata.Height,
+                MipLevels = (uint)metadata.MipLevels,
+                ArraySize = (uint)metadata.ArraySize,
+                InternalFormat = internalFormat,
+                PixelFormat = pixelFormat,
+                PixelType = pixelType,
+                WrapS = wrapS,
+                WrapT = wrapT,
+                MinFilter = minFilter,
+                MagFilter = magFilter,
+            };
 
-                    if (compressed)
+            if (OpenGLAdapter.UploadQueue.Enqueue(task)) // handle async texture loading.
+            {
+                task->Wait();
+
+                var pData = (byte*)task->MappedData;
+
+                if (pData == null)
+                {
+                    throw new InvalidOperationException("Failed to map the texture data.");
+                }
+
+                // Do uploading
+                for (ulong mip = 0; mip < metadata.MipLevels; mip++)
+                {
+                    for (uint item = 0; item < metadata.ArraySize; item++)
                     {
-                        // Compressed formats
-                        gl.CompressedTexImage1D(
-                            textureTarget,
-                            (int)mip,
-                            (GLEnum)internalFormat,
-                            (uint)image->Width,
-                            0,
-                            (uint)image->SlicePitch,
-                            image->Pixels
-                        );
-                    }
-                    else
-                    {
-                        // Uncompressed formats
-                        gl.TexImage1D(
-                            textureTarget,
-                            (int)mip,
-                            (int)internalFormat,
-                            (uint)image->Width,
-                            0,
-                            (GLEnum)pixelFormat,
-                            (GLEnum)pixelType,
-                            image->Pixels
-                        );
+                        var image = scImage.GetImage(mip, item, 0);
+
+                        Memcpy(image->Pixels, pData, image->SlicePitch, image->SlicePitch);
+
+                        pData += image->SlicePitch;
                     }
                 }
+
+                OpenGLAdapter.UploadQueue.EnqueueFinish(task);
+
+                task->Wait();
+
+                return task->TextureId;
             }
 
-            gl.BindTexture(textureTarget, 0);
-
-            return _textureID;
-        }
-
-        public uint CreateTexture2D(GL gl, TextureWrapMode wrapS = TextureWrapMode.Repeat, TextureWrapMode wrapT = TextureWrapMode.Repeat, TextureMinFilter minFilter = TextureMinFilter.LinearMipmapLinear, TextureMagFilter magFilter = TextureMagFilter.Linear)
-        {
             // Generate a texture ID for OpenGL
             gl.GenTextures(1, out uint _textureID);
 
             // Bind the texture
-            var metadata = scImage.GetMetadata();
+
             TextureTarget textureTarget = TextureTarget.Texture2D;
             if (metadata.ArraySize > 1)
             {
@@ -261,7 +249,6 @@
             gl.TexParameter(textureTarget, TextureParameterName.TextureMagFilter, (int)magFilter);
 
             // Determine the appropriate OpenGL internal format, pixel format, and type based on the DXGI format
-            var (internalFormat, pixelFormat, pixelType) = Convert((Format)metadata.Format);
             var compressed = DirectXTex.IsCompressed(metadata.Format);
 
             // Upload the image data to OpenGL
@@ -300,71 +287,6 @@
                             image->Pixels
                         );
                     }
-                }
-            }
-
-            gl.BindTexture(textureTarget, 0);
-
-            return _textureID;
-        }
-
-        public uint CreateTexture3D(GL gl, TextureWrapMode wrapS = TextureWrapMode.Repeat, TextureWrapMode wrapT = TextureWrapMode.Repeat, TextureWrapMode wrapR = TextureWrapMode.Repeat, TextureMinFilter minFilter = TextureMinFilter.LinearMipmapLinear, TextureMagFilter magFilter = TextureMagFilter.Linear)
-        {
-            // Generate a texture ID for OpenGL
-            gl.GenTextures(1, out uint _textureID);
-
-            var metadata = scImage.GetMetadata();
-            TextureTarget textureTarget = TextureTarget.Texture3D;
-
-            // Bind the texture
-            gl.BindTexture(textureTarget, _textureID);
-
-            // Set wrapping modes
-            gl.TexParameter(textureTarget, TextureParameterName.TextureWrapS, (int)wrapS);
-            gl.TexParameter(textureTarget, TextureParameterName.TextureWrapT, (int)wrapT);
-            gl.TexParameter(textureTarget, TextureParameterName.TextureWrapR, (int)wrapR);
-
-            // Set filtering modes
-            gl.TexParameter(textureTarget, TextureParameterName.TextureMinFilter, (int)minFilter);
-            gl.TexParameter(textureTarget, TextureParameterName.TextureMagFilter, (int)magFilter);
-
-            var (internalFormat, pixelFormat, pixelType) = Convert((Format)metadata.Format);
-            var compressed = DirectXTex.IsCompressed(metadata.Format);
-
-            // Upload the image data to OpenGL
-            for (ulong mip = 0; mip < metadata.MipLevels; mip++)
-            {
-                var image = scImage.GetImage(mip, 0, 0);  // No need for item or slice for depth in 3D texture
-                if (compressed)
-                {
-                    // Compressed formats
-                    gl.CompressedTexImage3D(
-                        textureTarget,
-                        (int)mip,
-                        (GLEnum)internalFormat,
-                        (uint)image->Width,
-                        (uint)image->Height,
-                        (uint)metadata.Depth,  // Use metadata.Depth instead of image->Depth
-                        0,
-                        (uint)image->SlicePitch,
-                        image->Pixels
-                    );
-                }
-                else
-                {
-                    // Uncompressed formats
-                    gl.TexImage3D(
-                        textureTarget,
-                        (int)mip,
-                        (int)internalFormat,
-                        (uint)image->Width,
-                        (uint)image->Height,
-                        (uint)metadata.Depth,  // Use metadata.Depth instead of image->Depth
-                        0,
-                        (GLEnum)pixelFormat,
-                        (GLEnum)pixelType,
-                        image->Pixels
-                    );
                 }
             }
 
@@ -520,6 +442,12 @@
                     internalFormat = InternalFormat.Rgba32i;
                     pixelFormat = PixelFormat.RgbaInteger;
                     pixelType = PixelType.Int;
+                    break;
+
+                case Format.FormatB8G8R8A8Unorm:
+                    internalFormat = InternalFormat.Rgba;
+                    pixelFormat = PixelFormat.Bgra;
+                    pixelType = PixelType.UnsignedByte;
                     break;
 
                 // Add additional DXGI format mappings as needed...

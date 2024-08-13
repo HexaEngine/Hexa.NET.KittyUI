@@ -1,80 +1,22 @@
 ﻿namespace Testing
 {
     using Hexa.NET.Kitty.Security;
-    using System.Runtime.CompilerServices;
+    using System.Diagnostics;
     using System.Security;
     using System.Security.Cryptography;
     using System.Text;
 
-    public struct ManualSemaphore
-    {
-        private int currentCount;
-        private readonly int maxCount;
-        private int spinLock;
-
-        public ManualSemaphore(int initialCount, int maxCount)
-        {
-            if (initialCount > maxCount || initialCount < 0 || maxCount <= 0)
-            {
-                throw new ArgumentException("Invalid semaphore initial or max count");
-            }
-
-            this.currentCount = initialCount;
-            this.maxCount = maxCount;
-            this.spinLock = 0;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AcquireLock()
-        {
-            while (Interlocked.CompareExchange(ref spinLock, 1, 0) != 0)
-            {
-                Thread.Yield(); // Minimiert CPU-Belastung, aber ist noch kein Spin-Waiting
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ReleaseLock()
-        {
-            Volatile.Write(ref spinLock, 0);
-        }
-
-        public void Wait()
-        {
-            while (true)
-            {
-                AcquireLock();
-                if (currentCount > 0)
-                {
-                    currentCount--;
-                    ReleaseLock();
-                    break;
-                }
-                ReleaseLock();
-                Thread.Sleep(1); // Minimale Blockierung, um CPU zu entlasten, kein Spin-Waiting
-            }
-        }
-
-        public void Release()
-        {
-            AcquireLock();
-            if (currentCount < maxCount)
-            {
-                currentCount++;
-            }
-            else
-            {
-                throw new InvalidOperationException("Semaphore released too many times");
-            }
-            ReleaseLock();
-        }
-    }
-
     internal unsafe class Program
     {
-        static ManualSemaphore semaphore = new ManualSemaphore(2, 2);
-
         private static void Main(string[] args)
+        {
+            long now = Stopwatch.GetTimestamp();
+            Thread.Sleep(1);
+            long elapsed = Stopwatch.GetTimestamp() - now;
+            double elapsedMs = (double)elapsed / Stopwatch.Frequency * 1000;
+        }
+
+        private static void LinuxMemTest()
         {
             SecureMemoryLinux memory = new("Test");
             byte* data = stackalloc byte[16];

@@ -3,6 +3,7 @@ using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Widgets;
 using Hexa.NET.ImGui.Widgets.Dialogs;
 using Hexa.NET.Kitty;
+using Hexa.NET.Kitty.Graphics;
 using TestApp;
 
 AppBuilder appBuilder = new();
@@ -15,6 +16,7 @@ namespace TestApp
     public class MainWindow : ImWindow
     {
         private string? file;
+        private Image? image;
 
         protected override string Name => "Main Window";
 
@@ -39,6 +41,24 @@ namespace TestApp
                 SaveFileDialog dialog = new();
                 dialog.Show(Callback);
             }
+
+            if (ImGui.Button("Load Texture"))
+            {
+                LoadTexture("icon.png");
+            }
+
+            if (image != null)
+            {
+                ImGui.Image(image, new(256, 256));
+            }
+        }
+
+        private void LoadTexture(string path)
+        {
+            Task.Run(() =>
+            {
+                image = Image.LoadFromFile(path);
+            });
         }
 
         private void Callback(object? sender, DialogResult result)
