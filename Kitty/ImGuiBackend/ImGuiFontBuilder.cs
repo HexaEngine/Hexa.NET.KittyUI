@@ -3,6 +3,7 @@
     using Hexa.NET.ImGui;
     using Hexa.NET.Utilities;
     using System.IO;
+    using System.Reflection;
 
     public unsafe struct GlyphRanges
     {
@@ -97,6 +98,38 @@
             }
             font = fontAtlas.AddFontFromFileTTF(fullpath, size, config);
             config.MergeMode = true;
+            return this;
+        }
+
+        public ImGuiFontBuilder AddFontFromEmbeddedResource(string path, float size)
+        {
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(path) ?? throw new FileNotFoundException($"Embedded resource not found: {path}");
+            byte[] buffer = new byte[stream.Length];
+            stream.Read(buffer, 0, buffer.Length);
+            fixed (byte* pFontData = buffer)
+            {
+                font = fontAtlas.AddFontFromMemoryTTF(pFontData, buffer.Length, size, config);
+                config.MergeMode = true;
+            }
+            return this;
+        }
+
+        public ImGuiFontBuilder AddFontFromEmbeddedResource(string path, float size, ReadOnlySpan<char> glyphRanges)
+        {
+            return AddFontFromEmbeddedResource(path, size, new GlyphRanges(glyphRanges));
+        }
+
+        public ImGuiFontBuilder AddFontFromEmbeddedResource(string path, float size, GlyphRanges glyphRanges)
+        {
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(path) ?? throw new FileNotFoundException($"Embedded resource not found: {path}");
+            byte[] buffer = new byte[stream.Length];
+            stream.Read(buffer, 0, buffer.Length);
+            ranges.Add(glyphRanges);
+            fixed (byte* pFontData = buffer)
+            {
+                font = fontAtlas.AddFontFromMemoryTTF(pFontData, buffer.Length, size, config, glyphRanges.GetRanges());
+                config.MergeMode = true;
+            }
             return this;
         }
 

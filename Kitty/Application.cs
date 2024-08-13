@@ -1,5 +1,6 @@
 ﻿namespace Hexa.NET.Kitty
 {
+    using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.Kitty.Audio;
     using Hexa.NET.Kitty.Debugging;
     using Hexa.NET.Kitty.Input;
@@ -39,17 +40,18 @@
 
         public static void Run()
         {
-            Run(new Windows.Window(), new AppBuilder());
+            Run(new Window(), new AppBuilder());
         }
 
         public static void Run(AppBuilder builder)
         {
-            Run(new Windows.Window(), builder);
+            Run(new Window(), builder);
         }
 
         public static void Run(IRenderWindow mainWindow, AppBuilder builder)
         {
             Init(mainWindow, builder);
+
             Application.mainWindow = mainWindow;
             Application.builder = builder;
             mainWindow.Closed += MainWindowClosed;
@@ -123,6 +125,17 @@
         public static bool UnregisterHook(EventHook hook)
         {
             return hooks.Remove(hook);
+        }
+
+        public static void Exit()
+        {
+            if (supressQuitApp)
+            {
+                supressQuitApp = false;
+                return;
+            }
+
+            exiting = true;
         }
 
         private static void PlatformRun()

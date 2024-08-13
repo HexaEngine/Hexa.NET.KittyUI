@@ -4,7 +4,6 @@
     using Hexa.NET.Kitty;
     using Hexa.NET.Kitty.Audio;
     using Hexa.NET.Kitty.D3D11;
-    using Hexa.NET.Kitty.Debugging;
     using Hexa.NET.Kitty.ImGuiBackend;
     using Hexa.NET.Kitty.Threading;
     using Hexa.NET.Kitty.Windows.Events;
@@ -36,6 +35,14 @@
         public event Action? Draw;
 
         public Window()
+        {
+        }
+
+        public Window(SDL2.SDLWindowFlags flags = SDL2.SDLWindowFlags.Resizable) : base(flags)
+        {
+        }
+
+        public Window(int x, int y, int width, int height, SDL2.SDLWindowFlags flags = SDL2.SDLWindowFlags.Resizable) : base(x, y, width, height, flags)
         {
         }
 

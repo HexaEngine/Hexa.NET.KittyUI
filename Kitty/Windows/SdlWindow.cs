@@ -1,6 +1,4 @@
-﻿#define FORCE_OPENGL
-
-namespace Hexa.NET.Kitty.Windows
+﻿namespace Hexa.NET.Kitty.Windows
 {
     using Hexa.NET.Kitty.Input;
     using Hexa.NET.Kitty.Input.Events;

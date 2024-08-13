@@ -77,6 +77,14 @@
             fonts.Build();
 
             var style = ImGui.GetStyle();
+
+            appBuilder.BuildStyle(style);
+        }
+
+        public static void StyleKitty()
+        {
+            var io = ImGui.GetIO();
+            var style = ImGui.GetStyle();
             var colors = style.Colors;
 
             colors[(int)ImGuiCol.Text] = new Vector4(1.00f, 1.00f, 1.00f, 1.00f);

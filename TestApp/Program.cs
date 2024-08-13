@@ -5,20 +5,16 @@ using Hexa.NET.ImGui.Widgets.Dialogs;
 using Hexa.NET.Kitty;
 using TestApp;
 
-WidgetManager.Register<MainWindow>(show: true);
-Application.Run();
+AppBuilder appBuilder = new();
+appBuilder.SetTitle("Test App");
+appBuilder.AddWindow<MainWindow>(true, true);
+appBuilder.Run();
 
 namespace TestApp
 {
     public class MainWindow : ImWindow
     {
         private string? file;
-
-        public MainWindow()
-        {
-            // embed this window in the 'physical' window
-            IsEmbedded = true;
-        }
 
         protected override string Name => "Main Window";
 

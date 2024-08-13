@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Testing", "Testing\Testing.csproj", "{4EC717B0-4AC6-4FE3-AC80-F9406FE76CDB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hexa.NET.Kitty.Security", "Hexa.NET.Kitty.Security\Hexa.NET.Kitty.Security.csproj", "{DF4732B4-196C-46BF-9883-5D96818F8429}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hexa.NET.Kitty.Security", "Hexa.NET.Kitty.Security\Hexa.NET.Kitty.Security.csproj", "{DF4732B4-196C-46BF-9883-5D96818F8429}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleMinimal", "ExampleMinimal\ExampleMinimal.csproj", "{11AB700F-FFC9-4514-871C-9E2C3632DAE1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{DF4732B4-196C-46BF-9883-5D96818F8429}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF4732B4-196C-46BF-9883-5D96818F8429}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF4732B4-196C-46BF-9883-5D96818F8429}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11AB700F-FFC9-4514-871C-9E2C3632DAE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11AB700F-FFC9-4514-871C-9E2C3632DAE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11AB700F-FFC9-4514-871C-9E2C3632DAE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11AB700F-FFC9-4514-871C-9E2C3632DAE1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

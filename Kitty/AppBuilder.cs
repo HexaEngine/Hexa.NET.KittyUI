@@ -3,16 +3,40 @@
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.Kitty.ImGuiBackend;
-    using Hexa.NET.Kitty.UI;
+    using Hexa.NET.Kitty.Windows;
     using System;
     using System.Collections.Generic;
 
     public delegate void ImGuiFontBuilderCallback(ImGuiFontBuilder builder);
 
+    public delegate void ImGuiStyleBuilderCallback(ImGuiStylePtr style);
+
     public unsafe class AppBuilder
     {
         internal readonly List<(ImGuiFontBuilderCallback, string? alias)> fontBuilders = new();
         internal readonly List<ImGuiFontBuilder> builders = new();
+        internal readonly List<ImGuiStyleBuilderCallback> styleBuilders = [];
+        private string title = "Kitty";
+
+        public static AppBuilder Create()
+        {
+            return new();
+        }
+
+        public void Run()
+        {
+            Window window = new()
+            {
+                Title = title
+            };
+            Application.Run(window, this);
+        }
+
+        public AppBuilder SetTitle(string title)
+        {
+            this.title = title;
+            return this;
+        }
 
         internal void BuildFonts(ImGuiIOPtr io, Dictionary<string, ImFontPtr> aliasToFont)
         {
@@ -37,6 +61,19 @@
             io.Fonts.Build();
         }
 
+        internal void BuildStyle(ImGuiStylePtr style)
+        {
+            if (styleBuilders.Count == 0)
+            {
+                StyleDefault();
+            }
+
+            for (int i = 0; i < styleBuilders.Count; i++)
+            {
+                styleBuilders[i](style);
+            }
+        }
+
         internal void Dispose()
         {
             for (int i = 0; i < builders.Count; i++)
@@ -46,15 +83,15 @@
             builders.Clear();
         }
 
-        public AppBuilder AddWindow<T>() where T : IImGuiWindow, new()
+        public AppBuilder AddWindow<T>(bool show = false, bool mainWindow = false) where T : IImGuiWindow, new()
         {
-            WidgetManager.Register<T>();
+            WidgetManager.Register<T>(show, mainWindow);
             return this;
         }
 
-        public AppBuilder AddWindow(IImGuiWindow window)
+        public AppBuilder AddWindow(IImGuiWindow window, bool show = false, bool mainWindow = false)
         {
-            WidgetManager.Register(window);
+            WidgetManager.Register(window, show, mainWindow);
             return this;
         }
 
@@ -122,10 +159,10 @@
                     (char)0xe003, (char)0xF8FF,
                     (char)0, (char)0 // null terminator
             ];
-            builder.AddFontFromFileTTF("./assets/fonts/arial.ttf", 15);
+            builder.AddFontFromEmbeddedResource("Hexa.NET.Kitty.assets.fonts.arial.ttf", 15);
             builder.SetOption(conf => conf.GlyphMinAdvanceX = 16);
             builder.SetOption(conf => conf.GlyphOffset = new(0, 2));
-            builder.AddFontFromFileTTF("./assets/fonts/MaterialSymbolsRounded.ttf", 18, glyphMaterialRanges);
+            builder.AddFontFromEmbeddedResource("Hexa.NET.Kitty.assets.fonts.MaterialSymbolsRounded.ttf", 18, glyphMaterialRanges);
         }
 
         public AppBuilder AddFont(ImGuiFontBuilderCallback action)
@@ -137,6 +174,18 @@
         public AppBuilder AddFont(string alias, ImGuiFontBuilderCallback action)
         {
             fontBuilders.Add((action, alias));
+            return this;
+        }
+
+        public AppBuilder Style(ImGuiStyleBuilderCallback action)
+        {
+            styleBuilders.Add(action);
+            return this;
+        }
+
+        public AppBuilder StyleDefault()
+        {
+            styleBuilders.Add(x => ImGuiManager.StyleKitty());
             return this;
         }
     }
