@@ -5,6 +5,7 @@
     using Silk.NET.Direct3D11;
     using Silk.NET.DXGI;
     using System.IO;
+    using System.Numerics;
 
     public enum TextureLoaderFlags
     {
@@ -31,6 +32,8 @@
         /// The ScalingFactor is only used for the LoadTextureXD functions which only load textures from assets.
         /// </summary>
         public float ScalingFactor { get => scalingFactor; set => scalingFactor = value; }
+
+        public static bool ForceNonWIC { get; private set; } = false;
 
         public static D3DScratchImage CaptureTexture(ID3D11DeviceContext* context, ID3D11Resource* resource)
         {
@@ -73,9 +76,53 @@
             return new D3DScratchImage(image);
         }
 
+        private struct GammaCorrectionOperation
+        {
+            public byte* Data;
+            public int Stride;
+            public int StridePixel;
+            public int Channels;
+            public int TotalPixels;
+            public float MaxNumber;
+            public int MaxChannels;
+
+            public readonly void DoGammaCorrect()
+            {
+                Parallel.For(0, TotalPixels, Execute);
+            }
+
+            private readonly void Execute(int index)
+            {
+                byte* pixel = Data + index * StridePixel;
+
+                for (int j = 0; j < MaxChannels; j++)
+                {
+                    int pixelValue = pixel[j * Stride];
+                    if (Stride == 2)
+                    {
+                        pixelValue |= pixel[j * Stride + 1] << 8;
+                    }
+
+                    var corrected = SRGBGamma(pixelValue / MaxNumber);
+                    pixelValue = (int)(corrected * MaxNumber);
+
+                    pixel[j * Stride] = (byte)(pixelValue & 0xFF);
+                    if (Stride == 2)
+                    {
+                        pixel[j * Stride + 1] = (byte)((pixelValue >> 8) & 0xFF);
+                    }
+                }
+            }
+
+            private static float SRGBGamma(float colorValue)
+            {
+                return MathF.Pow(colorValue, 1 / 2.2f);
+            }
+        }
+
         private static void HandleWIC(string filename, ReadOnlySpan<char> extension, ref ScratchImage image)
         {
-            if (OperatingSystem.IsWindows())
+            if (OperatingSystem.IsWindows() && !ForceNonWIC)
             {
                 DirectXTex.LoadFromWICFile(filename, WICFlags.None, null, ref image, default).ThrowIf();
             }
@@ -84,9 +131,41 @@
                 switch (extension)
                 {
                     case ".png":
-                        DirectXTex.LoadFromPNGFile(filename, null, ref image).ThrowIf();
+
+                        TexMetadata metadata;
+                        DirectXTex.LoadFromPNGFile(filename, &metadata, ref image).ThrowIf();
+
+                        var img = image.GetImage(0, 0, 0);
+                        byte* data = img->Pixels;
+
+                        int stride = (int)(DirectXTex.BitsPerColor(metadata.Format) / 8);
+                        int stridePixel = (int)(DirectXTex.BitsPerPixel(metadata.Format) / 8);
+                        int channels = stridePixel / stride;
+
+                        int totalPixels = (int)img->SlicePitch / stridePixel; // Total number of pixels
+
+                        float maxNumber = MathF.Pow(2, stride << 3) - 1; // Calculate the maximum number of the color value
+
+                        int maxChannels = Math.Min(channels, 3); // Ignore alpha if it exists
+
+                        // Create the struct and pass all necessary data
+                        GammaCorrectionOperation closure = new()
+                        {
+                            Data = data,
+                            Stride = stride,
+                            StridePixel = stridePixel,
+                            Channels = channels,
+                            TotalPixels = totalPixels,
+                            MaxNumber = maxNumber,
+                            MaxChannels = maxChannels
+                        };
+
+                        // Perform gamma correction
+                        closure.DoGammaCorrect();
+
                         break;
 
+                    case ".jpeg":
                     case ".jpg":
                         DirectXTex.LoadFromJPEGFile(filename, null, ref image).ThrowIf();
                         break;
@@ -95,6 +174,17 @@
                         throw new NotSupportedException("Unsupported image format.");
                 }
             }
+        }
+
+        private static Vector3 SRGBGamma(Vector3 vec)
+        {
+            Vector3 gamma = new(MathF.Pow(vec.X, 1 / 2.2f), MathF.Pow(vec.Y, 1 / 2.2f), MathF.Pow(vec.Z, 1 / 2.2f));
+            return gamma;
+        }
+
+        private static float SRGBGamma(float colorValue)
+        {
+            return MathF.Pow(colorValue, 1 / 2.2f);
         }
 
         public static D3DScratchImage LoadFromMemory(string filename, Stream stream)

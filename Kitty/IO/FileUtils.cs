@@ -3,7 +3,7 @@
     using System;
     using System.Buffers.Binary;
     using System.IO;
-    using System.IO.Hashing;
+
     using System.Runtime.InteropServices;
 
     public static class FileUtils
@@ -11,7 +11,7 @@
         public static uint GetCrc32Hash(string path)
         {
             var stream = File.OpenRead(path);
-            Crc32 crc = new();
+            System.IO.Hashing.Crc32 crc = new();
             crc.Append(stream);
             Span<byte> buffer = stackalloc byte[4];
             crc.GetCurrentHash(buffer);
@@ -22,7 +22,7 @@
 
         public static uint GetCrc32HashFromText(string text)
         {
-            Crc32 crc = new();
+            System.IO.Hashing.Crc32 crc = new();
             crc.Append(MemoryMarshal.AsBytes(text.AsSpan()));
             Span<byte> buffer = stackalloc byte[4];
             crc.GetCurrentHash(buffer);
