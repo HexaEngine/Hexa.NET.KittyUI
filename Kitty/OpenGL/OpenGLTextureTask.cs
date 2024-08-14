@@ -20,7 +20,7 @@
         public readonly bool Created => textureId != 0 || pboId != 0;
 
         /// <summary>
-        /// Caller must be the creation thread. (Info after return you have to reenqueue the task for the second phase)
+        /// Caller must be the creation thread.
         /// </summary>
         public void Wait()
         {

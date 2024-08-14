@@ -3,12 +3,14 @@
     using Hexa.NET.DirectXTex;
     using Hexa.NET.Kitty.D3D11;
     using Hexa.NET.Kitty.OpenGL;
+    using HexaGen.Runtime;
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
     using Silk.NET.DXGI;
     using Silk.NET.OpenGL;
     using System.IO;
     using DDSFlags = DirectXTex.DDSFlags;
+    using HResult = HexaGen.Runtime.HResult;
     using TGAFlags = DirectXTex.TGAFlags;
     using WICFlags = DirectXTex.WICFlags;
 
@@ -604,6 +606,19 @@
                 images[i] = pImages[i];
             }
             return images;
+        }
+
+        private static void Swap<T>(ref ScratchImage target, T context, Func<T, ScratchImage, ScratchImage, HResult> callback)
+        {
+            ScratchImage scratchImage = DirectXTex.CreateScratchImage();
+            HResult hr = callback(context, target, scratchImage);
+            if (!hr.IsSuccess)
+            {
+                scratchImage.Release(); // Release the scratch image if the operation failed, to avoid memory leaks
+                hr.Throw();
+            }
+            target.Release();
+            target = scratchImage;
         }
 
         public void CopyTo(D3DScratchImage scratchImage)
