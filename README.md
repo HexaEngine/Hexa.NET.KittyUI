@@ -27,6 +27,20 @@ Before you start using Hexa.NET.KittyUI, ensure you have the following prerequis
 
    After installing the package, simply include it in your project and start building your UI components.
 
+### Usage
+```cs
+// See https://aka.ms/new-console-template for more information
+using Hexa.NET.ImGui;
+using Hexa.NET.KittyUI;
+
+AppBuilder builder = new();
+builder.AddWindow("Main Window", () =>
+{
+    ImGui.Text("Hello, World!");
+});
+builder.Run();
+```
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/HexaEngine/Hexa.NET.KittyUI/blob/master/LICENSE.txt) file for details.
