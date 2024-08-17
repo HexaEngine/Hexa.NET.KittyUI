@@ -2,7 +2,7 @@
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Widgets;
 using Hexa.NET.ImGui.Widgets.Dialogs;
-using Hexa.NET.Kitty;
+using Hexa.NET.KittyUI;
 
 string? file = null;
 
@@ -31,7 +31,7 @@ builder.AddWindow("Main Window", () =>
 });
 builder.AddWindow<SecondaryWindow>();
 
-Application.Run(builder);
+builder.Run();
 
 void Callback(object? sender, DialogResult result)
 {

@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Hexa.NET.Kitty.Security\Hexa.NET.Kitty.Security.csproj" />
+    <ProjectReference Include="..\Hexa.NET.KittyUI.Security\Hexa.NET.KittyUI.Security.csproj" />
   </ItemGroup>
 
 </Project>

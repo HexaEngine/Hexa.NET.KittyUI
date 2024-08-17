@@ -1,6 +1,6 @@
 ﻿namespace Testing
 {
-    using Hexa.NET.Kitty.Security;
+    using Hexa.NET.KittyUI.Security;
     using System.Diagnostics;
     using System.Security;
     using System.Security.Cryptography;
@@ -43,18 +43,6 @@
             }
 
             Console.WriteLine(Encoding.UTF8.GetString(new Span<byte>(output, 16)));
-        }
-
-        private static void Worker(int id)
-        {
-            Console.WriteLine($"Thread {id} is waiting to enter the semaphore");
-            semaphore.Wait();
-            Console.WriteLine($"Thread {id} has entered the semaphore");
-
-            Thread.Sleep(2000); // Simuliert Arbeit
-
-            Console.WriteLine($"Thread {id} is leaving the semaphore");
-            semaphore.Release();
         }
     }
 }

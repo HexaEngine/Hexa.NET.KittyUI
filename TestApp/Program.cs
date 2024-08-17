@@ -2,8 +2,8 @@
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Widgets;
 using Hexa.NET.ImGui.Widgets.Dialogs;
-using Hexa.NET.Kitty;
-using Hexa.NET.Kitty.Graphics;
+using Hexa.NET.KittyUI;
+using Hexa.NET.KittyUI.Graphics;
 using TestApp;
 
 AppBuilder appBuilder = new();
@@ -44,7 +44,7 @@ namespace TestApp
 
             if (ImGui.Button("Load Texture"))
             {
-                LoadTexture("icon.jpg");
+                LoadTexture("icon.png");
             }
 
             if (image != null)
