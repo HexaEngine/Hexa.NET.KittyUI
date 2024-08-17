@@ -10,7 +10,25 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Kitty\Kitty.csproj" />
+		<ProjectReference Include="..\Hexa.NET.KittyUI\Hexa.NET.KittyUI.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="cimgui.dll">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="cimgui.pdb">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="icon.jpg">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="icon.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="rgb.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 </Project>

@@ -1,34 +1,26 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Hexa.NET.ImGui;
-using Kitty;
-using Kitty.Graphics;
-using Kitty.UI;
-using Kitty.UI.Dialogs;
+using Hexa.NET.ImGui.Widgets;
+using Hexa.NET.ImGui.Widgets.Dialogs;
+using Hexa.NET.KittyUI;
+using Hexa.NET.KittyUI.Graphics;
 using TestApp;
 
-WidgetManager.Register<MainWindow>(show: true);
-Application.Run();
+AppBuilder appBuilder = new();
+appBuilder.SetTitle("Test App");
+appBuilder.AddWindow<MainWindow>(true, true);
+appBuilder.Run();
 
 namespace TestApp
 {
     public class MainWindow : ImWindow
     {
-        private string file;
-
-        public MainWindow()
-        {
-            // embed this window in the 'physical' window
-            IsEmbedded = true;
-        }
+        private string? file;
+        private Image? image;
 
         protected override string Name => "Main Window";
 
-        public override void DrawWindow(IGraphicsContext context)
-        {
-            base.DrawWindow(context);
-        }
-
-        public override unsafe void DrawContent(IGraphicsContext context)
+        public override unsafe void DrawContent()
         {
             ImGui.Text("Hello, World!");
 
@@ -50,11 +42,23 @@ namespace TestApp
                 dialog.Show(Callback);
             }
 
-            void* fu = stackalloc byte[12];
-            ((int*)fu)[0] = 10;
-            ((double*)&((int*)fu)[1])[0] = 10.0f;
+            if (ImGui.Button("Load Texture"))
+            {
+                LoadTexture("icon.png");
+            }
 
-            ImGui.TextV("%d, Hello, %f", (nuint)fu);
+            if (image != null)
+            {
+                ImGui.Image(image, new(256, 256));
+            }
+        }
+
+        private void LoadTexture(string path)
+        {
+            Task.Run(() =>
+            {
+                image = Image.LoadFromFile(path);
+            });
         }
 
         private void Callback(object? sender, DialogResult result)
