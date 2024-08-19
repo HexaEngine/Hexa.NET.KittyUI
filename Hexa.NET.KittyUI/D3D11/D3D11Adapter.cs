@@ -158,7 +158,7 @@
         }
 
         [SupportedOSPlatform("windows")]
-        public static DXGISwapChain CreateSwapChainForWindow(SdlWindow window)
+        public static DXGISwapChain CreateSwapChainForWindow(CoreWindow window)
         {
             SwapChainDesc1 desc = new()
             {

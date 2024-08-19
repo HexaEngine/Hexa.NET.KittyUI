@@ -49,13 +49,13 @@
         /// <summary>
         /// Gets the global mouse position.
         /// </summary>
-        public static Vector2 Global
+        public static Point2 Global
         {
             get
             {
                 int x, y;
                 SDL.SDLGetGlobalMouseState(&x, &y);
-                return new Vector2(x, y);
+                return new Point2(x, y);
             }
         }
 

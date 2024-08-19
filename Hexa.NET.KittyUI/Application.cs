@@ -36,7 +36,7 @@
 
         public static bool GraphicsDebugging { get; set; }
 
-        public static GraphicsBackend GraphicsBackend => ((SdlWindow)mainWindow).Backend;
+        public static GraphicsBackend GraphicsBackend => ((CoreWindow)mainWindow).Backend;
 
         public static void Run(IRenderWindow mainWindow, AppBuilder builder)
         {
@@ -164,9 +164,9 @@
                 windows[i].Uninitialize();
             }
 
-            ((SdlWindow)mainWindow).DestroyWindow(true);
+            ((CoreWindow)mainWindow).DestroyWindow(true);
 
-            ((SdlWindow)mainWindow).DestroyGraphics();
+            ((CoreWindow)mainWindow).DestroyGraphics();
 
             SdlCheckError();
             SDL.SDLQuit();
@@ -217,7 +217,7 @@
                         var even = evnt.Window;
                         if (even.WindowID == mainWindow.WindowID)
                         {
-                            ((SdlWindow)mainWindow).ProcessEvent(even);
+                            ((CoreWindow)mainWindow).ProcessEvent(even);
                         }
                     }
 
@@ -231,7 +231,7 @@
                         var even = evnt.Key;
                         Keyboard.OnKeyDown(even);
                         if (even.WindowID == mainWindow.WindowID)
-                            ((SdlWindow)mainWindow).ProcessInputKeyboard(even);
+                            ((CoreWindow)mainWindow).ProcessInputKeyboard(even);
                     }
                     break;
 
@@ -240,7 +240,7 @@
                         var even = evnt.Key;
                         Keyboard.OnKeyUp(even);
                         if (even.WindowID == mainWindow.WindowID)
-                            ((SdlWindow)mainWindow).ProcessInputKeyboard(even);
+                            ((CoreWindow)mainWindow).ProcessInputKeyboard(even);
                     }
                     break;
 
@@ -252,7 +252,7 @@
                         var even = evnt.Text;
                         Keyboard.OnTextInput(even);
                         if (even.WindowID == mainWindow.WindowID)
-                            ((SdlWindow)mainWindow).ProcessInputText(even);
+                            ((CoreWindow)mainWindow).ProcessInputText(even);
                     }
                     break;
 
@@ -264,7 +264,7 @@
                         var even = evnt.Motion;
                         Mouse.OnMotion(even);
                         if (even.WindowID == mainWindow.WindowID)
-                            ((SdlWindow)mainWindow).ProcessInputMouse(even);
+                            ((CoreWindow)mainWindow).ProcessInputMouse(even);
                     }
                     break;
 
@@ -273,7 +273,7 @@
                         var even = evnt.Button;
                         Mouse.OnButtonDown(even);
                         if (even.WindowID == mainWindow.WindowID)
-                            ((SdlWindow)mainWindow).ProcessInputMouse(even);
+                            ((CoreWindow)mainWindow).ProcessInputMouse(even);
                     }
                     break;
 
@@ -282,7 +282,7 @@
                         var even = evnt.Button;
                         Mouse.OnButtonUp(even);
                         if (even.WindowID == mainWindow.WindowID)
-                            ((SdlWindow)mainWindow).ProcessInputMouse(even);
+                            ((CoreWindow)mainWindow).ProcessInputMouse(even);
                     }
                     break;
 
@@ -291,7 +291,7 @@
                         var even = evnt.Wheel;
                         Mouse.OnWheel(even);
                         if (even.WindowID == mainWindow.WindowID)
-                            ((SdlWindow)mainWindow).ProcessInputMouse(even);
+                            ((CoreWindow)mainWindow).ProcessInputMouse(even);
                     }
                     break;
 
@@ -419,7 +419,7 @@
                         var even = evnt.Tfinger;
                         TouchDevices.FingerDown(even);
                         if (even.WindowID == mainWindow.WindowID)
-                            ((SdlWindow)mainWindow).ProcessInputTouchDown(even);
+                            ((CoreWindow)mainWindow).ProcessInputTouchDown(even);
                     }
                     break;
 
@@ -428,7 +428,7 @@
                         var even = evnt.Tfinger;
                         TouchDevices.FingerUp(even);
                         if (even.WindowID == mainWindow.WindowID)
-                            ((SdlWindow)mainWindow).ProcessInputTouchUp(even);
+                            ((CoreWindow)mainWindow).ProcessInputTouchUp(even);
                     }
                     break;
 
@@ -437,7 +437,7 @@
                         var even = evnt.Tfinger;
                         TouchDevices.FingerMotion(even);
                         if (even.WindowID == mainWindow.WindowID)
-                            ((SdlWindow)mainWindow).ProcessInputTouchMotion(even);
+                            ((CoreWindow)mainWindow).ProcessInputTouchMotion(even);
                     }
                     break;
 

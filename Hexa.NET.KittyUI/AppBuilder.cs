@@ -3,6 +3,7 @@
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.KittyUI.ImGuiBackend;
+    using Hexa.NET.KittyUI.UI;
     using Hexa.NET.KittyUI.Windows;
     using System;
     using System.Collections.Generic;
@@ -17,12 +18,14 @@
         internal readonly List<ImGuiFontBuilder> builders = new();
         internal readonly List<ImGuiStyleBuilderCallback> styleBuilders = [];
         private string title = "Kitty";
+        private TitleBar? titlebar;
 
         public void Run()
         {
             Window window = new()
             {
-                Title = title
+                Title = title,
+                TitleBar = titlebar,
             };
             Application.Run(window, this);
         }
@@ -31,6 +34,18 @@
         {
             this.title = title;
             return this;
+        }
+
+        public AppBuilder AddTitleBar(TitleBar titlebar)
+        {
+            this.titlebar = titlebar;
+            return this;
+        }
+
+        public AppBuilder AddTitleBar<T>() where T : TitleBar, new()
+        {
+            T titlebar = new();
+            return AddTitleBar(titlebar);
         }
 
         internal void BuildFonts(ImGuiIOPtr io, Dictionary<string, ImFontPtr> aliasToFont)
@@ -130,6 +145,16 @@
         public AppBuilder AddWindow(IImGuiWindow window, bool show = false, bool mainWindow = false)
         {
             WidgetManager.Register(window, show, mainWindow);
+            return this;
+        }
+
+        public AppBuilder UseAppShell(string title, Action<ShellBuilder> action)
+        {
+            ShellBuilder builder = new(title);
+            action(builder);
+            WidgetManager.Register(builder.Shell, true, true);
+            SetTitle(title);
+            builder.Shell.Navigation.NavigateToRoot();
             return this;
         }
 

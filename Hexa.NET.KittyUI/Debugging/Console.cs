@@ -385,7 +385,7 @@
                 float timestamp_width = size.X;
 
                 // Display items.
-                for (int i = 0; i < messages.Count; i++)
+                for (int i = startLine; i < endLine; i++)
                 {
                     var item = messages[i];
 

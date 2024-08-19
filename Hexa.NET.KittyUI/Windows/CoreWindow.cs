@@ -2,19 +2,18 @@
 {
     using Hexa.NET.KittyUI;
     using Hexa.NET.KittyUI.D3D11;
-    using Hexa.NET.KittyUI.Debugging;
     using Hexa.NET.KittyUI.Input;
     using Hexa.NET.KittyUI.Input.Events;
     using Hexa.NET.KittyUI.OpenGL;
+    using Hexa.NET.KittyUI.UI;
     using Hexa.NET.KittyUI.Windows.Events;
     using Hexa.NET.Logging;
     using Hexa.NET.Mathematics;
     using Hexa.NET.SDL2;
     using Silk.NET.Core.Contexts;
-    using Silk.NET.Core.Loader;
     using Silk.NET.Core.Native;
-    using Silk.NET.Maths;
     using System;
+    using System.Diagnostics;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
@@ -22,200 +21,7 @@
     using static Hexa.NET.KittyUI.Extensions.SdlErrorHandlingExtensions;
     using Key = Input.Key;
 
-    public unsafe class SdlContext : IGLContext
-    {
-        private SDLGLContext _ctx;
-        private SDLWindow* _window;
-
-        /// <summary>
-        /// Creates a <see cref="SdlContext"/> from a native window using the given native interface.
-        /// </summary>
-        /// <param name="window">The native window to associate this context for.</param>
-        /// <param name="source">The <see cref="IGLContextSource" /> to associate this context to, if any.</param>
-        /// <param name="attributes">The attributes to eagerly pass to <see cref="Create"/>.</param>
-        public SdlContext(
-            SDLWindow* window,
-            IGLContextSource? source = null,
-            params (SDLGLattr Attribute, int Value)[] attributes)
-        {
-            Window = window;
-            Source = source;
-            if (attributes is not null && attributes.Length > 0)
-            {
-                Create(attributes);
-            }
-        }
-
-        /// <summary>
-        /// The native window to create a context for.
-        /// </summary>
-        public SDLWindow* Window
-        {
-            get => _window;
-            set
-            {
-                AssertNotCreated();
-                _window = value;
-            }
-        }
-
-        /// <inheritdoc cref="IGLContext" />
-        public Vector2D<int> FramebufferSize
-        {
-            get
-            {
-                AssertCreated();
-                var ret = stackalloc int[2];
-                SDL.SDLGLGetDrawableSize(Window, ret, &ret[1]);
-                //SDL.ThrowError();
-                return *(Vector2D<int>*)ret;
-            }
-        }
-
-        /// <inheritdoc cref="IGLContext" />
-        public void Create(params (SDLGLattr Attribute, int Value)[] attributes)
-        {
-            foreach (var (attribute, value) in attributes)
-            {
-                if (SDL.SDLGLSetAttribute(attribute, value) != 0)
-                {
-                    //SDL.ThrowError();
-                }
-            }
-
-            _ctx = SDL.SDLGLCreateContext(Window);
-            if (_ctx == default)
-            {
-                //SDL.ThrowError();
-            }
-        }
-
-        private void AssertCreated()
-        {
-            if (_ctx == default)
-            {
-                throw new InvalidOperationException("Context not created.");
-            }
-        }
-
-        private void AssertNotCreated()
-        {
-            if (_ctx != default)
-            {
-                throw new InvalidOperationException("Context created already.");
-            }
-        }
-
-        /// <inheritdoc cref="IGLContext" />
-        public void Dispose()
-        {
-            if (_ctx != default)
-            {
-                SDL.SDLGLDeleteContext(_ctx);
-                _ctx = default;
-            }
-        }
-
-        /// <inheritdoc cref="IGLContext" />
-        public nint GetProcAddress(string proc, int? slot = default)
-        {
-            AssertCreated();
-            SDL.SDLClearError();
-            var ret = (nint)SDL.SDLGLGetProcAddress(proc);
-            //SDL.SDLThrowError();
-            if (ret == 0)
-            {
-                Throw(proc);
-                return 0;
-            }
-
-            return ret;
-            static void Throw(string proc) => throw new SymbolLoadingException(proc);
-        }
-
-        public bool TryGetProcAddress(string proc, out nint addr, int? slot = default)
-        {
-            addr = 0;
-            SDL.SDLClearError();
-            if (_ctx == default)
-            {
-                return false;
-            }
-
-            var ret = (nint)SDL.SDLGLGetProcAddress(proc);
-            if (!string.IsNullOrWhiteSpace(SDL.SDLGetErrorS()))
-            {
-                SDL.SDLClearError();
-                return false;
-            }
-
-            return (addr = ret) != 0;
-        }
-
-        /// <inheritdoc cref="IGLContext" />
-        public nint Handle
-        {
-            get
-            {
-                AssertCreated();
-                return _ctx.Handle;
-            }
-        }
-
-        /// <inheritdoc cref="IGLContext" />
-        public IGLContextSource? Source { get; }
-
-        /// <inheritdoc cref="IGLContext" />
-        public bool IsCurrent
-        {
-            get
-            {
-                AssertCreated();
-                return SDL.SDLGLGetCurrentContext() == _ctx;
-            }
-        }
-
-        /// <inheritdoc cref="IGLContext" />
-        public void SwapInterval(int interval)
-        {
-            AssertCreated();
-            SDL.SDLGLSetSwapInterval(interval);
-        }
-
-        /// <inheritdoc cref="IGLContext" />
-        public void SwapBuffers()
-        {
-            AssertCreated();
-            SDL.SDLGLSwapWindow(Window);
-        }
-
-        /// <inheritdoc cref="IGLContext" />
-        public void MakeCurrent()
-        {
-            AssertCreated();
-            SDL.SDLGLMakeCurrent(Window, _ctx);
-        }
-
-        /// <inheritdoc cref="IGLContext" />
-        public void Clear()
-        {
-            AssertCreated();
-            if (IsCurrent)
-            {
-                SDL.SDLGLMakeCurrent(Window, default);
-            }
-        }
-    }
-
-    public enum GraphicsBackend
-    {
-        D3D11,
-        OpenGL,
-        Vulkan,
-        Metal
-    }
-
-    public unsafe class SdlWindow : IWindow, INativeWindow
+    public unsafe class CoreWindow : IWindow, INativeWindow
     {
         private static readonly ILogger Logger = LoggerFactory.GetLogger(nameof(SDL));
 
@@ -243,6 +49,8 @@
         private readonly TouchEventArgs touchEventArgs = new();
         private readonly TouchMotionEventArgs touchMotionEventArgs = new();
 
+        private TitleBar? titlebar;
+
         private SDLWindow* window;
         private bool created;
         private bool destroyed;
@@ -260,7 +68,7 @@
 
         private SDLCursor** cursors;
 
-        public SdlWindow(SDLWindowFlags flags = SDLWindowFlags.Resizable)
+        public CoreWindow(SDLWindowFlags flags = SDLWindowFlags.Resizable)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -274,7 +82,7 @@
             PlatformConstruct(flags);
         }
 
-        public SdlWindow(int x, int y, int width, int height, SDLWindowFlags flags = SDLWindowFlags.Resizable)
+        public CoreWindow(int x, int y, int width, int height, SDLWindowFlags flags = SDLWindowFlags.Resizable)
         {
             this.x = x;
             this.y = y;
@@ -330,7 +138,7 @@
                     break;
             }
 
-            window = SdlCheckError(SDL.SDLCreateWindow(ptr, x, y, width, height, (uint)windowFlags));
+            window = SdlCheckError(SDL.SDLCreateWindow(ptr, (int)x, (int)y, (int)width, (int)height, (uint)windowFlags));
 
             WindowID = SDL.SDLGetWindowID(window).SdlThrowIf();
 
@@ -501,6 +309,28 @@
                 SDL.SDLSetWindowSize(window, width, value);
                 Viewport = new(width, height);
                 OnResized(resizedEventArgs);
+            }
+        }
+
+        public TitleBar? TitleBar
+        {
+            get => titlebar;
+            set
+            {
+                if (titlebar != null)
+                {
+                    DetatchTitlebar(titlebar);
+                }
+
+                if (value != null)
+                {
+                    AttachTitlebar(value);
+                }
+                else
+                {
+                }
+
+                titlebar = value;
             }
         }
 
@@ -974,6 +804,108 @@
 
         #endregion EventCallMethods
 
+        private void AttachTitlebar(TitleBar titlebar)
+        {
+            titlebar.CloseWindowRequest += OnTitleBarCloseWindowRequest;
+            titlebar.MinimizeWindowRequest += OnTitleBarMinimizeWindowRequest;
+            titlebar.MaximizeWindowRequest += OnTitleBarMaximizeWindowRequest;
+            titlebar.RestoreWindowRequest += OnTitlebarRestoreWindowRequest;
+
+            SDL.SDLSetWindowHitTest(window, HitTestCallback, null);
+            titlebar.OnAttach(this);
+        }
+
+        private SDLHitTestResult HitTestCallback(SDLWindow* win, SDLPoint* area, void* data)
+        {
+            var titlebarHeight = titlebar!.Height;
+            int mouseGrabPadding = 4;
+
+            if (state != WindowState.Normal) // remove padding on maximized state.
+            {
+                mouseGrabPadding = 0;
+            }
+
+            if (area->Y < mouseGrabPadding)
+            {
+                if (area->X < mouseGrabPadding)
+                {
+                    return SDLHitTestResult.ResizeTopleft;
+                }
+                else if (area->X > Width - mouseGrabPadding)
+                {
+                    return SDLHitTestResult.ResizeTopright;
+                }
+                else
+                {
+                    return SDLHitTestResult.ResizeTop;
+                }
+            }
+            else if (area->Y > Height - mouseGrabPadding)
+            {
+                if (area->X < mouseGrabPadding)
+                {
+                    return SDLHitTestResult.ResizeBottomleft;
+                }
+                else if (area->X > Width - mouseGrabPadding)
+                {
+                    return SDLHitTestResult.ResizeBottomright;
+                }
+                else
+                {
+                    return SDLHitTestResult.ResizeBottom;
+                }
+            }
+            else if (area->X < mouseGrabPadding)
+            {
+                return SDLHitTestResult.ResizeLeft;
+            }
+            else if (area->X > Width - mouseGrabPadding)
+            {
+                return SDLHitTestResult.ResizeRight;
+            }
+            else if (area->Y < titlebarHeight)
+            {
+                return titlebar.HitTest(win, area, data);
+            }
+
+            return SDLHitTestResult.Normal; // SDL_HITTEST_NORMAL <- Windows behaviour
+        }
+
+        private void DetatchTitlebar(TitleBar titlebar)
+        {
+            titlebar.OnDetach(this);
+            titlebar.CloseWindowRequest -= OnTitleBarCloseWindowRequest;
+            titlebar.MinimizeWindowRequest -= OnTitleBarMinimizeWindowRequest;
+            titlebar.MaximizeWindowRequest -= OnTitleBarMaximizeWindowRequest;
+            titlebar.RestoreWindowRequest -= OnTitlebarRestoreWindowRequest;
+        }
+
+        protected virtual void OnTitlebarRestoreWindowRequest(object? sender, RestoreWindowRequest e)
+        {
+            SDL.SDLRestoreWindow(window);
+        }
+
+        protected virtual void OnTitleBarMaximizeWindowRequest(object? sender, MaximizeWindowRequest e)
+        {
+            SDL.SDLMaximizeWindow(window);
+        }
+
+        protected virtual void OnTitleBarMinimizeWindowRequest(object? sender, MinimizeWindowRequest e)
+        {
+            SDL.SDLMinimizeWindow(window);
+        }
+
+        protected virtual void OnTitleBarCloseWindowRequest(object? sender, CloseWindowRequest e)
+        {
+            closeEventArgs.Handled = false;
+            SDL.SDLHideWindow(window);
+            OnClosing(closeEventArgs);
+            if (closeEventArgs.Handled)
+            {
+                SDL.SDLShowWindow(window);
+            }
+        }
+
         /// <summary>
         /// Processes a window event received from the message loop.
         /// </summary>
@@ -989,6 +921,7 @@
 
                 case SDLWindowEventID.Shown:
                     {
+                        state = WindowState.Normal;
                         shownEventArgs.Timestamp = evnt.Timestamp;
                         shownEventArgs.Handled = false;
                         OnShown(shownEventArgs);
@@ -1336,6 +1269,11 @@
             if (!appClose && Application.MainWindow == this)
             {
                 return;
+            }
+
+            if (titlebar != null)
+            {
+                DetatchTitlebar(titlebar);
             }
 
             if (cursors != null)

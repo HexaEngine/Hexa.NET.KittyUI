@@ -18,7 +18,7 @@
     using System;
     using System.Numerics;
 
-    public class Window : SdlWindow, IRenderWindow
+    public class Window : CoreWindow, IRenderWindow
     {
 #nullable disable
         private ThreadDispatcher renderDispatcher;
@@ -34,18 +34,6 @@
         public IThreadDispatcher Dispatcher => renderDispatcher;
 
         public event Action? Draw;
-
-        public Window()
-        {
-        }
-
-        public Window(SDL2.SDLWindowFlags flags = SDL2.SDLWindowFlags.Resizable) : base(flags)
-        {
-        }
-
-        public Window(int x, int y, int width, int height, SDL2.SDLWindowFlags flags = SDL2.SDLWindowFlags.Resizable) : base(x, y, width, height, flags)
-        {
-        }
 
         public virtual unsafe void Initialize(AppBuilder appBuilder)
         {
@@ -145,6 +133,7 @@
 
             OnRenderBegin();
 
+            TitleBar?.Draw();
             WidgetManager.Draw();
             ImGuiDebugTools.Draw();
 
@@ -179,6 +168,7 @@
 
             OnRenderBegin();
 
+            TitleBar?.Draw();
             WidgetManager.Draw();
             ImGuiDebugTools.Draw();
 

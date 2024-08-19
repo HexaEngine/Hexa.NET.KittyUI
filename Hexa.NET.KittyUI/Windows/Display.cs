@@ -86,12 +86,12 @@
             return SDL.SDLGetRectDisplayIndex(ref rect);
         }
 
-        public static int GetWindowDisplayIndex(SdlWindow window)
+        public static int GetWindowDisplayIndex(CoreWindow window)
         {
             return SDL.SDLGetWindowDisplayIndex(window.GetWindow());
         }
 
-        public static DisplayMode GetWindowDisplayMode(SdlWindow window)
+        public static DisplayMode GetWindowDisplayMode(CoreWindow window)
         {
             DisplayMode mode;
             SDL.SDLGetWindowDisplayMode(window.GetWindow(), (SDLDisplayMode*)&mode);
