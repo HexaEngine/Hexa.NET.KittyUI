@@ -48,15 +48,15 @@
         private readonly TouchEventArgs touchEventArgs = new();
         private readonly TouchMotionEventArgs touchMotionEventArgs = new();
 
-        private TitleBar? titlebar;
+        private ITitleBar? titlebar;
 
         private SDLWindow* window;
         private bool created;
         private bool destroyed;
         private int width = 1280;
         private int height = 720;
-        private int y = 100;
-        private int x = 100;
+        private int y = (int)SDL.SDL_WINDOWPOS_UNDEFINED_MASK;
+        private int x = (int)SDL.SDL_WINDOWPOS_UNDEFINED_MASK;
         private bool hovering;
         private bool focused;
         private WindowState state;
@@ -311,7 +311,7 @@
             }
         }
 
-        public TitleBar? TitleBar
+        public ITitleBar? TitleBar
         {
             get => titlebar;
             set
@@ -412,11 +412,33 @@
 
         public NativeWindowFlags Kind { get; }
 
-        public (nint Display, nuint Window)? X11 { get; }
+        public (nint Display, nuint Window)? X11
+        {
+            get
+            {
+                Logger.ThrowIf(destroyed, "The window is already destroyed");
+                SDLSysWMInfo wmInfo;
+                SDL.SDLGetVersion(&wmInfo.Version);
+                SDL.SDLGetWindowWMInfo(window, &wmInfo);
+
+                return (wmInfo.Info.X11.Display, (nuint)wmInfo.Info.X11.Window);
+            }
+        }
 
         public nint? Cocoa { get; }
 
-        public (nint Display, nint Surface)? Wayland { get; }
+        public (nint Display, nint Surface)? Wayland
+        {
+            get
+            {
+                Logger.ThrowIf(destroyed, "The window is already destroyed");
+                SDLSysWMInfo wmInfo;
+                SDL.SDLGetVersion(&wmInfo.Version);
+                SDL.SDLGetWindowWMInfo(window, &wmInfo);
+
+                return (wmInfo.Info.Wayland.Display, wmInfo.Info.Wayland.Surface);
+            }
+        }
 
         public nint? WinRT { get; }
 
@@ -803,14 +825,17 @@
 
         #endregion EventCallMethods
 
-        private void AttachTitlebar(TitleBar titlebar)
+
+        private SDLHitTest callback;
+        private void AttachTitlebar(ITitleBar titlebar)
         {
             titlebar.CloseWindowRequest += OnTitleBarCloseWindowRequest;
             titlebar.MinimizeWindowRequest += OnTitleBarMinimizeWindowRequest;
             titlebar.MaximizeWindowRequest += OnTitleBarMaximizeWindowRequest;
             titlebar.RestoreWindowRequest += OnTitlebarRestoreWindowRequest;
 
-            SDL.SDLSetWindowHitTest(window, HitTestCallback, null);
+            callback = HitTestCallback;
+            SDL.SDLSetWindowHitTest(window, callback, null);
             titlebar.OnAttach(this);
         }
 
@@ -870,7 +895,7 @@
             return SDLHitTestResult.Normal; // SDL_HITTEST_NORMAL <- Windows behaviour
         }
 
-        private void DetatchTitlebar(TitleBar titlebar)
+        private void DetatchTitlebar(ITitleBar titlebar)
         {
             titlebar.OnDetach(this);
             titlebar.CloseWindowRequest -= OnTitleBarCloseWindowRequest;
@@ -882,16 +907,19 @@
         protected virtual void OnTitlebarRestoreWindowRequest(object? sender, RestoreWindowRequest e)
         {
             SDL.SDLRestoreWindow(window);
+            state = WindowState.Normal;
         }
 
         protected virtual void OnTitleBarMaximizeWindowRequest(object? sender, MaximizeWindowRequest e)
         {
             SDL.SDLMaximizeWindow(window);
+            state = WindowState.Maximized;
         }
 
         protected virtual void OnTitleBarMinimizeWindowRequest(object? sender, MinimizeWindowRequest e)
         {
             SDL.SDLMinimizeWindow(window);
+            state = WindowState.Minimized;
         }
 
         protected virtual void OnTitleBarCloseWindowRequest(object? sender, CloseWindowRequest e)

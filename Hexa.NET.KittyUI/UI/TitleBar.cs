@@ -5,7 +5,9 @@
     using Hexa.NET.KittyUI.Debugging;
     using Hexa.NET.KittyUI.Input;
     using Hexa.NET.KittyUI.Native.Windows;
+    using Hexa.NET.KittyUI.Native.X11;
     using Hexa.NET.KittyUI.Windows;
+    using Hexa.NET.KittyUI.Windows.Events;
     using Hexa.NET.Mathematics;
     using Hexa.NET.SDL2;
     using System;
@@ -13,8 +15,8 @@
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Text;
-
-    public unsafe class TitleBar
+    
+    public unsafe class TitleBar : ITitleBar
     {
         public event EventHandler<CloseWindowRequest>? CloseWindowRequest;
 
@@ -23,17 +25,18 @@
         public event EventHandler<MinimizeWindowRequest>? MinimizeWindowRequest;
 
         public event EventHandler<RestoreWindowRequest>? RestoreWindowRequest;
-
+    
         public CoreWindow Window { get; set; } = null!;
-
-        private Point2 dragOffset;
+        
         private ImDrawListPtr draw;
         private Vector2 titleBarPos;
         private Vector2 titleBarSize;
         private int titleBarHeight = 30;
         private Point2 mousePos;
         private Vector2 cursorPos;
-        const float buttonSize = 50;
+        private float buttonSize = 50;
+        
+        private uint hoveredId;
 
         private bool wasActive = false;
         private float timer;
@@ -202,16 +205,14 @@
             return result;
         }
 
-        private unsafe bool Button(ReadOnlySpan<byte> label, uint hoveredColor, uint activeColor, Vector2 size)
+        private bool Button(ReadOnlySpan<byte> label, uint hoveredColor, uint activeColor, Vector2 size)
         {
             fixed (byte* pLabel = label)
             {
                 return Button(pLabel, hoveredColor, activeColor, size);
             }
         }
-
-        private uint hoveredId;
-
+        
         private unsafe bool Button(byte* label, uint hoveredColor, uint activeColor, Vector2 size)
         {
             var id = ImGui.GetID(label);
@@ -294,7 +295,7 @@
             }
         }
 
-        public unsafe void RequestMinimize()
+        public void RequestMinimize()
         {
             MinimizeWindowRequest request = new(Window);
             OnWindowMinimizeRequest(request);
@@ -359,6 +360,26 @@
             if (OperatingSystem.IsWindows())
             {
                 InjectInterceptor(window.GetHWND());
+            }
+            else
+            {
+                var x11 = window.X11!.Value;
+                var atom = X11Api.XInternAtom(x11.Display, "_MOTIF_WM_HINTS", false);
+                nint actualType;
+                int actualFormat;
+                uint nitems;
+                int bytesAfter;
+                MotifWmHints hints;
+                byte* prop;
+                var result = (X11ResultCode)X11Api.XGetWindowProperty(x11.Display, x11.Window, atom, 0, sizeof(MotifWmHints) / 4, false, X11Api.AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &prop);
+
+                MotifWmHints* pHints = &hints;
+
+                pHints->Decorations = Decor.Border;
+                pHints->Flags = MotifWmFlags.Decorations;
+
+
+                result = (X11ResultCode)X11Api.XChangeProperty(x11.Display, x11.Window, atom, atom, 32, PropMode.Replace, (byte*)pHints, sizeof(MotifWmHints) / 4);
             }
         }
 
