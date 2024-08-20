@@ -53,6 +53,9 @@
         public static extern nint CallWindowProc(void* lpPrevWndFunc, nint hwnd, uint msg, nint wParam, nint lParam);
 
         public const int GWLP_WNDPROC = -4;
+
+        [DllImport("UxTheme.dll")]
+        public static extern int GetThemeSysSize(nint htheme, SystemMetrics iSizeId);
     }
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]

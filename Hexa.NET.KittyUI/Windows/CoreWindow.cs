@@ -13,7 +13,6 @@
     using Silk.NET.Core.Contexts;
     using Silk.NET.Core.Native;
     using System;
-    using System.Diagnostics;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;

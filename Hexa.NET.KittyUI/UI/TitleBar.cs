@@ -6,16 +6,13 @@
     using Hexa.NET.KittyUI.Input;
     using Hexa.NET.KittyUI.Native.Windows;
     using Hexa.NET.KittyUI.Windows;
-    using Hexa.NET.Logging;
     using Hexa.NET.Mathematics;
     using Hexa.NET.SDL2;
     using System;
-    using System.Diagnostics;
     using System.Numerics;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Text;
-    using static Hexa.NET.KittyUI.UI.Taskbar;
 
     public unsafe class TitleBar
     {
@@ -29,7 +26,6 @@
 
         public CoreWindow Window { get; set; } = null!;
 
-        private bool isDragging = false;
         private Point2 dragOffset;
         private ImDrawListPtr draw;
         private Vector2 titleBarPos;
@@ -38,6 +34,12 @@
         private Point2 mousePos;
         private Vector2 cursorPos;
         const float buttonSize = 50;
+
+        private bool wasActive = false;
+        private float timer;
+        private float duration = 0;
+
+        private uint colorFg;
 
         public int Height { get => titleBarHeight; set => titleBarHeight = value; }
 
@@ -54,7 +56,46 @@
 
             ImRect rect = new(titleBarPos, titleBarPos + titleBarSize);
 
-            uint color = Window.Focused ? ImGui.GetColorU32(ImGuiCol.TitleBgActive) : ImGui.GetColorU32(ImGuiCol.TitleBg);
+            if (timer > 0)
+            {
+                timer -= Time.Delta;
+            }
+            else
+            {
+                timer = 0;
+            }
+
+            bool windowFocused = Window.Focused;
+            if (windowFocused != wasActive)
+            {
+                timer = 0.1f;
+                duration = 0.1f;
+            }
+            wasActive = windowFocused;
+
+            uint color;
+
+            if (timer > 0)
+            {
+                float s = timer / duration;
+                Vector4 colA = *ImGui.GetStyleColorVec4(ImGuiCol.TitleBgActive);
+                Vector4 colB = *ImGui.GetStyleColorVec4(ImGuiCol.TitleBg);
+                Vector4 colAF = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
+                Vector4 colBF = *ImGui.GetStyleColorVec4(ImGuiCol.TextDisabled);
+                if (!windowFocused)
+                {
+                    (colA, colB) = (colB, colA);
+                    (colAF, colBF) = (colBF, colAF);
+                }
+                color = RGBALerp(colA, colB, s);
+                colorFg = RGBALerp(colAF, colBF, s);
+            }
+            else
+            {
+                color = windowFocused ? ImGui.GetColorU32(ImGuiCol.TitleBgActive) : ImGui.GetColorU32(ImGuiCol.TitleBg);
+                colorFg = windowFocused ? ImGui.GetColorU32(ImGuiCol.Text) : ImGui.GetColorU32(ImGuiCol.TextDisabled);
+            }
+
             // Draw a filled rectangle for the title bar background
             draw.AddRectFilled(rect.Min, rect.Max, color);
 
@@ -65,18 +106,24 @@
                 titleBarPos.X + (titleBarSize.X - textSize.X) * 0.5f,
                 titleBarPos.Y + (titleBarSize.Y - textSize.Y) * 0.5f
             );
-            draw.AddText(textPos, 0xFFFFFFFF, title);
+            draw.AddText(textPos, colorFg, title);
 
-            bool handled = false;
+            if (Button($"{MaterialIcons.Menu}", 0x1CCCCCCC, 0x1CCCCCCC, new(buttonSize, titleBarHeight)))
+            {
+            }
 
-            cursorPos.X = rect.Max.X - buttonSize * 3;
+            if (Button($"{MaterialIcons.ArrowBack}", 0x1CCCCCCC, 0x1CCCCCCC, new(buttonSize, titleBarHeight)))
+            {
+            }
 
-            if (Button($"{MaterialIcons.Remove}", 0x1CCCCCCC, 0x1CCCCCCC, new(buttonSize, titleBarHeight), ref handled)) // 0xCCCCCCCC is a color ABGR
+            cursorPos.X = rect.Max.X - buttonSize * 3; // right align.
+
+            if (Button($"{MaterialIcons.Remove}", 0x1CCCCCCC, 0x1CCCCCCC, new(buttonSize, titleBarHeight))) // 0xCCCCCCCC is a color ABGR
             {
                 RequestMinimize();
             }
 
-            if (Button($"{MaterialIcons.SelectWindow2}", 0x1CCCCCCC, 0x1CCCCCCC, new(buttonSize, titleBarHeight), ref handled))
+            if (Button($"{MaterialIcons.SelectWindow2}", 0x1CCCCCCC, 0x1CCCCCCC, new(buttonSize, titleBarHeight)))
             {
                 if (Window.State == WindowState.Maximized)
                 {
@@ -88,7 +135,7 @@
                 }
             }
 
-            if (Button($"{MaterialIcons.Close}", 0xFF3333C6, 0xFF3333C6, new(buttonSize, titleBarHeight), ref handled))
+            if (Button($"{MaterialIcons.Close}", 0xFF3333C6, 0xFF3333C6, new(buttonSize, titleBarHeight)))
             {
                 RequestClose();
             }
@@ -98,7 +145,38 @@
             viewport.WorkSize.Y -= titleBarHeight;
         }
 
-        private unsafe bool Button(string label, uint hoveredColor, uint activeColor, Vector2 size, ref bool handled)
+        private static uint ABGRLerp(uint colorA, uint colorB, float s)
+        {
+            var colA = ABGRU32ToRGBAV4(colorA);
+            var colB = ABGRU32ToRGBAV4(colorB);
+            var lerp = Vector4.Lerp(colA, colB, s);
+            return RGBAV4ToABGRU32(lerp);
+        }
+
+        private static uint RGBALerp(Vector4 colorA, Vector4 colorB, float s)
+        {
+            return RGBAV4ToABGRU32(Vector4.Lerp(colorA, colorB, s));
+        }
+
+        private static Vector4 ABGRU32ToRGBAV4(uint color)
+        {
+            byte a = (byte)((color >> 24) & 0xFF);
+            byte b = (byte)((color >> 16) & 0xFF);
+            byte g = (byte)((color >> 8) & 0xFF);
+            byte r = (byte)(color & 0xFF);
+            return new Vector4(r / (float)byte.MaxValue, g / (float)byte.MaxValue, b / (float)byte.MaxValue, a / (float)byte.MaxValue);
+        }
+
+        private static uint RGBAV4ToABGRU32(Vector4 color)
+        {
+            byte r = (byte)(Math.Clamp(color.X, 0, 1) * byte.MaxValue);
+            byte g = (byte)(Math.Clamp(color.Y, 0, 1) * byte.MaxValue);
+            byte b = (byte)(Math.Clamp(color.Z, 0, 1) * byte.MaxValue);
+            byte a = (byte)(Math.Clamp(color.W, 0, 1) * byte.MaxValue);
+            return (uint)((a << 24) | (b << 16) | (g << 8) | (r));
+        }
+
+        private unsafe bool Button(string label, uint hoveredColor, uint activeColor, Vector2 size)
         {
             int byteCount = Encoding.UTF8.GetByteCount(label);
             byte* pLabel;
@@ -114,7 +192,7 @@
             int offset = Encoding.UTF8.GetBytes(label, new Span<byte>(pLabel, byteCount));
             pLabel[offset] = 0;
 
-            bool result = Button(pLabel, hoveredColor, activeColor, size, ref handled);
+            bool result = Button(pLabel, hoveredColor, activeColor, size);
 
             if (byteCount > StackAllocLimit)
             {
@@ -124,19 +202,24 @@
             return result;
         }
 
-        private unsafe bool Button(ReadOnlySpan<byte> label, uint hoveredColor, uint activeColor, Vector2 size, ref bool handled)
+        private unsafe bool Button(ReadOnlySpan<byte> label, uint hoveredColor, uint activeColor, Vector2 size)
         {
             fixed (byte* pLabel = label)
             {
-                return Button(pLabel, hoveredColor, activeColor, size, ref handled);
+                return Button(pLabel, hoveredColor, activeColor, size);
             }
         }
 
-        private unsafe bool Button(byte* label, uint hoveredColor, uint activeColor, Vector2 size, ref bool handled)
+        private uint hoveredId;
+
+        private unsafe bool Button(byte* label, uint hoveredColor, uint activeColor, Vector2 size)
         {
+            var id = ImGui.GetID(label);
             var mousePos = Mouse.Global;
             // Draw a custom close button on the right side of the title bar
             var pos = cursorPos;
+
+            var transitionState = ImGui.GetStateStorage().GetFloatRef(id, 0);
 
             cursorPos += new Vector2(size.X, 0);
 
@@ -145,9 +228,45 @@
             bool isHovered = rect.Contains(mousePos);
             bool isMouseDown = ImGui.IsMouseDown(ImGuiMouseButton.Left) && isHovered;
 
-            uint color = isMouseDown ? activeColor : isHovered ? hoveredColor : 0;
+            if (!isHovered && hoveredId == id)
+            {
+                hoveredId = 0;
+                *transitionState = 0.1f;
+            }
 
-            if (isHovered || isMouseDown)
+            if (isHovered && hoveredId != id)
+            {
+                hoveredId = id;
+                *transitionState = 0.1f;
+            }
+
+            if (*transitionState > 0)
+            {
+                *transitionState = *transitionState - Time.Delta;
+            }
+            if (*transitionState <= 0)
+            {
+                *transitionState = 0;
+            }
+
+            uint color;
+            if (*transitionState != 0)
+            {
+                float s = *transitionState / 0.1f;
+                uint colA = hoveredColor;
+                uint colB = 0xFF;
+                if (!isHovered)
+                {
+                    s = 1 - s;
+                }
+                color = ABGRLerp(colA, colB, s);
+            }
+            else
+            {
+                color = isMouseDown ? activeColor : isHovered ? hoveredColor : 0;
+            }
+
+            if (color != 0)
             {
                 draw.AddRectFilled(rect.Min, rect.Max, color);
             }
@@ -155,8 +274,7 @@
             bool clicked = ImGui.IsMouseReleased(ImGuiMouseButton.Left);
             var textSizeClose = ImGui.CalcTextSize(label);
             var midpoint = rect.Midpoint() - textSizeClose / 2;
-            draw.AddText(midpoint, 0xFFFFFFFF, label);
-            handled |= isHovered;
+            draw.AddText(midpoint, colorFg, label);
 
             if (isHovered && clicked)
             {
@@ -226,7 +344,8 @@
         {
             int w, h;
             SDL.SDLGetWindowSize(win, &w, &h);
-            if (area->X < w - buttonSize * 3)
+
+            if (area->X > buttonSize * 2 && area->X < w - buttonSize * 3)
             {
                 return SDLHitTestResult.Draggable;
             }
@@ -259,7 +378,7 @@
         [SupportedOSPlatform("windows")]
         private void InjectInterceptor(nint hwnd)
         {
-            void* injector = (void*)Marshal.GetFunctionPointerForDelegate<WndProc>(MyWndProc);
+            void* injector = (void*)Marshal.GetFunctionPointerForDelegate<WndProc>(TitleBarWndProc);
             originalWndProc = WinApi.SetWindowLongPtr(hwnd, WinApi.GWLP_WNDPROC, injector);
             WinApi.SetWindowPos(hwnd, 0, 0, 0, 0, 0, WinApi.SWP_FRAMECHANGED | WinApi.SWP_NOMOVE | WinApi.SWP_NOSIZE | WinApi.SWP_NOZORDER | WinApi.SWP_NOACTIVATE);
         }
@@ -271,7 +390,7 @@
         }
 
         [SupportedOSPlatform("windows")]
-        private nint MyWndProc(nint hwnd, uint message, nint wParam, nint lParam)
+        private nint TitleBarWndProc(nint hwnd, uint message, nint wParam, nint lParam)
         {
             if (message == WinApi.WM_NCCALCSIZE && wParam != 0)
             {
@@ -280,7 +399,9 @@
 
                 WindowPos* winPos = nccsp->LpPos;
 
-                if (WinApi.IsZoomed(hwnd))
+                int titleBarHeight = WinApi.GetThemeSysSize(0, SystemMetrics.CySize) + WinApi.GetThemeSysSize(0, SystemMetrics.CxPaddedBorder) * 2;
+
+                if (WinApi.IsZoomed(hwnd)) // fix for maximized windows.
                 {
                     nccsp->RgRc0.Top = Math.Max(nccsp->RgRc0.Top - titleBarHeight, -titleBarHeight - 1);
                 }
