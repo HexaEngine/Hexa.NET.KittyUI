@@ -50,7 +50,7 @@
             {
                 AssertCreated();
                 var ret = stackalloc int[2];
-                SDL.SDLGLGetDrawableSize(Window, ret, &ret[1]);
+                SDL.GLGetDrawableSize(Window, ret, &ret[1]);
                 //SDL.ThrowError();
                 return *(Vector2D<int>*)ret;
             }
@@ -61,13 +61,13 @@
         {
             foreach (var (attribute, value) in attributes)
             {
-                if (SDL.SDLGLSetAttribute(attribute, value) != 0)
+                if (SDL.GLSetAttribute(attribute, value) != 0)
                 {
                     //SDL.ThrowError();
                 }
             }
 
-            _ctx = SDL.SDLGLCreateContext(Window);
+            _ctx = SDL.GLCreateContext(Window);
             if (_ctx == default)
             {
                 //SDL.ThrowError();
@@ -95,7 +95,7 @@
         {
             if (_ctx != default)
             {
-                SDL.SDLGLDeleteContext(_ctx);
+                SDL.GLDeleteContext(_ctx);
                 _ctx = default;
             }
         }
@@ -104,9 +104,9 @@
         public nint GetProcAddress(string proc, int? slot = default)
         {
             AssertCreated();
-            SDL.SDLClearError();
-            var ret = (nint)SDL.SDLGLGetProcAddress(proc);
-            //SDL.SDLThrowError();
+            SDL.ClearError();
+            var ret = (nint)SDL.GLGetProcAddress(proc);
+            //SDL.ThrowError();
             if (ret == 0)
             {
                 Throw(proc);
@@ -120,16 +120,16 @@
         public bool TryGetProcAddress(string proc, out nint addr, int? slot = default)
         {
             addr = 0;
-            SDL.SDLClearError();
+            SDL.ClearError();
             if (_ctx == default)
             {
                 return false;
             }
 
-            var ret = (nint)SDL.SDLGLGetProcAddress(proc);
-            if (!string.IsNullOrWhiteSpace(SDL.SDLGetErrorS()))
+            var ret = (nint)SDL.GLGetProcAddress(proc);
+            if (!string.IsNullOrWhiteSpace(SDL.GetErrorS()))
             {
-                SDL.SDLClearError();
+                SDL.ClearError();
                 return false;
             }
 
@@ -155,7 +155,7 @@
             get
             {
                 AssertCreated();
-                return SDL.SDLGLGetCurrentContext() == _ctx;
+                return SDL.GLGetCurrentContext() == _ctx;
             }
         }
 
@@ -163,21 +163,21 @@
         public void SwapInterval(int interval)
         {
             AssertCreated();
-            SDL.SDLGLSetSwapInterval(interval);
+            SDL.GLSetSwapInterval(interval);
         }
 
         /// <inheritdoc cref="IGLContext" />
         public void SwapBuffers()
         {
             AssertCreated();
-            SDL.SDLGLSwapWindow(Window);
+            SDL.GLSwapWindow(Window);
         }
 
         /// <inheritdoc cref="IGLContext" />
         public void MakeCurrent()
         {
             AssertCreated();
-            SDL.SDLGLMakeCurrent(Window, _ctx);
+            SDL.GLMakeCurrent(Window, _ctx);
         }
 
         /// <inheritdoc cref="IGLContext" />
@@ -186,7 +186,7 @@
             AssertCreated();
             if (IsCurrent)
             {
-                SDL.SDLGLMakeCurrent(Window, default);
+                SDL.GLMakeCurrent(Window, default);
             }
         }
     }

@@ -154,7 +154,14 @@
             action(builder);
             WidgetManager.Register(builder.Shell, true, true);
             SetTitle(title);
+
             builder.Shell.Navigation.NavigateToRoot();
+
+            if (titlebar != null)
+            {
+                titlebar.Navigation = builder.Shell.Navigation;
+            }
+
             return this;
         }
 

@@ -16,7 +16,8 @@ public interface ITitleBar
     public CoreWindow Window { get; set; } 
         
     public int Height { get; set; }
-        
+    INavigation? Navigation { get; set; }
+
     public void OnAttach(CoreWindow window);
 
     public void OnDetach(CoreWindow window);

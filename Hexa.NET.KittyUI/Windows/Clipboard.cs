@@ -6,27 +6,27 @@
     {
         public static char* GetClipboardText()
         {
-            return (char*)SDL.SDLGetClipboardText();
+            return (char*)SDL.GetClipboardText();
         }
 
         public static string GetClipboardTextS()
         {
-            return SDL.SDLGetClipboardTextS();
+            return SDL.GetClipboardTextS();
         }
 
         public static void SetClipboardText(char* text)
         {
-            SDL.SDLSetClipboardText((byte*)text);
+            SDL.SetClipboardText((byte*)text);
         }
 
         public static void SetClipboardText(string text)
         {
-            SDL.SDLSetClipboardText(text);
+            SDL.SetClipboardText(text);
         }
 
         public static void Free(char* text)
         {
-            SDL.SDLFree(text);
+            SDL.Free(text);
         }
     }
 }

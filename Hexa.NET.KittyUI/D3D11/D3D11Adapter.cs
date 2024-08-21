@@ -192,13 +192,13 @@
         internal static DXGISwapChain CreateSwapChainForWindow(Window* window)
         {
             SDLSysWMInfo info;
-            SDL.SDLGetVersion(&info.Version);
-            SDL.SDLGetWindowWMInfo(window, &info);
+            SDL.GetVersion(&info.Version);
+            SDL.GetWindowWMInfo(window, &info);
 
             int width = 0;
             int height = 0;
 
-            SDL.SDLGetWindowSize(window, &width, &height);
+            SDL.GetWindowSize(window, &width, &height);
 
             var Hwnd = info.Info.Win.Window;
 

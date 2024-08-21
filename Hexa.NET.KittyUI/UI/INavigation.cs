@@ -13,6 +13,13 @@
         void NavigateToRoot();
 
         IEnumerable<IPage> GetHistoryStack();
+
         void NavigateBackTo(IPage page);
+
+        void ShowMenu();
+
+        bool CanGoBack { get; }
+
+        bool CanGoForward { get; }
     }
 }

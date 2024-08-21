@@ -8,7 +8,7 @@
     {
         private readonly Dictionary<string, IPage> _pages = new();
         private readonly List<IPage> _navigationHistory = new();
-        private readonly Stack<IPage> _navForward = new();
+        private readonly Stack<IPage> _navigationForward = new();
         private IPage? _currentPage;
         private IPage? _rootPage;
         private string _currentPath = "/";
@@ -17,12 +17,15 @@
 
         public string CurrentPath => _currentPath;
 
+        public bool CanGoBack => _navigationHistory.Count > 0;
+
+        public bool CanGoForward => _navigationForward.Count > 0;
+
+        public event EventHandler? OpenMenu;
+
         public void RegisterPage(string path, IPage page)
         {
-            if (_rootPage == null)
-            {
-                _rootPage = page;
-            }
+            _rootPage ??= page;
             var normalizedPath = NormalizePath(path);
             if (!_pages.ContainsKey(normalizedPath))
             {
@@ -51,7 +54,7 @@
             {
                 _currentPage.OnNavigatedFrom(page);
                 _navigationHistory.Add(_currentPage);
-                _navForward.Clear();
+                _navigationForward.Clear();
             }
             page.OnNavigatedTo(_currentPage);
             _currentPage = page;
@@ -70,7 +73,7 @@
             {
                 if (_currentPage != null)
                 {
-                    _navForward.Push(_currentPage);
+                    _navigationForward.Push(_currentPage);
                 }
 
                 _currentPage = _navigationHistory[^1];
@@ -93,7 +96,7 @@
             {
                 if (_currentPage != null)
                 {
-                    _navForward.Push(_currentPage);
+                    _navigationForward.Push(_currentPage);
                 }
 
                 var previousPage = _navigationHistory[^1];
@@ -108,14 +111,14 @@
 
         public void NavigateForward()
         {
-            if (_navForward.Count > 0)
+            if (_navigationForward.Count > 0)
             {
                 if (_currentPage != null)
                 {
                     _navigationHistory.Add(_currentPage);
                 }
 
-                var previousPage = _navForward.Pop();
+                var previousPage = _navigationForward.Pop();
                 previousPage.OnNavigatedTo(_currentPage);
                 _currentPage = previousPage;
             }
@@ -232,6 +235,11 @@
             {
                 yield return _currentPage;
             }
+        }
+
+        public void ShowMenu()
+        {
+            OpenMenu?.Invoke(this, EventArgs.Empty);
         }
     }
 }

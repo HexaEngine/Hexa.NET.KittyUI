@@ -2,20 +2,19 @@
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
-    using Hexa.NET.KittyUI.Debugging;
     using Hexa.NET.KittyUI.Input;
     using Hexa.NET.KittyUI.Native.Windows;
     using Hexa.NET.KittyUI.Native.X11;
     using Hexa.NET.KittyUI.Windows;
-    using Hexa.NET.KittyUI.Windows.Events;
     using Hexa.NET.Mathematics;
     using Hexa.NET.SDL2;
+    using Hexa.NET.Utilities;
     using System;
     using System.Numerics;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Text;
-    
+
     public unsafe class TitleBar : ITitleBar
     {
         public event EventHandler<CloseWindowRequest>? CloseWindowRequest;
@@ -25,9 +24,9 @@
         public event EventHandler<MinimizeWindowRequest>? MinimizeWindowRequest;
 
         public event EventHandler<RestoreWindowRequest>? RestoreWindowRequest;
-    
+
         public CoreWindow Window { get; set; } = null!;
-        
+
         private ImDrawListPtr draw;
         private Vector2 titleBarPos;
         private Vector2 titleBarSize;
@@ -35,7 +34,7 @@
         private Point2 mousePos;
         private Vector2 cursorPos;
         private float buttonSize = 50;
-        
+
         private uint hoveredId;
 
         private bool wasActive = false;
@@ -45,6 +44,8 @@
         private uint colorFg;
 
         public int Height { get => titleBarHeight; set => titleBarHeight = value; }
+
+        public INavigation? Navigation { get; set; }
 
         public virtual void Draw()
         {
@@ -111,12 +112,14 @@
             );
             draw.AddText(textPos, colorFg, title);
 
-            if (Button($"{MaterialIcons.Menu}", 0x1CCCCCCC, 0x1CCCCCCC, new(buttonSize, titleBarHeight)))
+            if (Navigation != null && Button($"{MaterialIcons.Menu}", 0x1CCCCCCC, 0x1CCCCCCC, new(buttonSize, titleBarHeight)))
             {
+                Navigation.ShowMenu();
             }
 
-            if (Button($"{MaterialIcons.ArrowBack}", 0x1CCCCCCC, 0x1CCCCCCC, new(buttonSize, titleBarHeight)))
+            if (Navigation != null && Navigation.CanGoBack && Button($"{MaterialIcons.ArrowBack}", 0x1CCCCCCC, 0x1CCCCCCC, new(buttonSize, titleBarHeight)))
             {
+                Navigation.NavigateBack();
             }
 
             cursorPos.X = rect.Max.X - buttonSize * 3; // right align.
@@ -212,7 +215,7 @@
                 return Button(pLabel, hoveredColor, activeColor, size);
             }
         }
-        
+
         private unsafe bool Button(byte* label, uint hoveredColor, uint activeColor, Vector2 size)
         {
             var id = ImGui.GetID(label);
@@ -344,7 +347,7 @@
         public virtual SDLHitTestResult HitTest(SDLWindow* win, SDLPoint* area, void* data)
         {
             int w, h;
-            SDL.SDLGetWindowSize(win, &w, &h);
+            SDL.GetWindowSize(win, &w, &h);
 
             if (area->X > buttonSize * 2 && area->X < w - buttonSize * 3)
             {
@@ -378,7 +381,6 @@
                 pHints->Decorations = Decor.Border;
                 pHints->Flags = MotifWmFlags.Decorations;
 
-
                 result = (X11ResultCode)X11Api.XChangeProperty(x11.Display, x11.Window, atom, atom, 32, PropMode.Replace, (byte*)pHints, sizeof(MotifWmHints) / 4);
             }
         }
@@ -395,11 +397,13 @@
         #region WIN32
 
         private void* originalWndProc;
+        private WndProc? wndProc;
 
         [SupportedOSPlatform("windows")]
         private void InjectInterceptor(nint hwnd)
         {
-            void* injector = (void*)Marshal.GetFunctionPointerForDelegate<WndProc>(TitleBarWndProc);
+            wndProc = TitleBarWndProc;
+            void* injector = (void*)Marshal.GetFunctionPointerForDelegate<WndProc>(wndProc);
             originalWndProc = WinApi.SetWindowLongPtr(hwnd, WinApi.GWLP_WNDPROC, injector);
             WinApi.SetWindowPos(hwnd, 0, 0, 0, 0, 0, WinApi.SWP_FRAMECHANGED | WinApi.SWP_NOMOVE | WinApi.SWP_NOSIZE | WinApi.SWP_NOZORDER | WinApi.SWP_NOACTIVATE);
         }

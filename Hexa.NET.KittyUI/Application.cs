@@ -59,17 +59,17 @@
             GraphicsDebugging = true;
 #endif
 
-            SDL.SDLSetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
-            SDL.SDLSetHint(SDL.SDL_HINT_AUTO_UPDATE_JOYSTICKS, "1");
-            SDL.SDLSetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI_PS4, "1");//HintJoystickHidapiPS4
-            SDL.SDLSetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1"); //HintJoystickHidapiPS4Rumble
-            SDL.SDLSetHint(SDL.SDL_HINT_JOYSTICK_RAWINPUT, "0");
-            SDL.SDLSetHint(SDL.SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1"); //HintWindowsDisableThreadNaming
-            SDL.SDLSetHint(SDL.SDL_HINT_MOUSE_NORMAL_SPEED_SCALE, "1");
-            SDL.SDLSetHint(SDL.SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
-            SDL.SDLSetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
+            SDL.SetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+            SDL.SetHint(SDL.SDL_HINT_AUTO_UPDATE_JOYSTICKS, "1");
+            SDL.SetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI_PS4, "1");//HintJoystickHidapiPS4
+            SDL.SetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1"); //HintJoystickHidapiPS4Rumble
+            SDL.SetHint(SDL.SDL_HINT_JOYSTICK_RAWINPUT, "0");
+            SDL.SetHint(SDL.SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1"); //HintWindowsDisableThreadNaming
+            SDL.SetHint(SDL.SDL_HINT_MOUSE_NORMAL_SPEED_SCALE, "1");
+            SDL.SetHint(SDL.SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
+            SDL.SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
 
-            SDL.SDLInit(SDL.SDL_INIT_EVENTS + SDL.SDL_INIT_GAMECONTROLLER + SDL.SDL_INIT_HAPTIC + SDL.SDL_INIT_JOYSTICK + SDL.SDL_INIT_SENSOR);
+            SDL.Init(SDL.SDL_INIT_EVENTS + SDL.SDL_INIT_GAMECONTROLLER + SDL.SDL_INIT_HAPTIC + SDL.SDL_INIT_JOYSTICK + SDL.SDL_INIT_SENSOR);
 
             SdlCheckError();
 
@@ -139,8 +139,8 @@
 
             while (!exiting)
             {
-                SDL.SDLPumpEvents();
-                while (SDL.SDLPollEvent(&evnt) == (int)SDLBool.True)
+                SDL.PumpEvents();
+                while (SDL.PollEvent(&evnt) == (int)SDLBool.True)
                 {
                     for (int i = 0; i < hooks.Count; i++)
                     {
@@ -169,7 +169,7 @@
             ((CoreWindow)mainWindow).DestroyGraphics();
 
             SdlCheckError();
-            SDL.SDLQuit();
+            SDL.Quit();
         }
 
         private static void HandleEvent(SDLEvent evnt, SDLEventType type)
@@ -461,7 +461,7 @@
                             //((SdlWindow)mainWindow).ProcessDropFile(even);
                         }
 
-                        SDL.SDLFree(evnt.Drop.File);
+                        SDL.Free(evnt.Drop.File);
                     }
                     break;
 
@@ -473,7 +473,7 @@
                             //((SdlWindow)mainWindow).ProcessDropText(even);
                         }
 
-                        SDL.SDLFree(evnt.Drop.File);
+                        SDL.Free(evnt.Drop.File);
                     }
                     break;
 

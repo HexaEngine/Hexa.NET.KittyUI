@@ -35,10 +35,5 @@ public class SubPage : Page
     public override void DrawContent()
     {
         ImGui.Text("Hello from sub page");
-
-        if (ImGui.Button("Go back"))
-        {
-            Navigation.NavigateBack();
-        }
     }
 }

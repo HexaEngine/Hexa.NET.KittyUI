@@ -40,11 +40,11 @@
         {
             for (int i = 0; i < axes.Length; i++)
             {
-                axisNames[i] = SDL.SDLGameControllerGetStringForAxisS(Helper.ConvertBack(axes[i]));
+                axisNames[i] = SDL.GameControllerGetStringForAxisS(Helper.ConvertBack(axes[i]));
             }
             for (int i = 0; i < buttons.Length; i++)
             {
-                buttonNames[i] = SDL.SDLGameControllerGetStringForButtonS(Helper.ConvertBack(buttons[i]));
+                buttonNames[i] = SDL.GameControllerGetStringForButtonS(Helper.ConvertBack(buttons[i]));
             }
         }
 
@@ -54,17 +54,17 @@
         /// <param name="id">The unique identifier for the gamepad.</param>
         public Gamepad(int id)
         {
-            controller = SDL.SDLGameControllerOpen(id);
+            controller = SDL.GameControllerOpen(id);
             if (controller == null)
                 SdlCheckError();
-            joystick = SDL.SDLGameControllerGetJoystick(controller);
+            joystick = SDL.GameControllerGetJoystick(controller);
             if (controller == null)
                 SdlCheckError();
-            this.id = SDL.SDLJoystickInstanceID(joystick).SdlThrowIfNeg();
+            this.id = SDL.JoystickInstanceID(joystick).SdlThrowIfNeg();
             var axes = Enum.GetValues<GamepadAxis>();
             for (int i = 0; i < axes.Length; i++)
             {
-                if (SDL.SDLGameControllerHasAxis(controller, Helper.ConvertBack(axes[i])) == SDLBool.True)
+                if (SDL.GameControllerHasAxis(controller, Helper.ConvertBack(axes[i])) == SDLBool.True)
                 {
                     axisStates.Add(axes[i], 0);
                 }
@@ -72,13 +72,13 @@
             var buttons = Enum.GetValues<GamepadButton>();
             for (int i = 0; i < buttons.Length; i++)
             {
-                if (SDL.SDLGameControllerHasButton(controller, Helper.ConvertBack(buttons[i])) == SDLBool.True)
+                if (SDL.GameControllerHasButton(controller, Helper.ConvertBack(buttons[i])) == SDLBool.True)
                 {
                     buttonStates.Add(buttons[i], GamepadButtonState.Up);
                 }
             }
 
-            var touchpadCount = SDL.SDLGameControllerGetNumTouchpads(controller);
+            var touchpadCount = SDL.GameControllerGetNumTouchpads(controller);
             for (int i = 0; i < touchpadCount; i++)
             {
                 touchpads.Add(new(i, controller));
@@ -87,30 +87,30 @@
             var sensorTypes = Enum.GetValues<GamepadSensorType>();
             for (int i = 0; i < sensorTypes.Length; i++)
             {
-                if (SDL.SDLGameControllerHasSensor(controller, Helper.ConvertBack(sensorTypes[i])) == SDLBool.True)
+                if (SDL.GameControllerHasSensor(controller, Helper.ConvertBack(sensorTypes[i])) == SDLBool.True)
                 {
                     sensors.Add(sensorTypes[i], new(controller, sensorTypes[i]));
                 }
             }
 
-            var mappingCount = SDL.SDLGameControllerNumMappings();
+            var mappingCount = SDL.GameControllerNumMappings();
             for (int i = 0; i < mappingCount; i++)
             {
-                var mapping = SDL.SDLGameControllerMappingForIndexS(i);
+                var mapping = SDL.GameControllerMappingForIndexS(i);
                 if (mapping == null)
                     SdlCheckError();
                 mappings.Add(mapping ?? string.Empty);
             }
 
-            if (SDL.SDLJoystickIsHaptic(joystick) == 1)
+            if (SDL.JoystickIsHaptic(joystick) == 1)
             {
                 haptic = Haptic.OpenFromGamepad(this);
             }
 
-            var guid = SDL.SDLJoystickGetGUID(joystick);
+            var guid = SDL.JoystickGetGUID(joystick);
             SdlCheckError();
             var buffer = AllocT<byte>(33);
-            SDL.SDLJoystickGetGUIDString(guid, buffer, 33);
+            SDL.JoystickGetGUIDString(guid, buffer, 33);
             var size = StrLen(buffer);
             var value = Encoding.ASCII.GetString(buffer, size - 1);
             Free(buffer);
@@ -154,7 +154,7 @@
         {
             get
             {
-                var name = SDL.SDLGameControllerNameS(controller);
+                var name = SDL.GameControllerNameS(controller);
                 if (name == null)
                     SdlCheckError();
                 return name ?? string.Empty;
@@ -164,22 +164,22 @@
         /// <summary>
         /// Gets the vendor ID of the gamepad.
         /// </summary>
-        public ushort Vendor => SDL.SDLGameControllerGetVendor(controller);
+        public ushort Vendor => SDL.GameControllerGetVendor(controller);
 
         /// <summary>
         /// Gets the product ID of the gamepad.
         /// </summary>
-        public ushort Product => SDL.SDLGameControllerGetProduct(controller);
+        public ushort Product => SDL.GameControllerGetProduct(controller);
 
         /// <summary>
         /// Gets the product version of the gamepad.
         /// </summary>
-        public ushort ProductVersion => SDL.SDLGameControllerGetProductVersion(controller);
+        public ushort ProductVersion => SDL.GameControllerGetProductVersion(controller);
 
         /// <summary>
         /// Gets the serial number of the gamepad.
         /// </summary>
-        public string Serial => SDL.SDLGameControllerGetSerialS(controller);
+        public string Serial => SDL.GameControllerGetSerialS(controller);
 
         /// <summary>
         /// Gets the globally unique identifier (GUID) of the gamepad.
@@ -189,22 +189,22 @@
         /// <summary>
         /// Gets a value indicating whether the gamepad is currently attached.
         /// </summary>
-        public bool IsAttached => SDL.SDLGameControllerGetAttached(controller) == SDLBool.True;
+        public bool IsAttached => SDL.GameControllerGetAttached(controller) == SDLBool.True;
 
         /// <summary>
         /// Gets a value indicating whether the gamepad has haptic feedback support.
         /// </summary>
-        public bool IsHaptic => SDL.SDLJoystickIsHaptic(joystick) == 1;
+        public bool IsHaptic => SDL.JoystickIsHaptic(joystick) == 1;
 
         /// <summary>
         /// Gets a value indicating whether the gamepad has LED support.
         /// </summary>
-        public bool HasLED => SDL.SDLGameControllerHasLED(controller) == SDLBool.True;
+        public bool HasLED => SDL.GameControllerHasLED(controller) == SDLBool.True;
 
         /// <summary>
         /// Gets the type of the gamepad.
         /// </summary>
-        public GamepadType Type => Helper.Convert(SDL.SDLGameControllerGetType(controller));
+        public GamepadType Type => Helper.Convert(SDL.GameControllerGetType(controller));
 
         /// <summary>
         /// Gets or sets the deadzone value for gamepad analog sticks.
@@ -214,7 +214,7 @@
         /// <summary>
         /// Gets or sets the player index for the gamepad.
         /// </summary>
-        public int PlayerIndex { get => SDL.SDLGameControllerGetPlayerIndex(controller); set => SDL.SDLGameControllerSetPlayerIndex(controller, value); }
+        public int PlayerIndex { get => SDL.GameControllerGetPlayerIndex(controller); set => SDL.GameControllerSetPlayerIndex(controller, value); }
 
         /// <summary>
         /// Gets the controller mapping string of the gamepad.
@@ -223,7 +223,7 @@
         {
             get
             {
-                var mapping = SDL.SDLGameControllerMappingS(controller);
+                var mapping = SDL.GameControllerMappingS(controller);
                 if (mapping == null)
                     SdlCheckError();
                 return mapping ?? string.Empty;
@@ -338,7 +338,7 @@
         /// <param name="durationMs">The duration in milliseconds for the rumble.</param>
         public void Rumble(ushort lowFreq, ushort highFreq, uint durationMs)
         {
-            SDL.SDLGameControllerRumble(controller, lowFreq, highFreq, durationMs);
+            SDL.GameControllerRumble(controller, lowFreq, highFreq, durationMs);
         }
 
         /// <summary>
@@ -349,7 +349,7 @@
         /// <param name="durationMs">The duration in milliseconds for the rumble.</param>
         public void RumbleTriggers(ushort rightRumble, ushort leftRumble, uint durationMs)
         {
-            SDL.SDLGameControllerRumbleTriggers(controller, rightRumble, leftRumble, durationMs);
+            SDL.GameControllerRumbleTriggers(controller, rightRumble, leftRumble, durationMs);
         }
 
         /// <summary>
@@ -358,7 +358,7 @@
         /// <param name="color">The color represented as a Vector4 (red, green, blue, alpha).</param>
         public void SetLED(Vector4 color)
         {
-            SDL.SDLGameControllerSetLED(controller, (byte)(color.X * 255), (byte)(color.Y * 255), (byte)(color.Z * 255));
+            SDL.GameControllerSetLED(controller, (byte)(color.X * 255), (byte)(color.Y * 255), (byte)(color.Z * 255));
         }
 
         /// <summary>
@@ -369,7 +369,7 @@
         /// <param name="blue">The blue color component (0-255).</param>
         public void SetLED(byte red, byte green, byte blue)
         {
-            SDL.SDLGameControllerSetLED(controller, red, green, blue);
+            SDL.GameControllerSetLED(controller, red, green, blue);
         }
 
         /// <summary>
@@ -378,7 +378,7 @@
         /// <param name="mapping">The custom gamepad mapping string to add.</param>
         public void AddMapping(string mapping)
         {
-            SDL.SDLGameControllerAddMapping(mapping).SdlThrowIfNeg();
+            SDL.GameControllerAddMapping(mapping).SdlThrowIfNeg();
             mappings.Add(mapping);
         }
 
@@ -475,7 +475,7 @@
             {
                 sensor.Value?.Dispose();
             }
-            SDL.SDLGameControllerClose(controller);
+            SDL.GameControllerClose(controller);
             SdlCheckError();
         }
     }
