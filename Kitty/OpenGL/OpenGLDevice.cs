@@ -6,13 +6,13 @@
 
     public class OpenGLAdapter
     {
-        public static GL GL { get; private set; }
+        public static GL GL { get; private set; } = null!;
 
-        public static IGLContext Context { get; private set; }
+        public static IGLContext Context { get; private set; } = null!;
 
-        public static UploadQueue UploadQueue { get; private set; }
+        public static UploadQueue UploadQueue { get; private set; } = null!;
 
-        public static DeleteQueue DeleteQueue { get; private set; }
+        public static DeleteQueue DeleteQueue { get; private set; } = null!;
 
         public static void Init(IWindow window)
         {

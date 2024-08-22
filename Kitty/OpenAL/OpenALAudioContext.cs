@@ -1,9 +1,9 @@
 ﻿namespace Hexa.NET.Kitty.OpenAL
 {
+    using Hexa.NET.Kitty.Audio;
     using Hexa.NET.Utilities;
-    using Kitty.Audio;
     using Silk.NET.OpenAL;
-    using static Kitty.OpenAL.Helper;
+    using static Hexa.NET.Kitty.OpenAL.Helper;
 
     public unsafe class OpenALAudioContext : IAudioContext
     {

@@ -9,9 +9,9 @@
     public unsafe class Haptic
     {
         private readonly int id;
-        private readonly Hexa.NET.SDL2.SDLHaptic* haptic;
+        private readonly SDLHaptic* haptic;
 
-        private Haptic(Hexa.NET.SDL2.SDLHaptic* haptic)
+        private Haptic(SDLHaptic* haptic)
         {
             this.haptic = haptic;
             id = SDL.SDLHapticIndex(haptic).SdlThrowIfNeg();
@@ -59,7 +59,7 @@
         /// <returns>A <see cref="Haptic"/> instance representing the haptic feedback device.</returns>
         public static Haptic OpenFromGamepad(Gamepad gamepad)
         {
-            return new(SDL.SDLHapticOpenFromJoystick((Hexa.NET.SDL2.SDLJoystick*)gamepad.joystick));
+            return new(SDL.SDLHapticOpenFromJoystick(gamepad.joystick));
         }
 
         /// <summary>

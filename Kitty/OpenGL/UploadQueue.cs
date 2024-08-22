@@ -2,7 +2,6 @@
 {
     using Hexa.NET.Utilities;
     using Silk.NET.OpenGL;
-    using System;
     using System.Collections.Concurrent;
     using System.Threading;
 

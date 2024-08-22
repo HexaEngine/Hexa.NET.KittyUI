@@ -1,19 +1,18 @@
 ﻿namespace Hexa.NET.Kitty.D3D11
 {
-    using Hexa.NET.Kitty;
-    using Hexa.NET.Kitty.Logging;
     using Hexa.NET.Kitty.Windows;
+    using Hexa.NET.Logging;
+    using Hexa.NET.SDL2;
     using Silk.NET.Core.Contexts;
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
     using Silk.NET.DXGI;
     using Silk.NET.Maths;
-    using Hexa.NET.SDL2;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Text;
     using InfoQueueFilter = Silk.NET.DXGI.InfoQueueFilter;
-    using Window = Hexa.NET.SDL2.SDLWindow;
+    using Window = SDL2.SDLWindow;
 
     public static unsafe class D3D11Adapter
     {
@@ -159,7 +158,7 @@
         }
 
         [SupportedOSPlatform("windows")]
-        internal static DXGISwapChain CreateSwapChainForWindow(SdlWindow window)
+        public static DXGISwapChain CreateSwapChainForWindow(SdlWindow window)
         {
             SwapChainDesc1 desc = new()
             {

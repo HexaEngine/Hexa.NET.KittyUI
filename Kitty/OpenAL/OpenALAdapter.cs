@@ -1,11 +1,11 @@
 ﻿namespace Hexa.NET.Kitty.OpenAL
 {
-    using Kitty.Audio;
+    using Hexa.NET.Kitty.Audio;
     using Silk.NET.OpenAL;
     using Silk.NET.OpenAL.Extensions.Enumeration;
     using System;
     using System.Collections.Generic;
-    using static Kitty.OpenAL.Helper;
+    using static Hexa.NET.Kitty.OpenAL.Helper;
 
     public class OpenALAdapter : IAudioAdapter
     {

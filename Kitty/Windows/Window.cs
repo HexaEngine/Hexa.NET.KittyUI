@@ -4,10 +4,13 @@
     using Hexa.NET.Kitty;
     using Hexa.NET.Kitty.Audio;
     using Hexa.NET.Kitty.D3D11;
+    using Hexa.NET.Kitty.Debugging;
     using Hexa.NET.Kitty.ImGuiBackend;
+    using Hexa.NET.Kitty.Input;
+    using Hexa.NET.Kitty.Input.Events;
+    using Hexa.NET.Kitty.OpenGL;
     using Hexa.NET.Kitty.Threading;
     using Hexa.NET.Kitty.Windows.Events;
-    using Kitty.OpenGL;
     using Silk.NET.Core.Contexts;
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
@@ -19,18 +22,16 @@
     {
 #nullable disable
         private ThreadDispatcher renderDispatcher;
-        private bool firstFrame;
-        private IAudioDevice audioDevice;
+
 #nullable restore
         private bool resize = false;
         private ImGuiManager? imGuiRenderer;
-        private DXGISwapChain swapChain;
-        private GL gl;
-        private IGLContext glContext;
+        private DXGISwapChain? swapChain;
+        private GL? gl;
+        private IGLContext? glContext;
+        private bool showDebugTools = false;
 
         public IThreadDispatcher Dispatcher => renderDispatcher;
-
-        public IAudioDevice AudioDevice => audioDevice;
 
         public event Action? Draw;
 
@@ -46,46 +47,42 @@
         {
         }
 
-        public virtual unsafe void Initialize(AppBuilder appBuilder, IAudioDevice audioDevice)
+        public virtual unsafe void Initialize(AppBuilder appBuilder)
         {
-            this.audioDevice = audioDevice;
-
             renderDispatcher = new(Thread.CurrentThread);
-
-            if (Application.MainWindow == this)
-            {
-                AudioManager.Initialize(audioDevice);
-            }
-
-            imGuiRenderer = new(appBuilder);
-
-            WidgetManager.Init();
 
             OnRendererInitialize();
 
             switch (Backend)
             {
                 case GraphicsBackend.D3D11:
+                    if (!OperatingSystem.IsWindows())
+                    {
+                        throw new PlatformNotSupportedException("Direct3D 11 is only supported on Windows.");
+                    }
+
                     swapChain = D3D11Adapter.CreateSwapChainForWindow(this);
                     swapChain.Active = true;
                     swapChain.LimitFPS = false;
                     swapChain.VSync = true;
                     var dev = D3D11GraphicsDevice.Device;
                     var ctx = D3D11GraphicsDevice.DeviceContext;
+                    imGuiRenderer = new(appBuilder, (data) => ImGuiD3D11Renderer.RenderDrawData(data));
                     ImGuiSDL2Platform.InitForD3D(GetWindow());
                     ImGuiD3D11Renderer.Init(*(ComPtr<ID3D11Device>*)&dev, *(ComPtr<ID3D11DeviceContext>*)&ctx);
-                    imGuiRenderer.RenderDrawData = (data) => ImGuiD3D11Renderer.RenderDrawData(data);
                     break;
 
                 case GraphicsBackend.OpenGL:
                     gl = OpenGLAdapter.GL;
                     glContext = OpenGLAdapter.Context;
                     glContext.SwapInterval(1);
+                    imGuiRenderer = new(appBuilder, (data) => ImGuiOpenGL3Renderer.RenderDrawData(data));
                     ImGuiSDL2Platform.InitForOpenGL(GetWindow(), glContext.Handle);
                     ImGuiOpenGL3Renderer.Init(gl, null);
-                    imGuiRenderer.RenderDrawData = (data) => ImGuiOpenGL3Renderer.RenderDrawData(data);
                     break;
             }
+
+            WidgetManager.Init();
         }
 
         public void Render()
@@ -105,16 +102,42 @@
             }
         }
 
+        private readonly List<Key> keystack = new();
+
+        protected override void OnKeyboardInput(KeyboardEventArgs args)
+        {
+            if (args.State == KeyState.Down)
+                keystack.Add(args.KeyCode);
+            else
+                keystack.Remove(args.KeyCode);
+            if (keystack.Count == 3)
+            {
+                if (keystack[0] == Key.LCtrl && keystack[1] == Key.LShift && keystack[2] == Key.D)
+                {
+                    ToggleDebugTools();
+                }
+                keystack.Clear();
+            }
+            base.OnKeyboardInput(args);
+        }
+
+        private void ToggleDebugTools()
+        {
+            showDebugTools = !showDebugTools;
+
+            ImGuiDebugTools.Shown = showDebugTools;
+        }
+
         private void RenderOpenGL()
         {
-            glContext.MakeCurrent();
+            glContext!.MakeCurrent();
             OpenGLAdapter.ProcessQueues(); // Process all pending uploads
             if (resize)
             {
-                gl.Viewport(0, 0, (uint)Width, (uint)Height);
+                gl!.Viewport(0, 0, (uint)Width, (uint)Height);
             }
 
-            gl.Clear((uint)ClearBufferMask.ColorBufferBit);
+            gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
             renderDispatcher.ExecuteQueue();
 
@@ -123,6 +146,7 @@
             OnRenderBegin();
 
             WidgetManager.Draw();
+            ImGuiDebugTools.Draw();
 
             OnRender();
 
@@ -137,7 +161,7 @@
         {
             if (resize)
             {
-                swapChain.Resize(Width, Height);
+                swapChain!.Resize(Width, Height);
                 resize = false;
             }
 
@@ -147,7 +171,7 @@
                 return;
             }
             var color = Vector4.Zero;
-            context.ClearRenderTargetView(swapChain.BackbufferRTV, (float*)&color);
+            context.ClearRenderTargetView(swapChain!.BackbufferRTV, (float*)&color);
 
             renderDispatcher.ExecuteQueue();
 
@@ -156,6 +180,7 @@
             OnRenderBegin();
 
             WidgetManager.Draw();
+            ImGuiDebugTools.Draw();
 
             OnRender();
 
@@ -211,6 +236,7 @@
         {
             resize = true;
             base.OnResized(args);
+            ImGuiDebugTools.WriteLine($"Resized: {args.NewWidth}x{args.NewHeight}");
         }
     }
 }

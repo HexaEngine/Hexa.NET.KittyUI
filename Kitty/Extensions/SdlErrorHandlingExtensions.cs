@@ -1,7 +1,6 @@
 ﻿namespace Hexa.NET.Kitty.Extensions
 {
-    using Hexa.NET.Kitty;
-    using Hexa.NET.Kitty.Logging;
+    using Hexa.NET.Logging;
     using Hexa.NET.SDL2;
     using System.Runtime.CompilerServices;
 

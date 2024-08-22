@@ -1,6 +1,5 @@
 ﻿namespace Hexa.NET.Kitty
 {
-    using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.Kitty.Audio;
     using Hexa.NET.Kitty.Debugging;
     using Hexa.NET.Kitty.Input;
@@ -9,7 +8,8 @@
     using Hexa.NET.Kitty.Windows.Events;
     using Hexa.NET.SDL2;
     using System.Collections.Generic;
-    using static Extensions.SdlErrorHandlingExtensions;
+    using System.Diagnostics;
+    using static Hexa.NET.Kitty.Extensions.SdlErrorHandlingExtensions;
 
     public delegate bool EventHook(SDLEvent evnt);
 
@@ -37,16 +37,6 @@
         public static bool GraphicsDebugging { get; set; }
 
         public static GraphicsBackend GraphicsBackend => ((SdlWindow)mainWindow).Backend;
-
-        public static void Run()
-        {
-            Run(new Window(), new AppBuilder());
-        }
-
-        public static void Run(AppBuilder builder)
-        {
-            Run(new Window(), builder);
-        }
 
         public static void Run(IRenderWindow mainWindow, AppBuilder builder)
         {
@@ -76,6 +66,8 @@
             SDL.SDLSetHint(SDL.SDL_HINT_JOYSTICK_RAWINPUT, "0");
             SDL.SDLSetHint(SDL.SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1"); //HintWindowsDisableThreadNaming
             SDL.SDLSetHint(SDL.SDL_HINT_MOUSE_NORMAL_SPEED_SCALE, "1");
+            SDL.SDLSetHint(SDL.SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
+            SDL.SDLSetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
 
             SDL.SDLInit(SDL.SDL_INIT_EVENTS + SDL.SDL_INIT_GAMECONTROLLER + SDL.SDL_INIT_HAPTIC + SDL.SDL_INIT_JOYSTICK + SDL.SDL_INIT_SENSOR);
 
@@ -88,9 +80,11 @@
 
             audioDevice = AudioAdapter.CreateAudioDevice(AudioBackend.Auto, null);
 
+            AudioManager.Initialize(audioDevice);
+
             for (int i = 0; i < windows.Count; i++)
             {
-                windows[i].Initialize(builder, audioDevice);
+                windows[i].Initialize(builder);
             }
 
             initialized = true;
@@ -101,7 +95,7 @@
             windows.Add(window);
             windowIdToWindow.Add(window.WindowID, window);
             if (initialized)
-                window.Initialize(builder, audioDevice);
+                window.Initialize(builder);
         }
 
         /// <summary>
@@ -150,7 +144,10 @@
                 {
                     for (int i = 0; i < hooks.Count; i++)
                     {
-                        hooks[i](evnt);
+                        if (hooks[i](evnt))
+                        {
+                            break;
+                        }
                     }
                     SDLEventType type = (SDLEventType)evnt.Type;
                     HandleEvent(evnt, type);
@@ -218,6 +215,7 @@
                 case SDLEventType.Windowevent:
                     {
                         var even = evnt.Window;
+                        Debug.WriteLine($"Window Event: {(SDLWindowEventID)even.Event}");
                         if (even.WindowID == mainWindow.WindowID)
                         {
                             ((SdlWindow)mainWindow).ProcessEvent(even);

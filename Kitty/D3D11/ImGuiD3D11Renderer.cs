@@ -692,10 +692,10 @@ namespace Hexa.NET.Kitty.D3D11
             sd.SampleDesc.Count = 1;
             sd.SampleDesc.Quality = 0;
             sd.BufferUsage = DXGI.UsageRenderTargetOutput;
-            sd.BufferCount = 1;
+            sd.BufferCount = 2;
             sd.OutputWindow = (nint)hwnd;
             sd.Windowed = true;
-            sd.SwapEffect = SwapEffect.Discard;
+            sd.SwapEffect = SwapEffect.FlipDiscard;
             sd.Flags = 0;
 
             bd->factory.CreateSwapChain(bd->device, &sd, ref vd->SwapChain);

@@ -1,7 +1,6 @@
 ﻿namespace Hexa.NET.Kitty.Windows
 {
     using Hexa.NET.Kitty;
-    using Hexa.NET.Kitty.Audio;
     using Hexa.NET.Kitty.Input.Events;
     using Hexa.NET.Kitty.Threading;
     using Hexa.NET.Kitty.Windows.Events;
@@ -13,7 +12,7 @@
     {
         IThreadDispatcher Dispatcher { get; }
 
-        void Initialize(AppBuilder appBuilder, IAudioDevice audioDevice);
+        void Initialize(AppBuilder appBuilder);
 
         void Render();
 
@@ -255,7 +254,7 @@
         /// Gets the underlying native window pointer.
         /// </summary>
         /// <returns>A pointer to the native window.</returns>
-        unsafe Hexa.NET.SDL2.SDLWindow* GetWindow();
+        unsafe SDL2.SDLWindow* GetWindow();
 
         /// <summary>
         /// Clears the input state for the window.

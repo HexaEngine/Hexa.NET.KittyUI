@@ -1,7 +1,6 @@
 ﻿namespace Hexa.NET.Kitty.D3D11
 {
-    using Hexa.NET.Kitty.Graphics.Imaging;
-    using Kitty.Debugging;
+    using Hexa.NET.Kitty.Debugging;
     using Silk.NET.Core.Contexts;
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
@@ -54,13 +53,9 @@
                 Device.QueryInterface(out DebugDevice);
             }
 #endif
-
-            TextureLoader = new TextureLoader();
         }
 
         public static D3DFeatureLevel Level { get; set; }
-
-        public static TextureLoader TextureLoader { get; private set; }
 
         public static void Shutdown()
         {

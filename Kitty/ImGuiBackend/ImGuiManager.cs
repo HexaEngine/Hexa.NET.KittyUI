@@ -5,6 +5,7 @@
     using Hexa.NET.ImNodes;
     using Hexa.NET.ImPlot;
     using Hexa.NET.Kitty;
+    using System.Diagnostics;
     using System.Numerics;
 
     public class ImGuiManager
@@ -44,8 +45,9 @@
             fontPushes--;
         }
 
-        public unsafe ImGuiManager(AppBuilder appBuilder, ImGuiConfigFlags flags = ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad | ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable)
+        public unsafe ImGuiManager(AppBuilder appBuilder, Action<ImDrawDataPtr> rendererDrawCallback, ImGuiConfigFlags flags = ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad | ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable)
         {
+            RendererDrawCallback = rendererDrawCallback;
             guiContext = ImGui.CreateContext(null);
             ImGui.SetCurrentContext(guiContext);
 
@@ -67,6 +69,7 @@
             io.ConfigViewportsNoAutoMerge = false;
             io.ConfigViewportsNoTaskBarIcon = false;
             io.ConfigDragClickToInputText = true;
+            io.ConfigDebugIsDebuggerPresent = Debugger.IsAttached;
 
             var fonts = io.Fonts;
             fonts.FontBuilderFlags = (uint)ImFontAtlasFlags.NoPowerOfTwoHeight;
@@ -188,7 +191,7 @@
             ImGuizmo.BeginFrame();
         }
 
-        public Action<ImDrawDataPtr> RenderDrawData;
+        public Action<ImDrawDataPtr> RendererDrawCallback;
 
         public unsafe void EndFrame()
         {
@@ -196,7 +199,7 @@
             ImGui.Render();
             ImGui.EndFrame();
 
-            RenderDrawData(ImGui.GetDrawData());
+            RendererDrawCallback(ImGui.GetDrawData());
 
             if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
             {

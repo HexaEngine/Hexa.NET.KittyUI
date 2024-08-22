@@ -2,7 +2,7 @@
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.Kitty.Collections;
-    using Hexa.NET.Kitty.Logging;
+    using Hexa.NET.Logging;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -14,7 +14,7 @@
     /// <summary>
     /// Provides a console-like interface for logging, displaying messages, and accepting commands within an ImGui window.
     /// </summary>
-    public static class ImGuiConsole
+    public static class ImGuiDebugTools
     {
         private static readonly List<ConsoleMessage> messages = new(maxMessages + 1);
         private static readonly List<string> history = new();
@@ -35,10 +35,14 @@
         private static bool resetModal;
         private static float windowAlpha = 1;
         private static readonly ConsoleColorPalette consoleColorPalette = new();
-        private static readonly string consoleName = "Console";
+        private static readonly string consoleName = "Tools";
         private static ConsoleColor foregroundColor = ConsoleColor.White;
         private static ConsoleColor backgroundColor = ConsoleColor.Black;
         private static bool shown;
+        private static bool showImGuiDebugLog;
+        private static bool showImGuiMetrics;
+        private static bool showImGuiStackIDTool;
+        private static bool showImGuiAbout;
         private static readonly SemaphoreSlim semaphore = new(1);
         private static readonly unsafe ImGuiInputTextCallback inputTextCallback = InputCallback;
         private const int maxMessages = 4096;
@@ -46,7 +50,7 @@
         /// <summary>
         /// Initializes the ImGuiConsole, registers default commands, and sets default settings.
         /// </summary>
-        static ImGuiConsole()
+        static ImGuiDebugTools()
         {
             LoggerFactory.AddGlobalWriter(logListener);
 
@@ -294,16 +298,43 @@
 
             MenuBar();
 
-            if (filterBar)
-            { FilterBar(); }
+            if (ImGui.BeginTabBar("TB0"))
+            {
+                if (ImGui.BeginTabItem("Console"))
+                {
+                    if (filterBar)
+                    { FilterBar(); }
 
-            LogWindow();
+                    LogWindow();
 
-            ImGui.Separator();
+                    ImGui.Separator();
 
-            InputBar();
+                    InputBar();
+                    ImGui.EndTabItem();
+                }
+
+                if (ImGui.BeginTabItem("Style"))
+                {
+                    ImGui.ShowStyleEditor();
+                    ImGui.EndTabItem();
+                }
+
+                ImGui.EndTabBar();
+            }
 
             ImGui.End();
+
+            if (showImGuiDebugLog)
+                ImGui.ShowDebugLogWindow(ref showImGuiDebugLog);
+
+            if (showImGuiMetrics)
+                ImGui.ShowMetricsWindow(ref showImGuiMetrics);
+
+            if (showImGuiStackIDTool)
+                ImGui.ShowIDStackToolWindow(ref showImGuiStackIDTool);
+
+            if (showImGuiAbout)
+                ImGui.ShowAboutWindow(ref showImGuiAbout);
         }
 
         private static void FilterBar()
@@ -574,6 +605,32 @@
                     // Window transparency.
                     ImGui.TextUnformatted("Background");
                     ImGui.SliderFloat("Transparency##", ref windowAlpha, 0.1f, 1.0f);
+
+                    ImGui.EndMenu();
+                }
+
+                if (ImGui.BeginMenu("Misc Tools"))
+                {
+                    if (ImGui.MenuItem("ImGui Logs"))
+                    {
+                        showImGuiDebugLog = !showImGuiDebugLog;
+                    }
+                    if (ImGui.MenuItem("ImGui Metrics"))
+                    {
+                        showImGuiMetrics = !showImGuiMetrics;
+                    }
+                    if (ImGui.MenuItem("Item Picker"))
+                    {
+                        ImGui.DebugStartItemPicker();
+                    }
+                    if (ImGui.MenuItem("ImGui Stack ID Tool"))
+                    {
+                        showImGuiStackIDTool = !showImGuiStackIDTool;
+                    }
+                    if (ImGui.MenuItem("ImGui About"))
+                    {
+                        showImGuiAbout = !showImGuiAbout;
+                    }
 
                     ImGui.EndMenu();
                 }

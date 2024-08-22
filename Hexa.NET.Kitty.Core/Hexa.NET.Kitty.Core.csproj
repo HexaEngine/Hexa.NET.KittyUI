@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+		<EnableAotAnalyzer>true</EnableAotAnalyzer>
+
+		<AssemblyVersion>1.0.0</AssemblyVersion>
+		<PackageVersion>1.0.0</PackageVersion>
+		<Description></Description>
+		<PackageTags></PackageTags>
+		<Authors>Juna Meinhold</Authors>
+		<Copyright>Copyright (c) 2024 Juna Meinhold</Copyright>
+		<PackageProjectUrl></PackageProjectUrl>
+		<RepositoryUrl></RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Content Include="../README.md" Pack="true" PackagePath="\" />
+		<Content Include="../LICENSE.txt" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+
+
+</Project>

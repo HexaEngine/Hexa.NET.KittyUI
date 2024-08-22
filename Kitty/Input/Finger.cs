@@ -7,7 +7,7 @@
     /// </summary>
     public unsafe class Finger
     {
-        private readonly Hexa.NET.SDL2.SDLFinger* finger;
+        private readonly SDL2.SDLFinger* finger;
         private readonly long id;
         private FingerState state;
 
@@ -15,7 +15,7 @@
         /// Initializes a new instance of the <see cref="Finger"/> class.
         /// </summary>
         /// <param name="finger">A pointer to the native SDL finger.</param>
-        public Finger(Hexa.NET.SDL2.SDLFinger* finger)
+        public Finger(SDL2.SDLFinger* finger)
         {
             this.finger = finger;
             id = finger->Id;

@@ -1,6 +1,5 @@
 ﻿namespace Hexa.NET.Kitty.Windows
 {
-    using Hexa.NET.Kitty;
     using Hexa.NET.SDL2;
 
     public static unsafe class Clipboard

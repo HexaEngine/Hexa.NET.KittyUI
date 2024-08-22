@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Testing", "Testing\Testing.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hexa.NET.Kitty.Security", "Hexa.NET.Kitty.Security\Hexa.NET.Kitty.Security.csproj", "{DF4732B4-196C-46BF-9883-5D96818F8429}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleMinimal", "ExampleMinimal\ExampleMinimal.csproj", "{11AB700F-FFC9-4514-871C-9E2C3632DAE1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleMinimal", "ExampleMinimal\ExampleMinimal.csproj", "{11AB700F-FFC9-4514-871C-9E2C3632DAE1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,25 +1,26 @@
 ﻿namespace Hexa.NET.Kitty.Windows
 {
+    using Hexa.NET.Kitty;
+    using Hexa.NET.Kitty.D3D11;
+    using Hexa.NET.Kitty.Debugging;
     using Hexa.NET.Kitty.Input;
     using Hexa.NET.Kitty.Input.Events;
-    using Hexa.NET.Kitty.Logging;
+    using Hexa.NET.Kitty.OpenGL;
     using Hexa.NET.Kitty.Windows.Events;
+    using Hexa.NET.Logging;
     using Hexa.NET.Mathematics;
-    using Kitty.D3D11;
-    using Kitty.Extensions;
-    using Kitty.OpenGL;
-    using Silk.NET.Core.Contexts;
-    using Silk.NET.Core.Native;
     using Hexa.NET.SDL2;
+    using Silk.NET.Core.Contexts;
+    using Silk.NET.Core.Loader;
+    using Silk.NET.Core.Native;
+    using Silk.NET.Maths;
     using System;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Text;
-    using static Extensions.SdlErrorHandlingExtensions;
+    using static Hexa.NET.Kitty.Extensions.SdlErrorHandlingExtensions;
     using Key = Input.Key;
-    using Silk.NET.Core.Loader;
-    using Silk.NET.Maths;
 
     public unsafe class SdlContext : IGLContext
     {
@@ -157,7 +158,7 @@
             get
             {
                 AssertCreated();
-                return (nint)_ctx.Handle;
+                return _ctx.Handle;
             }
         }
 
@@ -242,7 +243,7 @@
         private readonly TouchEventArgs touchEventArgs = new();
         private readonly TouchMotionEventArgs touchMotionEventArgs = new();
 
-        private Hexa.NET.SDL2.SDLWindow* window;
+        private SDLWindow* window;
         private bool created;
         private bool destroyed;
         private int width = 1280;
@@ -312,7 +313,7 @@
             byte[] bytes = Encoding.UTF8.GetBytes(title);
             byte* ptr = (byte*)Unsafe.AsPointer(ref bytes[0]);
 
-            windowFlags |= SDLWindowFlags.Hidden;
+            windowFlags |= SDLWindowFlags.Hidden | SDLWindowFlags.AllowHighdpi;
 
             switch (backend)
             {
@@ -436,7 +437,7 @@
             return new SdlContext(window, null, (SDLGLattr.GlContextMajorVersion, 4), (SDLGLattr.GlContextMinorVersion, 5));
         }
 
-        public Hexa.NET.SDL2.SDLWindow* GetWindow() => window;
+        public SDLWindow* GetWindow() => window;
 
         public uint WindowID { get; private set; }
 
@@ -871,7 +872,7 @@
             Closing?.Invoke(this, args);
             if (!args.Handled && !destroyed)
             {
-                DestroyWindow();
+                OnClosed(args);
             }
             else
             {
@@ -981,6 +982,7 @@
         {
             Logger.ThrowIf(destroyed, "The window is already destroyed");
             SDLWindowEventID type = (SDLWindowEventID)evnt.Event;
+            ImGuiDebugTools.WriteLine($"Window Event: {type}");
             switch (type)
             {
                 case SDLWindowEventID.None:
@@ -1279,7 +1281,7 @@
             mouseWheelEventArgs.Handled = false;
             mouseWheelEventArgs.MouseId = evnt.Which;
             mouseWheelEventArgs.Wheel = new(evnt.X, evnt.Y);
-            mouseWheelEventArgs.Direction = (Input.MouseWheelDirection)evnt.Direction;
+            mouseWheelEventArgs.Direction = (MouseWheelDirection)evnt.Direction;
             OnMouseWheelInput(mouseWheelEventArgs);
         }
 

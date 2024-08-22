@@ -2,11 +2,8 @@
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.Kitty;
-    using Hexa.NET.Kitty.Extensions;
-    using Hexa.NET.Utilities;
-    using Silk.NET.Core.Native;
-    using Silk.NET.Maths;
     using Hexa.NET.SDL2;
+    using Hexa.NET.Utilities;
     using System.Diagnostics;
     using System.Numerics;
     using System.Runtime.CompilerServices;
@@ -92,7 +89,7 @@
 
         private static unsafe byte OpenPlatformInShell(ImGuiContext* ctx, byte* path)
         {
-            string url = ToStringFromUTF8(path);
+            string url = ToStringFromUTF8(path)!;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Process.Start(new ProcessStartInfo

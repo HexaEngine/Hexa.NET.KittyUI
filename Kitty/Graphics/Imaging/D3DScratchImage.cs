@@ -3,7 +3,6 @@
     using Hexa.NET.DirectXTex;
     using Hexa.NET.Kitty.D3D11;
     using Hexa.NET.Kitty.OpenGL;
-    using HexaGen.Runtime;
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
     using Silk.NET.DXGI;
@@ -455,7 +454,7 @@
                 // Add additional DXGI format mappings as needed...
 
                 default:
-                    throw new NotSupportedException($"DXGI format {(Format)format} is not supported.");
+                    throw new NotSupportedException($"DXGI format {format} is not supported.");
             }
 
             return (internalFormat, pixelFormat, pixelType);

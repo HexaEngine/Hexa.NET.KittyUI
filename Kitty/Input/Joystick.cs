@@ -1,6 +1,5 @@
 ﻿namespace Hexa.NET.Kitty.Input
 {
-    using Hexa.NET.Kitty;
     using Hexa.NET.Kitty.Input.Events;
     using Hexa.NET.SDL2;
     using System.Numerics;
@@ -21,7 +20,7 @@
     public unsafe class Joystick : IDisposable
     {
         private readonly int id;
-        internal readonly Hexa.NET.SDL2.SDLJoystick* joystick;
+        internal readonly SDLJoystick* joystick;
         private readonly Dictionary<int, short> axes = new();
         private readonly Dictionary<int, (int, int)> balls = new();
         private readonly Dictionary<int, JoystickButtonState> buttons = new();

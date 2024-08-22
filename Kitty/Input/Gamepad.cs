@@ -21,7 +21,7 @@
 
         private readonly int id;
         private readonly SDLGameController* controller;
-        internal readonly Hexa.NET.SDL2.SDLJoystick* joystick;
+        internal readonly SDLJoystick* joystick;
         private readonly Dictionary<GamepadAxis, short> axisStates = new();
         private readonly Dictionary<GamepadButton, GamepadButtonState> buttonStates = new();
         private readonly Dictionary<GamepadSensorType, GamepadSensor> sensors = new();
@@ -60,7 +60,7 @@
             joystick = SDL.SDLGameControllerGetJoystick(controller);
             if (controller == null)
                 SdlCheckError();
-            this.id = SDL.SDLJoystickInstanceID((Hexa.NET.SDL2.SDLJoystick*)joystick).SdlThrowIfNeg();
+            this.id = SDL.SDLJoystickInstanceID(joystick).SdlThrowIfNeg();
             var axes = Enum.GetValues<GamepadAxis>();
             for (int i = 0; i < axes.Length; i++)
             {
@@ -102,12 +102,12 @@
                 mappings.Add(mapping ?? string.Empty);
             }
 
-            if (SDL.SDLJoystickIsHaptic((Hexa.NET.SDL2.SDLJoystick*)joystick) == 1)
+            if (SDL.SDLJoystickIsHaptic(joystick) == 1)
             {
                 haptic = Haptic.OpenFromGamepad(this);
             }
 
-            var guid = SDL.SDLJoystickGetGUID((Hexa.NET.SDL2.SDLJoystick*)joystick);
+            var guid = SDL.SDLJoystickGetGUID(joystick);
             SdlCheckError();
             var buffer = AllocT<byte>(33);
             SDL.SDLJoystickGetGUIDString(guid, buffer, 33);
@@ -194,7 +194,7 @@
         /// <summary>
         /// Gets a value indicating whether the gamepad has haptic feedback support.
         /// </summary>
-        public bool IsHaptic => SDL.SDLJoystickIsHaptic((Hexa.NET.SDL2.SDLJoystick*)joystick) == 1;
+        public bool IsHaptic => SDL.SDLJoystickIsHaptic(joystick) == 1;
 
         /// <summary>
         /// Gets a value indicating whether the gamepad has LED support.

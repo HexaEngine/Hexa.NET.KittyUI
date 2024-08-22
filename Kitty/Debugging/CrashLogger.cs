@@ -1,6 +1,6 @@
 ﻿namespace Hexa.NET.Kitty.Debugging
 {
-    using Hexa.NET.Kitty.Logging;
+    using Hexa.NET.Logging;
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
@@ -13,7 +13,7 @@
         /// <summary>
         /// Gets the file log writer used for crash logging.
         /// </summary>
-        public static readonly FileLogWriter FileLogWriter = new("logs");
+        public static readonly LogFileWriter FileLogWriter = new("logs");
 
         public static void Initialize()
         {

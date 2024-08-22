@@ -1,6 +1,6 @@
 ﻿namespace Hexa.NET.Kitty.Debugging
 {
-    using Kitty.Logging;
+    using Hexa.NET.Logging;
     using System;
 
     /// <summary>
@@ -82,7 +82,7 @@
         /// <param name="message">The log message to convert.</param>
         public static implicit operator ConsoleMessage(LogMessage message)
         {
-            return new(GetForegroundFromSeverity(message.Severity), ImGuiConsole.BackgroundColor, message.Message, message.Timestamp.ToShortTimeString());
+            return new(GetForegroundFromSeverity(message.Severity), ImGuiDebugTools.BackgroundColor, message.Message, message.Timestamp.ToShortTimeString());
         }
     }
 }

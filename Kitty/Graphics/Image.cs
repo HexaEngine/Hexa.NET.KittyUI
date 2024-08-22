@@ -5,6 +5,7 @@
     using Hexa.NET.Kitty.D3D11;
     using Hexa.NET.Kitty.Graphics.Imaging;
     using Hexa.NET.Kitty.OpenGL;
+    using Hexa.NET.Kitty.Windows;
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
     using Silk.NET.OpenGL;
@@ -26,14 +27,14 @@
 
             switch (Application.GraphicsBackend)
             {
-                case Windows.GraphicsBackend.D3D11:
+                case GraphicsBackend.D3D11:
                     var device = D3D11GraphicsDevice.Device;
                     var tex = scratchImage.CreateTexture2D((ID3D11Device*)device.Handle, Usage.Immutable, BindFlag.ShaderResource, CpuAccessFlag.None, ResourceMiscFlag.None);
                     ComPtr<ID3D11ShaderResourceView> srv = default;
                     device.CreateShaderResourceView(tex, null, ref srv);
                     return new D3D11Image(tex, srv);
 
-                case Windows.GraphicsBackend.OpenGL:
+                case GraphicsBackend.OpenGL:
                     var gl = OpenGLAdapter.GL;
                     var texId = scratchImage.CreateTexture2D(gl);
                     return new OpenGLImage(texId);

@@ -23,6 +23,7 @@
             master = audioDevice.CreateMasteringVoice("Master");
             running = true;
             streamThread = new(ThreadVoid);
+            streamThread.Name = "Audio Stream Thread";
             streamThread.Start();
         }
 

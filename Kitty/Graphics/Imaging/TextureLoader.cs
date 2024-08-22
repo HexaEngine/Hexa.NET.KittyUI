@@ -109,7 +109,7 @@
                     pixel[j * Stride] = (byte)(pixelValue & 0xFF);
                     if (Stride == 2)
                     {
-                        pixel[j * Stride + 1] = (byte)((pixelValue >> 8) & 0xFF);
+                        pixel[j * Stride + 1] = (byte)(pixelValue >> 8 & 0xFF);
                     }
                 }
             }

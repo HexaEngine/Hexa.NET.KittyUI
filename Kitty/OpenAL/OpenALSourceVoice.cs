@@ -3,7 +3,7 @@
     using Hexa.NET.Kitty.Audio;
     using Silk.NET.OpenAL;
     using System.Numerics;
-    using static Kitty.OpenAL.Helper;
+    using static Hexa.NET.Kitty.OpenAL.Helper;
 
     public class OpenALSourceVoice : ISourceVoice
     {

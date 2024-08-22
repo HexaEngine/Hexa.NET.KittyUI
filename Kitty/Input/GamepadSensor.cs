@@ -1,6 +1,6 @@
 ﻿namespace Hexa.NET.Kitty.Input
 {
-    using Kitty.Input.Events;
+    using Hexa.NET.Kitty.Input.Events;
     using Hexa.NET.SDL2;
     using System.Numerics;
     using static Extensions.SdlErrorHandlingExtensions;

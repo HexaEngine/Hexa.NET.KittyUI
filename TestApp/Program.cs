@@ -44,7 +44,7 @@ namespace TestApp
 
             if (ImGui.Button("Load Texture"))
             {
-                LoadTexture("icon.jpg");
+                LoadTexture("icon.png");
             }
 
             if (image != null)

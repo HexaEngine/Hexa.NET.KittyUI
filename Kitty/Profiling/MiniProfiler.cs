@@ -1,5 +1,6 @@
-﻿namespace Hexa.NET.Kitty.Debugging
+﻿namespace Hexa.NET.Kitty.Profiling
 {
+    using Hexa.NET.Kitty.Debugging;
     using System.Collections.Generic;
     using System.Diagnostics;
 
@@ -51,7 +52,7 @@
         {
             double end = End(name);
             var (factor, unit) = GetDisplayValues(end, displayOption);
-            ImGuiConsole.WriteLine($"{name}: {end * factor}{unit}");
+            ImGuiDebugTools.WriteLine($"{name}: {end * factor}{unit}");
         }
 
         public void EndSumAvg(string name)
@@ -83,7 +84,7 @@
 
             var (factorAvg, unitAvg) = GetDisplayValues(avg, displayOption);
             var (factorSum, unitSum) = GetDisplayValues(sum, displayOption);
-            ImGuiConsole.WriteLine($"{name}: Sum: {sum * factorSum}{unitSum} Avg: {avg * factorAvg}{unitAvg}");
+            ImGuiDebugTools.WriteLine($"{name}: Sum: {sum * factorSum}{unitSum} Avg: {avg * factorAvg}{unitAvg}");
         }
 
         public void Clear()

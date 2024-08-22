@@ -1,6 +1,6 @@
 ﻿namespace Hexa.NET.Kitty.D3D11
 {
-    using Hexa.NET.Kitty.Graphics;
+    using Hexa.NET.Kitty;
     using Silk.NET.Direct3D11;
     using System;
 

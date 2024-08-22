@@ -1,7 +1,5 @@
 ﻿namespace Hexa.NET.Kitty.Windows
 {
-    using Hexa.NET.Kitty;
-    using Silk.NET.Maths;
     using Hexa.NET.SDL2;
 
     public static unsafe class Display
@@ -11,21 +9,21 @@
         public static DisplayMode GetClosestDisplayMode(int displayIndex, DisplayMode mode)
         {
             DisplayMode closest;
-            SDL.SDLGetClosestDisplayMode(displayIndex, (Hexa.NET.SDL2.SDLDisplayMode*)&mode, (Hexa.NET.SDL2.SDLDisplayMode*)&closest);
+            SDL.SDLGetClosestDisplayMode(displayIndex, (SDLDisplayMode*)&mode, (SDLDisplayMode*)&closest);
             return closest;
         }
 
         public static DisplayMode GetCurrentDisplayMode(int displayIndex)
         {
             DisplayMode mode;
-            SDL.SDLGetCurrentDisplayMode(displayIndex, (Hexa.NET.SDL2.SDLDisplayMode*)&mode);
+            SDL.SDLGetCurrentDisplayMode(displayIndex, (SDLDisplayMode*)&mode);
             return mode;
         }
 
         public static DisplayMode GetDesktopDisplayMode(int displayIndex)
         {
             DisplayMode mode;
-            SDL.SDLGetDesktopDisplayMode(displayIndex, (Hexa.NET.SDL2.SDLDisplayMode*)&mode);
+            SDL.SDLGetDesktopDisplayMode(displayIndex, (SDLDisplayMode*)&mode);
             return mode;
         }
 
@@ -67,7 +65,7 @@
         public static DisplayMode GetDisplayMode(int displayIndex, int modeIndex)
         {
             DisplayMode mode;
-            SDL.SDLGetDisplayMode(displayIndex, modeIndex, (Hexa.NET.SDL2.SDLDisplayMode*)&mode);
+            SDL.SDLGetDisplayMode(displayIndex, modeIndex, (SDLDisplayMode*)&mode);
             return mode;
         }
 
@@ -96,7 +94,7 @@
         public static DisplayMode GetWindowDisplayMode(SdlWindow window)
         {
             DisplayMode mode;
-            SDL.SDLGetWindowDisplayMode(window.GetWindow(), (Hexa.NET.SDL2.SDLDisplayMode*)&mode);
+            SDL.SDLGetWindowDisplayMode(window.GetWindow(), (SDLDisplayMode*)&mode);
             return mode;
         }
     }

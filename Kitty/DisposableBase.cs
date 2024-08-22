@@ -1,4 +1,4 @@
-﻿namespace Hexa.NET.Kitty.Graphics
+﻿namespace Hexa.NET.Kitty
 {
     using Hexa.NET.Kitty.Debugging;
     using System;

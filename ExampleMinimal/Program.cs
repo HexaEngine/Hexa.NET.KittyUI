@@ -31,7 +31,7 @@ builder.AddWindow("Main Window", () =>
 });
 builder.AddWindow<SecondaryWindow>();
 
-Application.Run(builder);
+builder.Run();
 
 void Callback(object? sender, DialogResult result)
 {

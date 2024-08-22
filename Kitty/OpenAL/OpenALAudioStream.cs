@@ -1,6 +1,6 @@
 ﻿namespace Hexa.NET.Kitty.OpenAL
 {
-    using Kitty.Audio;
+    using Hexa.NET.Kitty.Audio;
     using System;
 
     public abstract class OpenALAudioStream : IAudioStream

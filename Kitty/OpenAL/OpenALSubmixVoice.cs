@@ -1,6 +1,6 @@
 ﻿namespace Hexa.NET.Kitty.OpenAL
 {
-    using Kitty.Audio;
+    using Hexa.NET.Kitty.Audio;
 
     public unsafe class OpenALSubmixVoice : ISubmixVoice
     {

@@ -1,6 +1,5 @@
 ﻿namespace Hexa.NET.Kitty.Input
 {
-    using Hexa.NET.Kitty;
     using Hexa.NET.Kitty.Input.Events;
     using Hexa.NET.SDL2;
     using System;

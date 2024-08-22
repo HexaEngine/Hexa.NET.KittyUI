@@ -18,7 +18,7 @@ namespace Hexa.NET.Kitty.OpenGL
 
     public static unsafe class ImGuiOpenGL3Renderer
     {
-        private static GL GL;
+        private static GL GL = null!;
 
         private struct RenderData
         {
