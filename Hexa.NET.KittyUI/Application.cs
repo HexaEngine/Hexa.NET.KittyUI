@@ -8,7 +8,6 @@
     using Hexa.NET.KittyUI.Windows.Events;
     using Hexa.NET.SDL2;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using static Hexa.NET.KittyUI.Extensions.SdlErrorHandlingExtensions;
 
     public delegate bool EventHook(SDLEvent evnt);
@@ -37,6 +36,12 @@
         public static bool GraphicsDebugging { get; set; }
 
         public static GraphicsBackend GraphicsBackend => ((CoreWindow)mainWindow).Backend;
+
+        /// <summary>
+        /// Sets the graphics backend. Default: <see cref="GraphicsBackend.Auto"/>
+        /// </summary>
+        /// <remarks>This can be only set BEFORE <see cref="Run"/>  <see cref="AppBuilder.Run"/>.</remarks>
+        public static GraphicsBackend SelectedGraphicsBackend { get; set; } = GraphicsBackend.Auto;
 
         public static void Run(IRenderWindow mainWindow, AppBuilder builder)
         {

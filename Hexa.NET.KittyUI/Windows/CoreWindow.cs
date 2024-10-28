@@ -113,9 +113,10 @@
                 backend = GraphicsBackend.D3D11;
             }
 
-#if FORCE_OPENGL
-            backend = GraphicsBackend.OpenGL;
-#endif
+            if (Application.SelectedGraphicsBackend != GraphicsBackend.Auto)
+            {
+                backend = Application.SelectedGraphicsBackend;
+            }
 
             byte[] bytes = Encoding.UTF8.GetBytes(title);
             byte* ptr = (byte*)Unsafe.AsPointer(ref bytes[0]);

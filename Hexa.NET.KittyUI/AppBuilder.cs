@@ -30,6 +30,12 @@
             Application.Run(window, this);
         }
 
+        public AppBuilder SetGraphicsBackend(GraphicsBackend backend)
+        {
+            Application.SelectedGraphicsBackend = backend;
+            return this;
+        }
+
         public AppBuilder SetTitle(string title)
         {
             this.title = title;

@@ -9,6 +9,7 @@
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
     using Silk.NET.OpenGL;
+    using System.IO;
 
     /// <summary>
     /// The abstract base for all backends.
@@ -43,6 +44,8 @@
                     throw new NotSupportedException();
             }
         }
+
+      
     }
 
     public unsafe class D3D11Image : Image

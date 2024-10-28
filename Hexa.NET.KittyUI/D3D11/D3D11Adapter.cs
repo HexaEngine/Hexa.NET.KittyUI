@@ -318,6 +318,11 @@
 
         private static Format AutoChooseSwapChainFormat(ComPtr<ID3D11Device5> device, ComPtr<IDXGIOutput6> output)
         {
+            if (output.Handle == null)
+            {
+                return Format.FormatB8G8R8A8Unorm;
+            }
+
             OutputDesc1 desc;
             output.GetDesc1(&desc).ThrowHResult();
 
