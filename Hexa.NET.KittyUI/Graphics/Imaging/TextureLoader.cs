@@ -2,6 +2,7 @@
 {
     using Hexa.NET.DirectXTex;
     using Hexa.NET.KittyUI.D3D11;
+    using HexaGen.Runtime;
     using Silk.NET.Direct3D11;
     using Silk.NET.DXGI;
     using System.IO;
@@ -12,6 +13,15 @@
         None = 0,
         GenerateMipMaps = 1,
         Scale = 2
+    }
+
+    public static class Extensions
+    {
+        public static void ThrowIf(this int hresult)
+        {
+            HResult result = hresult;
+            result.ThrowIf();
+        }
     }
 
     public unsafe class TextureLoader

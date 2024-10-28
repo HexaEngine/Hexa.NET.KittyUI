@@ -101,10 +101,10 @@
 
         private void DefaultCallback(ImGuiFontBuilder builder)
         {
-            Span<char> glyphMaterialRanges =
+            Span<uint> glyphMaterialRanges =
             [
-                    (char)0xe003, (char)0xF8FF,
-                    (char)0, (char)0 // null terminator
+                    0xe003, 0xF8FF,
+                    0, 0 // null terminator
             ];
             builder.AddFontFromEmbeddedResource("Hexa.NET.KittyUI.assets.fonts.arial.ttf", 15);
             builder.SetOption(conf => conf.GlyphMinAdvanceX = 16);
@@ -185,7 +185,7 @@
                 ImGuiWindowClass windowClass;
                 windowClass.DockNodeFlagsOverrideSet = (ImGuiDockNodeFlags)ImGuiDockNodeFlagsPrivate.NoTabBar;
                 ImGui.SetNextWindowClass(&windowClass);
-                ImGui.DockBuilderDockWindow(Name, WidgetManager.DockSpaceId);
+                ImGuiP.DockBuilderDockWindow(Name, WidgetManager.DockSpaceId);
 
                 var flags = Flags | overwriteFlags;
 

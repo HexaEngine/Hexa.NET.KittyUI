@@ -450,7 +450,7 @@
 
             if (cmdSuggestions.Count > 0)
             {
-                if (ImGui.BeginChild("Suggestions", new(0, suggestionHeight), ImGuiChildFlags.Border))
+                if (ImGui.BeginChild("Suggestions", new Vector2(0, suggestionHeight), ImGuiChildFlags.Borders))
                 {
                     for (int i = 0; i < cmdSuggestions.Count; i++)
                     {

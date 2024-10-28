@@ -7,28 +7,28 @@
 
     public unsafe struct GlyphRanges
     {
-        private UnsafeList<char> glyphs;
+        private UnsafeList<uint> glyphs;
 
-        public GlyphRanges(params char[] glyphs)
+        public GlyphRanges(params uint[] glyphs)
         {
-            this.glyphs = new UnsafeList<char>(glyphs);
+            this.glyphs = new UnsafeList<uint>(glyphs);
         }
 
-        public GlyphRanges(ReadOnlySpan<char> glyphs)
+        public GlyphRanges(ReadOnlySpan<uint> glyphs)
         {
-            this.glyphs = new UnsafeList<char>(glyphs.Length);
+            this.glyphs = new UnsafeList<uint>(glyphs.Length);
             for (int i = 0; i < glyphs.Length; i++)
             {
                 this.glyphs.Add(glyphs[i]);
             }
         }
 
-        public void AddGlyph(char glyph)
+        public void AddGlyph(uint glyph)
         {
             glyphs.Add(glyph);
         }
 
-        public char* GetRanges()
+        public uint* GetRanges()
         {
             return glyphs.Data;
         }
@@ -76,12 +76,12 @@
             return AddFontFromFileTTF(path, size, glyphRanges.GetRanges());
         }
 
-        public ImGuiFontBuilder AddFontFromFileTTF(string path, float size, ReadOnlySpan<char> glyphRanges)
+        public ImGuiFontBuilder AddFontFromFileTTF(string path, float size, ReadOnlySpan<uint> glyphRanges)
         {
             return AddFontFromFileTTF(path, size, new GlyphRanges(glyphRanges));
         }
 
-        public ImGuiFontBuilder AddFontFromFileTTF(string path, float size, char* glyphRanges)
+        public ImGuiFontBuilder AddFontFromFileTTF(string path, float size, uint* glyphRanges)
         {
             font = fontAtlas.AddFontFromFileTTF(Path.GetFullPath(path), size, config, glyphRanges);
             config.MergeMode = true;
@@ -114,7 +114,7 @@
             return this;
         }
 
-        public ImGuiFontBuilder AddFontFromEmbeddedResource(string path, float size, ReadOnlySpan<char> glyphRanges)
+        public ImGuiFontBuilder AddFontFromEmbeddedResource(string path, float size, ReadOnlySpan<uint> glyphRanges)
         {
             return AddFontFromEmbeddedResource(path, size, new GlyphRanges(glyphRanges));
         }
@@ -142,24 +142,24 @@
             return this;
         }
 
-        public ImGuiFontBuilder AddFontFromMemoryTTF(ReadOnlySpan<byte> fontData, float size, ReadOnlySpan<char> glyphRanges)
+        public ImGuiFontBuilder AddFontFromMemoryTTF(ReadOnlySpan<byte> fontData, float size, ReadOnlySpan<uint> glyphRanges)
         {
             fixed (byte* pFontData = fontData)
             {
-                fixed (char* pGlyphRanges = glyphRanges)
+                fixed (uint* pGlyphRanges = glyphRanges)
                 {
                     return AddFontFromMemoryTTF(pFontData, fontData.Length, size, pGlyphRanges);
                 }
             }
         }
 
-        public ImGuiFontBuilder AddFontFromMemoryTTF(byte* fontData, int fontDataSize, float size, ReadOnlySpan<char> glyphRanges)
+        public ImGuiFontBuilder AddFontFromMemoryTTF(byte* fontData, int fontDataSize, float size, ReadOnlySpan<uint> glyphRanges)
         {
-            fixed (char* pGlyphRanges = glyphRanges)
+            fixed (uint* pGlyphRanges = glyphRanges)
                 return AddFontFromMemoryTTF(fontData, fontDataSize, size, pGlyphRanges);
         }
 
-        public ImGuiFontBuilder AddFontFromMemoryTTF(byte* fontData, int fontDataSize, float size, char* pGlyphRanges)
+        public ImGuiFontBuilder AddFontFromMemoryTTF(byte* fontData, int fontDataSize, float size, uint* pGlyphRanges)
         {
             // IMPORTANT: AddFontFromMemoryTTF() by default transfer ownership of the data buffer to the font atlas, which will attempt to free it on destruction.
             // This was to avoid an unnecessary copy, and is perhaps not a good API (a future version will redesign it).

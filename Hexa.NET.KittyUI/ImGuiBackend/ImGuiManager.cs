@@ -1,6 +1,7 @@
 ﻿namespace Hexa.NET.KittyUI.ImGuiBackend
 {
     using Hexa.NET.ImGui;
+    using Hexa.NET.ImGui.Backends.SDL2;
     using Hexa.NET.ImGuizmo;
     using Hexa.NET.ImNodes;
     using Hexa.NET.ImPlot;
@@ -45,8 +46,9 @@
             fontPushes--;
         }
 
-        public unsafe ImGuiManager(AppBuilder appBuilder, Action<ImDrawDataPtr> rendererDrawCallback, ImGuiConfigFlags flags = ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad | ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable)
+        public unsafe ImGuiManager(AppBuilder appBuilder, Action rendererNewFrameCallback, Action<ImDrawDataPtr> rendererDrawCallback, ImGuiConfigFlags flags = ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad | ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable)
         {
+            RendererNewFrameCallback = rendererNewFrameCallback;
             RendererDrawCallback = rendererDrawCallback;
             guiContext = ImGui.CreateContext(null);
             ImGui.SetCurrentContext(guiContext);
@@ -141,7 +143,7 @@
             colors[(int)ImGuiCol.TableRowBgAlt] = new Vector4(1.00f, 1.00f, 1.00f, 0.06f);
             colors[(int)ImGuiCol.TextSelectedBg] = new Vector4(0.20f, 0.22f, 0.23f, 1.00f);
             colors[(int)ImGuiCol.DragDropTarget] = new Vector4(0.33f, 0.67f, 0.86f, 1.00f);
-            colors[(int)ImGuiCol.NavHighlight] = new Vector4(1.00f, 0.00f, 0.00f, 1.00f);
+            colors[(int)ImGuiCol.NavCursor] = new Vector4(1.00f, 0.00f, 0.00f, 1.00f);
             colors[(int)ImGuiCol.NavWindowingHighlight] = new Vector4(1.00f, 0.00f, 0.00f, 0.70f);
             colors[(int)ImGuiCol.NavWindowingDimBg] = new Vector4(1.00f, 0.00f, 0.00f, 0.20f);
             colors[(int)ImGuiCol.ModalWindowDimBg] = new Vector4(0.10f, 0.10f, 0.10f, 0.00f);
@@ -186,11 +188,13 @@
             ImNodes.SetCurrentContext(nodesContext);
             ImPlot.SetCurrentContext(plotContext);
 
-            ImGuiSDL2Platform.NewFrame();
+            RendererNewFrameCallback();
+            ImGuiImplSDL2.NewFrame();
             ImGui.NewFrame();
             ImGuizmo.BeginFrame();
         }
 
+        public Action RendererNewFrameCallback;
         public Action<ImDrawDataPtr> RendererDrawCallback;
 
         public unsafe void EndFrame()
