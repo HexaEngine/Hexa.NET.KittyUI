@@ -1,13 +1,13 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
-    using Silk.NET.OpenGL;
+    using Hexa.NET.OpenGL;
 
     public static class OpenGLExtensions
     {
-        public static void CheckError(this GL gl)
+        public static void GLCheckError()
         {
-            var error = gl.GetError();
-            if (error != GLEnum.NoError)
+            var error = (GLErrorCode)GL.GetError();
+            if (error != GLErrorCode.NoError)
             {
                 throw new Exception($"OpenGL error: {error}");
             }

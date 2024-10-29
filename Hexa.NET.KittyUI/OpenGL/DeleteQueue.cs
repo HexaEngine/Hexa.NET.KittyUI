@@ -1,17 +1,15 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
-    using Silk.NET.OpenGL;
+    using Hexa.NET.OpenGL;
     using System.Collections.Concurrent;
 
     public class DeleteQueue
     {
         private readonly ConcurrentQueue<(GLEnum, uint)> queue = new();
-        private readonly GL gl;
         private readonly Thread thread;
 
-        public DeleteQueue(GL gl, Thread thread)
+        public DeleteQueue(Thread thread)
         {
-            this.gl = gl;
             this.thread = thread;
         }
 
@@ -38,47 +36,47 @@
             switch (item.Item1)
             {
                 case GLEnum.Texture:
-                    gl.DeleteTexture(item.Item2);
+                    GL.DeleteTexture(item.Item2);
                     break;
 
                 case GLEnum.Buffer:
-                    gl.DeleteBuffer(item.Item2);
+                    GL.DeleteBuffer(item.Item2);
                     break;
 
                 case GLEnum.Framebuffer:
-                    gl.DeleteFramebuffer(item.Item2);
+                    GL.DeleteFramebuffer(item.Item2);
                     break;
 
                 case GLEnum.Renderbuffer:
-                    gl.DeleteRenderbuffer(item.Item2);
+                    GL.DeleteRenderbuffer(item.Item2);
                     break;
 
                 case GLEnum.VertexArray:
-                    gl.DeleteVertexArray(item.Item2);
+                    GL.DeleteVertexArray(item.Item2);
                     break;
 
                 case GLEnum.ProgramPipeline:
-                    gl.DeleteProgramPipeline(item.Item2);
+                    GL.DeleteProgramPipeline(item.Item2);
                     break;
 
                 case GLEnum.Program:
-                    gl.DeleteProgram(item.Item2);
+                    GL.DeleteProgram(item.Item2);
                     break;
 
                 case GLEnum.Shader:
-                    gl.DeleteShader(item.Item2);
+                    GL.DeleteShader(item.Item2);
                     break;
 
                 case GLEnum.Sampler:
-                    gl.DeleteSampler(item.Item2);
+                    GL.DeleteSampler(item.Item2);
                     break;
 
                 case GLEnum.TransformFeedback:
-                    gl.DeleteTransformFeedback(item.Item2);
+                    GL.DeleteTransformFeedback(item.Item2);
                     break;
 
                 case GLEnum.Query:
-                    gl.DeleteQuery(item.Item2);
+                    GL.DeleteQuerie(item.Item2);
                     break;
             }
         }

@@ -1,4 +1,4 @@
-﻿namespace Hexa.NET.KittyUI.Windows
+﻿namespace Hexa.NET.KittyUI.Graphics
 {
     public enum GraphicsBackend
     {
@@ -14,6 +14,7 @@
 
         /// <summary>
         /// OpenGL 4.5 core backend. (All platforms)
+        /// On macOS OpenGL 4.1 core is used.
         /// </summary>
         OpenGL,
 

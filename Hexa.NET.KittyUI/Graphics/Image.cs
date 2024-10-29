@@ -5,10 +5,9 @@
     using Hexa.NET.KittyUI.D3D11;
     using Hexa.NET.KittyUI.Graphics.Imaging;
     using Hexa.NET.KittyUI.OpenGL;
-    using Hexa.NET.KittyUI.Windows;
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
-    using Silk.NET.OpenGL;
+    using Hexa.NET.OpenGL;
     using System.IO;
 
     /// <summary>
@@ -36,16 +35,13 @@
                     return new D3D11Image(tex, srv);
 
                 case GraphicsBackend.OpenGL:
-                    var gl = OpenGLAdapter.GL;
-                    var texId = scratchImage.CreateTexture2D(gl);
+                    var texId = scratchImage.CreateTexture2D();
                     return new OpenGLImage(texId);
 
                 default:
                     throw new NotSupportedException();
             }
         }
-
-      
     }
 
     public unsafe class D3D11Image : Image

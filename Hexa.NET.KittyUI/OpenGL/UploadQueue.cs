@@ -1,7 +1,7 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
     using Hexa.NET.Utilities;
-    using Silk.NET.OpenGL;
+    using Hexa.NET.OpenGL;
     using System.Collections.Concurrent;
     using System.Threading;
 
@@ -10,12 +10,10 @@
         private readonly ConcurrentQueue<Pointer<OpenGLTextureTask>> creationQueue = new();
         private readonly ConcurrentQueue<Pointer<OpenGLTextureTask>> finishingQueue = new();
         private readonly List<Pointer<OpenGLTextureTask>> waitingList = new();
-        private readonly GL gl;
         private readonly Thread currentThread;
 
-        public UploadQueue(GL gl, Thread currentThread)
+        public UploadQueue(Thread currentThread)
         {
-            this.gl = gl;
             this.currentThread = currentThread;
         }
 
@@ -43,18 +41,18 @@
         {
             while (creationQueue.TryDequeue(out var task))
             {
-                task.Data->CreateTexture(gl);
+                task.Data->CreateTexture();
             }
 
             while (finishingQueue.TryDequeue(out var task))
             {
-                task.Data->FinishTexture(gl);
+                task.Data->FinishTexture();
                 waitingList.Add(task);
             }
 
             for (int i = waitingList.Count - 1; i >= 0; i--)
             {
-                if (waitingList[i].Data->CheckIfDone(gl))
+                if (waitingList[i].Data->CheckIfDone())
                 {
                     waitingList.RemoveAt(i);
                 }

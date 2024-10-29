@@ -2,6 +2,7 @@
 {
     using Hexa.NET.KittyUI.Audio;
     using Hexa.NET.KittyUI.Debugging;
+    using Hexa.NET.KittyUI.Graphics;
     using Hexa.NET.KittyUI.Input;
     using Hexa.NET.KittyUI.OpenAL;
     using Hexa.NET.KittyUI.Windows;

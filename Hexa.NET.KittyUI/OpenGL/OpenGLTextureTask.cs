@@ -1,7 +1,7 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
     using Hexa.NET.Utilities;
-    using Silk.NET.OpenGL;
+    using Hexa.NET.OpenGL;
 
     public unsafe struct OpenGLTextureTask
     {
@@ -11,7 +11,7 @@
         private uint pboId;
         private void* mappedData;
 
-        private nint syncFence;
+        private GLSync syncFence;
 
         public readonly void* MappedData => mappedData;
 
@@ -32,30 +32,30 @@
         /// Caller must be the main thread.
         /// </summary>
         /// <param name="gl"></param>
-        public void CreateTexture(GL gl)
+        public void CreateTexture()
         {
-            gl.GenTextures(1, out textureId);
-            gl.BindTexture(TextureTarget.Texture2D, textureId);
+            textureId = GL.GenTexture();
+            GL.BindTexture(GLTextureTarget.Texture2D, textureId);
             // todo sampler logic
-            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)Desc.MinFilter);
-            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)Desc.MagFilter);
-            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)Desc.WrapS);
-            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)Desc.WrapT);
+            GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.MinFilter, (int)Desc.MinFilter);
+            GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.MagFilter, (int)Desc.MagFilter);
+            GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.WrapS, (int)Desc.WrapS);
+            GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.WrapT, (int)Desc.WrapT);
 
-            gl.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindTexture(GLTextureTarget.Texture2D, 0);
 
-            nuint size = CalculatePboSize(Desc.Width, Desc.Height, Desc.MipLevels, Desc.PixelFormat, Desc.PixelType, Desc.ArraySize); // todo calculate size
+            nint size = CalculatePboSize(Desc.Width, Desc.Height, Desc.MipLevels, Desc.PixelFormat, Desc.PixelType, Desc.ArraySize); // todo calculate size
 
-            gl.CreateBuffers(1, out pboId);
-            gl.CheckError();
-            gl.BindBuffer(BufferTargetARB.PixelUnpackBuffer, pboId);
-            gl.CheckError();
-            gl.BufferData(BufferTargetARB.PixelUnpackBuffer, size, null, (GLEnum)BufferUsageARB.StreamDraw);
-            gl.CheckError();
-            mappedData = gl.MapBuffer(BufferTargetARB.PixelUnpackBuffer, BufferAccessARB.WriteOnly);
-            gl.CheckError();
-            gl.BindBuffer(BufferTargetARB.PixelUnpackBuffer, 0);
-            gl.CheckError();
+            GL.CreateBuffers(1, ref pboId);
+            //GL.CheckError();
+            GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, pboId);
+            //GL.CheckError();
+            GL.BufferData(GLBufferTargetARB.PixelUnpackBuffer, size, null, GLBufferUsageARB.StreamDraw);
+            //GL.CheckError();
+            mappedData = GL.MapBuffer(GLBufferTargetARB.PixelUnpackBuffer, GLBufferAccessARB.WriteOnly);
+            //GL.CheckError();
+            GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, 0);
+            //GL.CheckError();
 
             Fence.Signal();
         }
@@ -64,35 +64,34 @@
         /// Caller must be the main thread.
         /// </summary>
         /// <param name="gl"></param>
-        public void FinishTexture(GL gl)
+        public void FinishTexture()
         {
-            gl.BindBuffer(BufferTargetARB.PixelUnpackBuffer, pboId);
-            gl.CheckError();
-            gl.UnmapBuffer(BufferTargetARB.PixelUnpackBuffer);
-            gl.CheckError();
-            syncFence = gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, SyncBehaviorFlags.None);
-            gl.CheckError();
-            gl.BindBuffer(BufferTargetARB.PixelUnpackBuffer, 0);
-
-            gl.CheckError();
+            GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, pboId);
+            //GL.CheckError();
+            GL.UnmapBuffer(GLBufferTargetARB.PixelUnpackBuffer);
+            //GL.CheckError();
+            syncFence = GL.FenceSync(GLSyncCondition.GpuCommandsComplete, GLSyncBehaviorFlags.None);
+            //GL.CheckError();
+            GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, 0);
+            //GL.CheckError();
         }
 
         /// <summary>
         /// Polled by the main thread.
         /// </summary>
         /// <param name="gl"></param>
-        public bool CheckIfDone(GL gl)
+        public bool CheckIfDone()
         {
-            if (gl.ClientWaitSync(syncFence, SyncObjectMask.Bit, 0) == GLEnum.AlreadySignaled)
+            if (GL.ClientWaitSync(syncFence, GLSyncObjectMask.FlushCommandsBit, 0) == GLEnum.AlreadySignaled)
             {
-                gl.BindBuffer(BufferTargetARB.PixelUnpackBuffer, pboId);
-                gl.BindTexture(TextureTarget.Texture2D, textureId);
-                gl.TexImage2D(TextureTarget.Texture2D, 0, (int)Desc.InternalFormat, Desc.Width, Desc.Height, 0, Desc.PixelFormat, Desc.PixelType, null);
-                gl.BindTexture(TextureTarget.Texture2D, 0);
-                gl.BindBuffer(BufferTargetARB.PixelUnpackBuffer, 0);
-                gl.DeleteSync(syncFence);
-                syncFence = 0;
-                gl.DeleteBuffer(pboId);
+                GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, pboId);
+                GL.BindTexture(GLTextureTarget.Texture2D, textureId);
+                GL.TexImage2D(GLTextureTarget.Texture2D, 0, Desc.InternalFormat, Desc.Width, Desc.Height, 0, Desc.PixelFormat, Desc.PixelType, null);
+                GL.BindTexture(GLTextureTarget.Texture2D, 0);
+                GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, 0);
+                GL.DeleteSync(syncFence);
+                syncFence = default;
+                GL.DeleteBuffer(pboId);
                 pboId = 0;
                 Fence.Signal();
                 return true;
@@ -100,71 +99,71 @@
             return false;
         }
 
-        private static uint GetBitsPerChannel(PixelType pixelType)
+        private static uint GetBitsPerChannel(GLPixelType pixelType)
         {
             return pixelType switch
             {
-                PixelType.UnsignedByte or PixelType.Byte => 8,
-                PixelType.UnsignedShort or PixelType.Short or PixelType.UnsignedShort565 or PixelType.UnsignedShort4444 or PixelType.UnsignedShort5551 => 16,
-                PixelType.UnsignedInt or PixelType.Int or PixelType.Float => 32,
-                PixelType.HalfFloat => 16,
+                GLPixelType.UnsignedByte or GLPixelType.Byte => 8,
+                GLPixelType.UnsignedShort or GLPixelType.Short or GLPixelType.UnsignedShort565 or GLPixelType.UnsignedShort4444 or GLPixelType.UnsignedShort5551 => 16,
+                GLPixelType.UnsignedInt or GLPixelType.Int or GLPixelType.Float => 32,
+                GLPixelType.HalfFloat => 16,
                 // Special formats:
-                PixelType.UnsignedByte332 => 8,// 3-3-2 bits, sum 8 bits
-                PixelType.UnsignedByte233Rev => 8,// 2-3-3 bits, sum 8 bits (Reversed)
-                PixelType.UnsignedShort565Rev => 16,// 5-6-5 bits, sum 16 bits (Reversed)
-                PixelType.UnsignedShort4444Rev => 16,// 4-4-4-4 bits, sum 16 bits (Reversed)
-                PixelType.UnsignedShort1555Rev => 16,// 1-5-5-5 bits, sum 16 bits (Reversed)
-                PixelType.UnsignedInt8888 or PixelType.UnsignedInt8888Rev => 32,// 8-8-8-8 bits, sum 32 bits
-                PixelType.UnsignedInt1010102 or PixelType.UnsignedInt2101010Rev => 32,// 10-10-10-2 bits, sum 32 bits
-                PixelType.UnsignedInt248 => 32,// 24-8 bits, sum 32 bits
-                PixelType.UnsignedInt10f11f11fRev => 32,// 10-11-11 floating-point bits, sum 32 bits (Reversed)
-                PixelType.UnsignedInt5999Rev => 32,// 5-9-9-9 floating-point bits, sum 32 bits (Reversed)
-                PixelType.Float32UnsignedInt248Rev => 64,// 32-bit float + 32-bit unsigned int (24-8 bits), sum 64 bits
+                GLPixelType.UnsignedByte332 => 8,// 3-3-2 bits, sum 8 bits
+                GLPixelType.UnsignedByte233Rev => 8,// 2-3-3 bits, sum 8 bits (Reversed)
+                GLPixelType.UnsignedShort565Rev => 16,// 5-6-5 bits, sum 16 bits (Reversed)
+                GLPixelType.UnsignedShort4444Rev => 16,// 4-4-4-4 bits, sum 16 bits (Reversed)
+                GLPixelType.UnsignedShort1555Rev => 16,// 1-5-5-5 bits, sum 16 bits (Reversed)
+                GLPixelType.UnsignedInt8888 or GLPixelType.UnsignedInt8888Rev => 32,// 8-8-8-8 bits, sum 32 bits
+                GLPixelType.UnsignedInt1010102 or GLPixelType.UnsignedInt2101010Rev => 32,// 10-10-10-2 bits, sum 32 bits
+                GLPixelType.UnsignedInt248 => 32,// 24-8 bits, sum 32 bits
+                GLPixelType.UnsignedInt10F11F11FRevExt => 32,// 10-11-11 floating-point bits, sum 32 bits (Reversed)
+                GLPixelType.UnsignedInt5999Rev => 32,// 5-9-9-9 floating-point bits, sum 32 bits (Reversed)
+                GLPixelType.Float32UnsignedInt248Rev => 64,// 32-bit float + 32-bit unsigned int (24-8 bits), sum 64 bits
                 _ => throw new NotSupportedException("Unsupported pixel type."),
             };
         }
 
-        private static uint GetChannelCount(PixelFormat pixelFormat)
+        private static uint GetChannelCount(GLPixelFormat pixelFormat)
         {
             switch (pixelFormat)
             {
-                case PixelFormat.UnsignedShort:
-                case PixelFormat.UnsignedInt:
-                case PixelFormat.Red:
-                case PixelFormat.Green:
-                case PixelFormat.Blue:
-                case PixelFormat.Alpha:
-                case PixelFormat.RedInteger:
-                case PixelFormat.GreenInteger:
-                case PixelFormat.BlueInteger:
-                case PixelFormat.StencilIndex:
-                case PixelFormat.DepthComponent:
+                case GLPixelFormat.UnsignedShort:
+                case GLPixelFormat.UnsignedInt:
+                case GLPixelFormat.Red:
+                case GLPixelFormat.Green:
+                case GLPixelFormat.Blue:
+                case GLPixelFormat.Alpha:
+                case GLPixelFormat.RedInteger:
+                case GLPixelFormat.GreenInteger:
+                case GLPixelFormat.BlueInteger:
+                case GLPixelFormat.StencilIndex:
+                case GLPixelFormat.DepthComponent:
                     return 1;
 
-                case PixelFormat.RG:
-                case PixelFormat.RGInteger:
+                case GLPixelFormat.Rg:
+                case GLPixelFormat.RgInteger:
                     return 2;
 
-                case PixelFormat.Rgb:
-                case PixelFormat.Bgr:
-                case PixelFormat.RgbInteger:
-                case PixelFormat.BgrInteger:
-                case PixelFormat.Ycrcb422Sgix:
-                case PixelFormat.Ycrcb444Sgix:
+                case GLPixelFormat.Rgb:
+                case GLPixelFormat.Bgr:
+                case GLPixelFormat.RgbInteger:
+                case GLPixelFormat.BgrInteger:
+                case GLPixelFormat.Ycrcb422Sgix:
+                case GLPixelFormat.Ycrcb444Sgix:
                     return 3;
 
-                case PixelFormat.Rgba:
-                case PixelFormat.Bgra:
-                case PixelFormat.AbgrExt:
-                case PixelFormat.RgbaInteger:
-                case PixelFormat.BgraInteger:
-                case PixelFormat.CmykExt:
+                case GLPixelFormat.Rgba:
+                case GLPixelFormat.Bgra:
+                case GLPixelFormat.AbgrExt:
+                case GLPixelFormat.RgbaInteger:
+                case GLPixelFormat.BgraInteger:
+                case GLPixelFormat.CmykExt:
                     return 4;
 
-                case PixelFormat.CmykaExt:
+                case GLPixelFormat.CmykaExt:
                     return 5; // CMYK plus Alpha
 
-                case PixelFormat.DepthStencil:
+                case GLPixelFormat.DepthStencil:
                     return 2; // Depth + Stencil
 
                 default:
@@ -172,7 +171,7 @@
             }
         }
 
-        private static uint GetBytesPerPixel(PixelFormat pixelFormat, PixelType pixelType)
+        private static uint GetBytesPerPixel(GLPixelFormat pixelFormat, GLPixelType pixelType)
         {
             uint bitsPerChannel = GetBitsPerChannel(pixelType);
             uint channelCount = GetChannelCount(pixelFormat);
@@ -180,24 +179,24 @@
             // Für bestimmte Formate, bei denen die Bits pro Pixel festgelegt sind (nicht einfach multipliziert):
             switch (pixelType)
             {
-                case PixelType.UnsignedByte332:
-                case PixelType.UnsignedByte233Rev:
+                case GLPixelType.UnsignedByte332:
+                case GLPixelType.UnsignedByte233Rev:
                     return 1; // 8 bits total
-                case PixelType.UnsignedShort565:
-                case PixelType.UnsignedShort565Rev:
-                case PixelType.UnsignedShort4444:
-                case PixelType.UnsignedShort4444Rev:
-                case PixelType.UnsignedShort1555Rev:
+                case GLPixelType.UnsignedShort565:
+                case GLPixelType.UnsignedShort565Rev:
+                case GLPixelType.UnsignedShort4444:
+                case GLPixelType.UnsignedShort4444Rev:
+                case GLPixelType.UnsignedShort1555Rev:
                     return 2; // 16 bits total
-                case PixelType.UnsignedInt8888:
-                case PixelType.UnsignedInt8888Rev:
-                case PixelType.UnsignedInt1010102:
-                case PixelType.UnsignedInt2101010Rev:
-                case PixelType.UnsignedInt248:
-                case PixelType.UnsignedInt10f11f11fRev:
-                case PixelType.UnsignedInt5999Rev:
+                case GLPixelType.UnsignedInt8888:
+                case GLPixelType.UnsignedInt8888Rev:
+                case GLPixelType.UnsignedInt1010102:
+                case GLPixelType.UnsignedInt2101010Rev:
+                case GLPixelType.UnsignedInt248:
+                case GLPixelType.UnsignedInt10F11F11FRevExt:
+                case GLPixelType.UnsignedInt5999Rev:
                     return 4; // 32 bits total
-                case PixelType.Float32UnsignedInt248Rev:
+                case GLPixelType.Float32UnsignedInt248Rev:
                     return 8; // 64 bits total
                 default:
                     uint totalBitsPerPixel = bitsPerChannel * channelCount;
@@ -207,17 +206,17 @@
             }
         }
 
-        public static nuint CalculatePboSize(uint width, uint height, uint mipLevels, PixelFormat pixelFormat, PixelType pixelType, uint arraySize = 1)
+        public static nint CalculatePboSize(int width, int height, uint mipLevels, GLPixelFormat pixelFormat, GLPixelType pixelType, uint arraySize = 1)
         {
             uint bytesPerPixel = GetBytesPerPixel(pixelFormat, pixelType);
-            nuint totalSize = 0;
+            nint totalSize = 0;
 
             for (uint mip = 0; mip < mipLevels; mip++)
             {
-                uint mipWidth = Math.Max(1, width >> (int)mip);
-                uint mipHeight = Math.Max(1, height >> (int)mip);
-                nuint mipSize = mipWidth * mipHeight * bytesPerPixel;
-                totalSize += mipSize * arraySize;
+                int mipWidth = Math.Max(1, width >> (int)mip);
+                int mipHeight = Math.Max(1, height >> (int)mip);
+                long mipSize = mipWidth * mipHeight * bytesPerPixel;
+                totalSize += (nint)(mipSize * arraySize);
             }
 
             return totalSize;

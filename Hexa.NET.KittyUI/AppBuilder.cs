@@ -2,6 +2,7 @@
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
+    using Hexa.NET.KittyUI.Graphics;
     using Hexa.NET.KittyUI.ImGuiBackend;
     using Hexa.NET.KittyUI.UI;
     using Hexa.NET.KittyUI.Windows;

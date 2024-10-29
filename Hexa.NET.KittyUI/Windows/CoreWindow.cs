@@ -2,6 +2,7 @@
 {
     using Hexa.NET.KittyUI;
     using Hexa.NET.KittyUI.D3D11;
+    using Hexa.NET.KittyUI.Graphics;
     using Hexa.NET.KittyUI.Input;
     using Hexa.NET.KittyUI.Input.Events;
     using Hexa.NET.KittyUI.OpenGL;
@@ -169,12 +170,25 @@
             {
                 case GraphicsBackend.D3D11:
                     if (OperatingSystem.IsWindows())
-                        D3D11Adapter.Init(this, true);
-                    break;
+                    {
+                        D3D11Adapter.Init(this, true); break;
+                    }
+
+                    goto default;
 
                 case GraphicsBackend.OpenGL:
-                    SDL.GLSetAttribute(SDLGLattr.GlContextMajorVersion, 4);
-                    SDL.GLSetAttribute(SDLGLattr.GlContextMinorVersion, 5);
+                    if (OperatingSystem.IsMacOS())
+                    {
+                        // Set max OpenGL version to 4.1 for macOS
+                        SDL.GLSetAttribute(SDLGLattr.GlContextMajorVersion, 4);
+                        SDL.GLSetAttribute(SDLGLattr.GlContextMinorVersion, 1);
+                    }
+                    else
+                    {
+                        // Set to OpenGL 4.5 for other platforms
+                        SDL.GLSetAttribute(SDLGLattr.GlContextMajorVersion, 4);
+                        SDL.GLSetAttribute(SDLGLattr.GlContextMinorVersion, 5);
+                    }
                     SDL.GLSetAttribute(SDLGLattr.GlContextProfileMask, (int)SDLGLprofile.GlContextProfileCore);
 
                     OpenGLAdapter.Init(this);
@@ -242,7 +256,7 @@
         public IGLContext OpenGLCreateContext()
         {
             Logger.ThrowIf(destroyed, "The window is already destroyed");
-            return new SdlContext(window, null, (SDLGLattr.GlContextMajorVersion, 4), (SDLGLattr.GlContextMinorVersion, 5));
+            return new SdlContext(window);
         }
 
         public SDLWindow* GetWindow() => window;

@@ -15,12 +15,13 @@
     using Hexa.NET.KittyUI.OpenGL;
     using Hexa.NET.KittyUI.Threading;
     using Hexa.NET.KittyUI.Windows.Events;
-    using Silk.NET.Core.Contexts;
+    using HexaGen.Runtime;
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
-    using Silk.NET.OpenGL;
+    using Hexa.NET.OpenGL;
     using System;
     using System.Numerics;
+    using Hexa.NET.KittyUI.Graphics;
 
     public class Window : CoreWindow, IRenderWindow
     {
@@ -29,9 +30,8 @@
 
 #nullable restore
         private bool resize = false;
-        private ImGuiManager? imGuiRenderer;      
+        private ImGuiManager? imGuiRenderer;
         private DXGISwapChain? swapChain;
-        private GL? gl;
         private IGLContext? glContext;
         private bool showDebugTools = false;
 
@@ -44,7 +44,6 @@
             renderDispatcher = new(Thread.CurrentThread);
 
             OnRendererInitialize();
-
 
             ImGuiContextPtr context;
             switch (Backend)
@@ -62,7 +61,7 @@
                     var dev = D3D11GraphicsDevice.Device;
                     var ctx = D3D11GraphicsDevice.DeviceContext;
                     imGuiRenderer = new(appBuilder, ImGuiImplD3D11.NewFrame, ImGuiImplD3D11.RenderDrawData);
-                     context = ImGui.GetCurrentContext();
+                    context = ImGui.GetCurrentContext();
                     ImGuiImplSDL2.SetCurrentContext(context);
                     ImGuiImplSDL2.InitForD3D((SDLWindow*)GetWindow());
                     ImGuiImplD3D11.SetCurrentContext(context);
@@ -70,11 +69,10 @@
                     break;
 
                 case GraphicsBackend.OpenGL:
-                    gl = OpenGLAdapter.GL;
                     glContext = OpenGLAdapter.Context;
                     glContext.SwapInterval(1);
                     imGuiRenderer = new(appBuilder, ImGuiImplOpenGL3.NewFrame, ImGuiImplOpenGL3.RenderDrawData);
-                     context = ImGui.GetCurrentContext();
+                    context = ImGui.GetCurrentContext();
                     ImGuiImplSDL2.SetCurrentContext(context);
                     ImGuiImplSDL2.InitForOpenGL((SDLWindow*)GetWindow(), (void*)glContext.Handle);
                     ImGuiImplOpenGL3.SetCurrentContext(context);
@@ -91,7 +89,6 @@
         {
             return ImGuiImplSDL2.ProcessEvent((SDLEvent*)&evnt);
         }
-
 
         public void Render()
         {
@@ -142,10 +139,10 @@
             OpenGLAdapter.ProcessQueues(); // Process all pending uploads
             if (resize)
             {
-                gl!.Viewport(0, 0, (uint)Width, (uint)Height);
+                GL.Viewport(0, 0, Width, Height);
             }
 
-            gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
+            GL.Clear(GLClearBufferMask.ColorBufferBit);
 
             renderDispatcher.ExecuteQueue();
 
@@ -159,7 +156,7 @@
 
             OnRender();
 
-            gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GL.BindFramebuffer(GLFramebufferTarget.Framebuffer, 0);
             imGuiRenderer?.EndFrame();
 
             glContext.MakeCurrent();
@@ -227,7 +224,6 @@
             ImGuiImplSDL2.Shutdown();
         }
 
-      
         protected virtual void OnRendererInitialize()
         {
         }

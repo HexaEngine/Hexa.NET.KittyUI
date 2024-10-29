@@ -1,13 +1,11 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
     using Hexa.NET.KittyUI.Windows;
-    using Silk.NET.Core.Contexts;
-    using Silk.NET.OpenGL;
+    using Hexa.NET.OpenGL;
+    using HexaGen.Runtime;
 
     public class OpenGLAdapter
     {
-        public static GL GL { get; private set; } = null!;
-
         public static IGLContext Context { get; private set; } = null!;
 
         public static UploadQueue UploadQueue { get; private set; } = null!;
@@ -17,9 +15,9 @@
         public static void Init(IWindow window)
         {
             Context = window.OpenGLCreateContext();
-            GL = GL.GetApi(Context);
-            UploadQueue = new(GL, Thread.CurrentThread);
-            DeleteQueue = new(GL, Thread.CurrentThread);
+            GL.InitApi(Context);
+            UploadQueue = new(Thread.CurrentThread);
+            DeleteQueue = new(Thread.CurrentThread);
         }
 
         public static void ProcessQueues()
@@ -31,7 +29,7 @@
         public static void Shutdown()
         {
             Context.Dispose();
-            GL.Dispose();
+            GL.FreeApi();
         }
     }
 }

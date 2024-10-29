@@ -3,10 +3,10 @@
     using Hexa.NET.DirectXTex;
     using Hexa.NET.KittyUI.D3D11;
     using Hexa.NET.KittyUI.OpenGL;
+    using Hexa.NET.OpenGL;
     using Silk.NET.Core.Native;
     using Silk.NET.Direct3D11;
     using Silk.NET.DXGI;
-    using Silk.NET.OpenGL;
     using System.IO;
     using DDSFlags = DirectXTex.DDSFlags;
     using HResult = HexaGen.Runtime.HResult;
@@ -162,7 +162,7 @@
             return resource;
         }
 
-        public uint CreateTexture2D(GL gl, TextureWrapMode wrapS = TextureWrapMode.ClampToEdge, TextureWrapMode wrapT = TextureWrapMode.ClampToEdge, TextureMinFilter minFilter = TextureMinFilter.Linear, TextureMagFilter magFilter = TextureMagFilter.Linear)
+        public uint CreateTexture2D(GLTextureWrapMode wrapS = GLTextureWrapMode.ClampToEdge, GLTextureWrapMode wrapT = GLTextureWrapMode.ClampToEdge, GLTextureMinFilter minFilter = GLTextureMinFilter.Linear, GLTextureMagFilter magFilter = GLTextureMagFilter.Linear)
         {
             var metadata = scImage.GetMetadata();
             var (internalFormat, pixelFormat, pixelType) = Convert((Format)metadata.Format);
@@ -170,8 +170,8 @@
             OpenGLTextureTask* task = stackalloc OpenGLTextureTask[1];
             task->Desc = new OpenGLTexture2DDesc
             {
-                Width = (uint)metadata.Width,
-                Height = (uint)metadata.Height,
+                Width = (int)metadata.Width,
+                Height = (int)metadata.Height,
                 MipLevels = (uint)metadata.MipLevels,
                 ArraySize = (uint)metadata.ArraySize,
                 InternalFormat = internalFormat,
@@ -215,39 +215,40 @@
             }
 
             // Generate a texture ID for OpenGL
-            gl.GenTextures(1, out uint _textureID);
+            uint _textureID = 0;
+            GL.GenTextures(1, ref _textureID);
 
             // Bind the texture
 
-            TextureTarget textureTarget = TextureTarget.Texture2D;
+            GLTextureTarget textureTarget = GLTextureTarget.Texture2D;
             if (metadata.ArraySize > 1)
             {
-                textureTarget = TextureTarget.Texture2DArray;
+                textureTarget = GLTextureTarget.Texture2DArray;
                 if (metadata.ArraySize % 6 == 0 && metadata.IsCubemap())
                 {
-                    textureTarget = TextureTarget.TextureCubeMap;
+                    textureTarget = GLTextureTarget.CubeMap;
                     if (metadata.ArraySize > 6)
                     {
-                        textureTarget = TextureTarget.TextureCubeMapArray;
+                        textureTarget = GLTextureTarget.CubeMapArray;
                     }
                 }
             }
 
-            gl.BindTexture(textureTarget, _textureID);
+            GL.BindTexture(textureTarget, _textureID);
 
             // Set wrapping modes
-            gl.TexParameter(textureTarget, TextureParameterName.TextureWrapS, (int)wrapS);
-            gl.TexParameter(textureTarget, TextureParameterName.TextureWrapT, (int)wrapT);
+            GL.TexParameteri(textureTarget, GLTextureParameterName.WrapS, (int)wrapS);
+            GL.TexParameteri(textureTarget, GLTextureParameterName.WrapT, (int)wrapT);
 
-            if (textureTarget == TextureTarget.TextureCubeMap)
+            if (textureTarget == GLTextureTarget.CubeMap)
             {
                 // For cubemaps, set the R wrap mode as well
-                gl.TexParameter(textureTarget, TextureParameterName.TextureWrapR, (int)wrapS);
+                GL.TexParameteri(textureTarget, GLTextureParameterName.WrapR, (int)wrapS);
             }
 
             // Set filtering modes
-            gl.TexParameter(textureTarget, TextureParameterName.TextureMinFilter, (int)minFilter);
-            gl.TexParameter(textureTarget, TextureParameterName.TextureMagFilter, (int)magFilter);
+            GL.TexParameteri(textureTarget, GLTextureParameterName.MinFilter, (int)minFilter);
+            GL.TexParameteri(textureTarget, GLTextureParameterName.MagFilter, (int)magFilter);
 
             // Determine the appropriate OpenGL internal format, pixel format, and type based on the DXGI format
             var compressed = DirectXTex.IsCompressed(metadata.Format);
@@ -262,193 +263,193 @@
                     if (compressed)
                     {
                         // Compressed formats
-                        gl.CompressedTexImage2D(
+                        GL.CompressedTexImage2D(
                             GetTargetForCubeMap(textureTarget, item),
                             (int)mip,
-                            (GLEnum)internalFormat,
-                            (uint)image->Width,
-                            (uint)image->Height,
+                            internalFormat,
+                            (int)image->Width,
+                            (int)image->Height,
                             0,
-                            (uint)image->SlicePitch,
+                            (int)image->SlicePitch,
                             image->Pixels
                         );
                     }
                     else
                     {
                         // Uncompressed formats
-                        gl.TexImage2D(
+                        GL.TexImage2D(
                             GetTargetForCubeMap(textureTarget, item),
                             (int)mip,
-                            (int)internalFormat,
-                            (uint)image->Width,
-                            (uint)image->Height,
+                            internalFormat,
+                            (int)image->Width,
+                            (int)image->Height,
                             0,
-                            (GLEnum)pixelFormat,
-                            (GLEnum)pixelType,
+                            pixelFormat,
+                            pixelType,
                             image->Pixels
                         );
                     }
                 }
             }
 
-            gl.BindTexture(textureTarget, 0);
+            GL.BindTexture(textureTarget, 0);
 
             return _textureID;
         }
 
-        private TextureTarget GetTargetForCubeMap(TextureTarget textureTarget, uint item)
+        private GLTextureTarget GetTargetForCubeMap(GLTextureTarget textureTarget, uint item)
         {
             // If this is a cubemap, return the correct face target
-            if (textureTarget == TextureTarget.TextureCubeMap)
+            if (textureTarget == GLTextureTarget.CubeMap)
             {
-                return (TextureTarget)((uint)TextureTarget.TextureCubeMapPositiveX + item);
+                return (GLTextureTarget)((uint)GLTextureTarget.CubeMapPositiveX + item);
             }
             // Otherwise, return the original texture target (for 2D textures or arrays)
             return textureTarget;
         }
 
-        private static (InternalFormat internalFormat, PixelFormat pixelFormat, PixelType pixelType) Convert(Format format)
+        private static (GLInternalFormat internalFormat, GLPixelFormat pixelFormat, GLPixelType pixelType) Convert(Format format)
         {
-            InternalFormat internalFormat;
-            PixelFormat pixelFormat = PixelFormat.Rgba; // Default pixel format for most cases
-            PixelType pixelType = PixelType.UnsignedByte; // Default pixel type for most cases
+            GLInternalFormat internalFormat;
+            GLPixelFormat pixelFormat = GLPixelFormat.Rgba; // Default pixel format for most cases
+            GLPixelType pixelType = GLPixelType.UnsignedByte; // Default pixel type for most cases
 
             switch (format)
             {
                 case Format.FormatR8G8B8A8Unorm:
-                    internalFormat = InternalFormat.Rgba8;
-                    pixelFormat = PixelFormat.Rgba;
-                    pixelType = PixelType.UnsignedByte;
+                    internalFormat = GLInternalFormat.Rgba8;
+                    pixelFormat = GLPixelFormat.Rgba;
+                    pixelType = GLPixelType.UnsignedByte;
                     break;
 
                 case Format.FormatR8G8B8A8SNorm:
-                    internalFormat = InternalFormat.Rgba8SNorm;
-                    pixelFormat = PixelFormat.Rgba;
-                    pixelType = PixelType.Byte;
+                    internalFormat = GLInternalFormat.Rgba8Snorm;
+                    pixelFormat = GLPixelFormat.Rgba;
+                    pixelType = GLPixelType.Byte;
                     break;
 
                 case Format.FormatR32G32B32A32Float:
-                    internalFormat = InternalFormat.Rgba32f;
-                    pixelFormat = PixelFormat.Rgba;
-                    pixelType = PixelType.Float;
+                    internalFormat = GLInternalFormat.Rgba32F;
+                    pixelFormat = GLPixelFormat.Rgba;
+                    pixelType = GLPixelType.Float;
                     break;
 
                 case Format.FormatR16G16B16A16Float:
-                    internalFormat = InternalFormat.Rgba16f;
-                    pixelFormat = PixelFormat.Rgba;
-                    pixelType = PixelType.HalfFloat;
+                    internalFormat = GLInternalFormat.Rgba16F;
+                    pixelFormat = GLPixelFormat.Rgba;
+                    pixelType = GLPixelType.HalfFloat;
                     break;
 
                 case Format.FormatBC1Unorm:
-                    internalFormat = InternalFormat.CompressedRgbaS3TCDxt1Ext;
+                    internalFormat = GLInternalFormat.CompressedRgbaS3TcDxt1Ext;
                     break;
 
                 case Format.FormatBC2Unorm:
-                    internalFormat = InternalFormat.CompressedRgbaS3TCDxt3Ext;
+                    internalFormat = GLInternalFormat.CompressedRgbaS3TcDxt3Ext;
                     break;
 
                 case Format.FormatBC3Unorm:
-                    internalFormat = InternalFormat.CompressedRgbaS3TCDxt5Ext;
+                    internalFormat = GLInternalFormat.CompressedRgbaS3TcDxt5Ext;
                     break;
 
                 case Format.FormatBC4Unorm:
-                    internalFormat = InternalFormat.CompressedRedRgtc1;
+                    internalFormat = GLInternalFormat.CompressedRedRgtc1;
                     break;
 
                 case Format.FormatBC5Unorm:
-                    internalFormat = InternalFormat.CompressedRGRgtc2;
+                    internalFormat = GLInternalFormat.CompressedRgRgtc2;
                     break;
 
                 case Format.FormatBC6HUF16:
-                    internalFormat = InternalFormat.CompressedRgbBptcUnsignedFloat;
+                    internalFormat = GLInternalFormat.CompressedRgbBptcUnsignedFloat;
                     break;
 
                 case Format.FormatBC7Unorm:
-                    internalFormat = InternalFormat.CompressedRgbaBptcUnorm;
+                    internalFormat = GLInternalFormat.CompressedRgbaBptcUnorm;
                     break;
 
                 case Format.FormatR8Unorm:
-                    internalFormat = InternalFormat.R8;
-                    pixelFormat = PixelFormat.Red;
-                    pixelType = PixelType.UnsignedByte;
+                    internalFormat = GLInternalFormat.R8;
+                    pixelFormat = GLPixelFormat.Red;
+                    pixelType = GLPixelType.UnsignedByte;
                     break;
 
                 case Format.FormatR16Float:
-                    internalFormat = InternalFormat.R16f;
-                    pixelFormat = PixelFormat.Red;
-                    pixelType = PixelType.HalfFloat;
+                    internalFormat = GLInternalFormat.R16F;
+                    pixelFormat = GLPixelFormat.Red;
+                    pixelType = GLPixelType.HalfFloat;
                     break;
 
                 case Format.FormatR32Float:
-                    internalFormat = InternalFormat.R32f;
-                    pixelFormat = PixelFormat.Red;
-                    pixelType = PixelType.Float;
+                    internalFormat = GLInternalFormat.R32F;
+                    pixelFormat = GLPixelFormat.Red;
+                    pixelType = GLPixelType.Float;
                     break;
 
                 case Format.FormatR16G16Float:
-                    internalFormat = InternalFormat.RG16f;
-                    pixelFormat = PixelFormat.RG;
-                    pixelType = PixelType.HalfFloat;
+                    internalFormat = GLInternalFormat.Rg16F;
+                    pixelFormat = GLPixelFormat.Rg;
+                    pixelType = GLPixelType.HalfFloat;
                     break;
 
                 case Format.FormatR32G32Float:
-                    internalFormat = InternalFormat.RG32f;
-                    pixelFormat = PixelFormat.RG;
-                    pixelType = PixelType.Float;
+                    internalFormat = GLInternalFormat.Rg32F;
+                    pixelFormat = GLPixelFormat.Rg;
+                    pixelType = GLPixelType.Float;
                     break;
 
                 case Format.FormatR10G10B10A2Unorm:
-                    internalFormat = InternalFormat.Rgb10A2;
-                    pixelFormat = PixelFormat.Rgba;
-                    pixelType = PixelType.UnsignedInt1010102;
+                    internalFormat = GLInternalFormat.Rgb10A2;
+                    pixelFormat = GLPixelFormat.Rgba;
+                    pixelType = GLPixelType.UnsignedInt1010102;
                     break;
 
                 case Format.FormatR11G11B10Float:
-                    internalFormat = InternalFormat.R11fG11fB10f;
-                    pixelFormat = PixelFormat.Rgb;
-                    pixelType = PixelType.UnsignedInt10f11f11fRev;
+                    internalFormat = GLInternalFormat.R11FG11FB10F;
+                    pixelFormat = GLPixelFormat.Rgb;
+                    pixelType = GLPixelType.UnsignedInt10F11F11FRevExt;
                     break;
 
                 case Format.FormatR16G16B16A16Unorm:
-                    internalFormat = InternalFormat.Rgba16;
-                    pixelFormat = PixelFormat.Rgba;
-                    pixelType = PixelType.UnsignedShort;
+                    internalFormat = GLInternalFormat.Rgba16;
+                    pixelFormat = GLPixelFormat.Rgba;
+                    pixelType = GLPixelType.UnsignedShort;
                     break;
 
                 case Format.FormatR16G16B16A16SNorm:
-                    internalFormat = InternalFormat.Rgba16SNorm;
-                    pixelFormat = PixelFormat.Rgba;
-                    pixelType = PixelType.Short;
+                    internalFormat = GLInternalFormat.Rgba16Snorm;
+                    pixelFormat = GLPixelFormat.Rgba;
+                    pixelType = GLPixelType.Short;
                     break;
 
                 case Format.FormatR16G16B16A16Uint:
-                    internalFormat = InternalFormat.Rgba16ui;
-                    pixelFormat = PixelFormat.RgbaInteger;
-                    pixelType = PixelType.UnsignedShort;
+                    internalFormat = GLInternalFormat.Rgba16Ui;
+                    pixelFormat = GLPixelFormat.RgbaInteger;
+                    pixelType = GLPixelType.UnsignedShort;
                     break;
 
                 case Format.FormatR16G16B16A16Sint:
-                    internalFormat = InternalFormat.Rgba16i;
-                    pixelFormat = PixelFormat.RgbaInteger;
-                    pixelType = PixelType.Short;
+                    internalFormat = GLInternalFormat.Rgba16I;
+                    pixelFormat = GLPixelFormat.RgbaInteger;
+                    pixelType = GLPixelType.Short;
                     break;
 
                 case Format.FormatR32G32B32A32Uint:
-                    internalFormat = InternalFormat.Rgba32ui;
-                    pixelFormat = PixelFormat.RgbaInteger;
-                    pixelType = PixelType.UnsignedInt;
+                    internalFormat = GLInternalFormat.Rgba32Ui;
+                    pixelFormat = GLPixelFormat.RgbaInteger;
+                    pixelType = GLPixelType.UnsignedInt;
                     break;
 
                 case Format.FormatR32G32B32A32Sint:
-                    internalFormat = InternalFormat.Rgba32i;
-                    pixelFormat = PixelFormat.RgbaInteger;
-                    pixelType = PixelType.Int;
+                    internalFormat = GLInternalFormat.Rgba32I;
+                    pixelFormat = GLPixelFormat.RgbaInteger;
+                    pixelType = GLPixelType.Int;
                     break;
 
                 case Format.FormatB8G8R8A8Unorm:
-                    internalFormat = InternalFormat.Rgba;
-                    pixelFormat = PixelFormat.Bgra;
-                    pixelType = PixelType.UnsignedByte;
+                    internalFormat = GLInternalFormat.Rgba;
+                    pixelFormat = GLPixelFormat.Bgra;
+                    pixelType = GLPixelType.UnsignedByte;
                     break;
 
                 // Add additional DXGI format mappings as needed...

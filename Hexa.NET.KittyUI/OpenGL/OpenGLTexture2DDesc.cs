@@ -1,19 +1,19 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
-    using Silk.NET.OpenGL;
+    using Hexa.NET.OpenGL;
 
     public struct OpenGLTexture2DDesc
     {
-        public uint Width;
-        public uint Height;
+        public int Width;
+        public int Height;
         public uint MipLevels;
         public uint ArraySize;
-        public InternalFormat InternalFormat;
-        public PixelFormat PixelFormat;
-        public PixelType PixelType;
-        public TextureWrapMode WrapS;
-        public TextureWrapMode WrapT;
-        public TextureMinFilter MinFilter;
-        public TextureMagFilter MagFilter;
+        public GLInternalFormat InternalFormat;
+        public GLPixelFormat PixelFormat;
+        public GLPixelType PixelType;
+        public GLTextureWrapMode WrapS;
+        public GLTextureWrapMode WrapT;
+        public GLTextureMinFilter MinFilter;
+        public GLTextureMagFilter MagFilter;
     }
 }

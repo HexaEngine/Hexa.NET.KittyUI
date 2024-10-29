@@ -7,6 +7,7 @@ using Hexa.NET.KittyUI.Graphics;
 using TestApp;
 
 AppBuilder appBuilder = new();
+appBuilder.SetGraphicsBackend(GraphicsBackend.OpenGL);
 appBuilder.SetTitle("Test App");
 appBuilder.AddWindow<MainWindow>(true, true);
 appBuilder.Run();
