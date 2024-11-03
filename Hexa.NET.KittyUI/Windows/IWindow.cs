@@ -5,8 +5,6 @@
     using Hexa.NET.KittyUI.Threading;
     using Hexa.NET.KittyUI.Windows.Events;
     using Hexa.NET.Mathematics;
-    using Silk.NET.Core.Contexts;
-    using Silk.NET.Core.Native;
 
     public interface IRenderWindow : IWindow
     {
@@ -19,7 +17,7 @@
         void Uninitialize();
     }
 
-    public interface IWindow : INativeWindowSource
+    public interface IWindow
     {
         /// <summary>
         /// Gets or sets a value indicating whether the window has a border.
@@ -242,7 +240,7 @@
         /// <param name="vkHandle">The Vulkan handle.</param>
         /// <param name="vkNonDispatchableHandle">The Vulkan non-dispatchable handle.</param>
         /// <returns><c>true</c> if the surface creation was successful; otherwise, <c>false</c>.</returns>
-        unsafe bool VulkanCreateSurface(VkHandle vkHandle, VkNonDispatchableHandle* vkNonDispatchableHandle);
+        //unsafe bool VulkanCreateSurface(VkHandle vkHandle, VkNonDispatchableHandle* vkNonDispatchableHandle);
 
         /// <summary>
         /// Creates an OpenGL context for the window.

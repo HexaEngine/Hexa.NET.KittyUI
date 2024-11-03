@@ -11,8 +11,6 @@
     using Hexa.NET.Logging;
     using Hexa.NET.Mathematics;
     using Hexa.NET.SDL2;
-    using Silk.NET.Core.Contexts;
-    using Silk.NET.Core.Native;
     using System;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
@@ -21,7 +19,7 @@
     using static Hexa.NET.KittyUI.Extensions.SdlErrorHandlingExtensions;
     using Key = Input.Key;
 
-    public unsafe class CoreWindow : IWindow, INativeWindow
+    public unsafe class CoreWindow : IWindow
     {
         private static readonly ILogger Logger = LoggerFactory.GetLogger(nameof(SDL));
 
@@ -72,11 +70,9 @@
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Kind = NativeWindowFlags.Win32;
             }
             else
             {
-                Kind = NativeWindowFlags.Sdl;
             }
 
             PlatformConstruct(flags);
@@ -90,11 +86,9 @@
             this.height = height;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Kind = NativeWindowFlags.Win32;
             }
             else
             {
-                Kind = NativeWindowFlags.Sdl;
             }
 
             PlatformConstruct(flags);
@@ -247,11 +241,11 @@
             return wmInfo.Info.Win.Window;
         }
 
-        public bool VulkanCreateSurface(VkHandle vkHandle, VkNonDispatchableHandle* vkNonDispatchableHandle)
-        {
-            Logger.ThrowIf(destroyed, "The window is already destroyed");
-            return SDL.VulkanCreateSurface(window, vkHandle.Handle, (VkSurfaceKHR*)vkNonDispatchableHandle) == SDLBool.True;
-        }
+        //public bool VulkanCreateSurface(VkHandle vkHandle, VkNonDispatchableHandle* vkNonDispatchableHandle)
+        //{
+        //    Logger.ThrowIf(destroyed, "The window is already destroyed");
+        //    return SDL.VulkanCreateSurface(window, vkHandle.Handle, (VkSurfaceKHR*)vkNonDispatchableHandle) == SDLBool.True;
+        //}
 
         public IGLContext OpenGLCreateContext()
         {
@@ -425,8 +419,6 @@
 
         public Viewport Viewport { get; private set; }
 
-        public NativeWindowFlags Kind { get; }
-
         public (nint Display, nuint Window)? X11
         {
             get
@@ -478,13 +470,11 @@
 
         public nint? Glfw { get; }
 
-        nint? INativeWindow.Sdl => (nint?)window;
+        public nint? Sdl => (nint?)window;
 
         public nint? DXHandle { get; }
 
         public (nint? Display, nint? Surface)? EGL { get; }
-
-        public INativeWindow? Native => this;
 
         #region Events
 

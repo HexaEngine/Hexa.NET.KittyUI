@@ -15,13 +15,11 @@
     using Hexa.NET.KittyUI.OpenGL;
     using Hexa.NET.KittyUI.Threading;
     using Hexa.NET.KittyUI.Windows.Events;
-    using HexaGen.Runtime;
-    using Silk.NET.Core.Native;
-    using Silk.NET.Direct3D11;
     using Hexa.NET.OpenGL;
     using System;
     using System.Numerics;
     using Hexa.NET.KittyUI.Graphics;
+    using Hexa.NET.D3D11;
 
     public class Window : CoreWindow, IRenderWindow
     {

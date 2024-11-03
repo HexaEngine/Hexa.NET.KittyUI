@@ -1,7 +1,7 @@
 ﻿namespace Hexa.NET.KittyUI.D3D11
 {
+    using Hexa.NET.D3D11;
     using Hexa.NET.KittyUI;
-    using Silk.NET.Direct3D11;
     using System;
 
     public abstract unsafe class DeviceChildBase : DisposableBase

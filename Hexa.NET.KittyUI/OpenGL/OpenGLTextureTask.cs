@@ -44,7 +44,7 @@
 
             GL.BindTexture(GLTextureTarget.Texture2D, 0);
 
-            nint size = CalculatePboSize(Desc.Width, Desc.Height, Desc.MipLevels, Desc.PixelFormat, Desc.PixelType, Desc.ArraySize); // todo calculate size
+            nint size = CalculatePboSize(Desc.Width, Desc.Height, Desc.MipLevels, Desc.PixelFormat, Desc.PixelType, Desc.ArraySize);
 
             GL.CreateBuffers(1, ref pboId);
             //GL.CheckError();

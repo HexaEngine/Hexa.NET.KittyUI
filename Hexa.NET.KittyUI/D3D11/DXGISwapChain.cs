@@ -1,16 +1,17 @@
 ﻿namespace Hexa.NET.KittyUI.D3D11
 {
     using Hexa.NET.KittyUI.Windows.Events;
-    using Silk.NET.Core.Native;
-    using Silk.NET.Direct3D11;
-    using Silk.NET.DXGI;
+    using HexaGen.Runtime;
+    using HexaGen.Runtime.COM;
+    using Hexa.NET.D3D11;
+    using Hexa.NET.DXGI;
     using System;
     using System.Diagnostics;
     using System.Runtime.CompilerServices;
 
     public unsafe class DXGISwapChain : DeviceChildBase
     {
-        private ComPtr<IDXGISwapChain2> swapChain;
+        private ComPtr<IDXGISwapChain1> swapChain;
         private readonly SwapChainFlag flags;
         private ComPtr<ID3D11Texture2D> backbuffer;
         private long fpsStartTime;
@@ -21,7 +22,7 @@
         private bool active;
         private ComPtr<ID3D11RenderTargetView> backbufferRTV;
 
-        internal DXGISwapChain(ComPtr<IDXGISwapChain2> swapChain, SwapChainFlag flags)
+        internal DXGISwapChain(ComPtr<IDXGISwapChain1> swapChain, SwapChainFlag flags)
         {
             this.swapChain = swapChain;
             this.flags = flags;
@@ -32,7 +33,7 @@
 
             var dev = D3D11GraphicsDevice.Device;
 
-            dev.CreateRenderTargetView(backbuffer, null, ref backbufferRTV);
+            dev.CreateRenderTargetView(backbuffer.As<ID3D11Resource>(), null, out backbufferRTV);
 
             Width = (int)desc.Width;
             Height = (int)desc.Height;
@@ -69,7 +70,7 @@
             }
             else
             {
-                swapChain.Present(0, DXGI.PresentAllowTearing);
+                swapChain.Present(0, (uint)DXGI.DXGI_PRESENT_ALLOW_TEARING);
             }
         }
 
@@ -85,7 +86,7 @@
             }
             else
             {
-                swapChain.Present(0, DXGI.PresentAllowTearing);
+                swapChain.Present(0, (uint)DXGI.DXGI_PRESENT_ALLOW_TEARING);
             }
         }
 
@@ -125,7 +126,7 @@
             Backbuffer.Dispose();
             BackbufferRTV.Dispose();
 
-            swapChain.ResizeBuffers(2, (uint)width, (uint)height, Format.FormatB8G8R8A8Unorm, (uint)flags);
+            swapChain.ResizeBuffers(2, (uint)width, (uint)height, Format.B8G8R8A8Unorm, (uint)flags);
             Width = width;
             Height = height;
             Viewport = new(0, 0, Width, Height);
@@ -136,7 +137,7 @@
 
             var dev = D3D11GraphicsDevice.Device;
 
-            dev.CreateRenderTargetView(backbuffer, null, ref backbufferRTV);
+            dev.CreateRenderTargetView(backbuffer.As<ID3D11Resource>(), null, out backbufferRTV);
 
             Resized?.Invoke(this, new(oldWidth, oldHeight, width, height));
         }

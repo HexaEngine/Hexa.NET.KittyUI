@@ -1,9 +1,7 @@
 ﻿namespace Hexa.NET.KittyUI.Windows
 {
+    using Hexa.NET.Mathematics;
     using Hexa.NET.SDL2;
-    using Silk.NET.Core.Loader;
-    using Silk.NET.Maths;
-    using System;
 
     public unsafe class SdlContext : IGLContext
     {
@@ -32,13 +30,13 @@
             }
         }
 
-        public Vector2D<int> FramebufferSize
+        public Point2 FramebufferSize
         {
             get
             {
                 var ret = stackalloc int[2];
                 SDL.GLGetDrawableSize(Window, ret, &ret[1]);
-                return *(Vector2D<int>*)ret;
+                return *(Point2*)ret;
             }
         }
 
@@ -57,12 +55,10 @@
             var ret = (nint)SDL.GLGetProcAddress(proc);
             if (ret == 0)
             {
-                Throw(proc);
-                return 0;
+                throw new EntryPointNotFoundException(proc);
             }
 
             return ret;
-            static void Throw(string proc) => throw new SymbolLoadingException(proc);
         }
 
         public bool TryGetProcAddress(string proc, out nint addr)

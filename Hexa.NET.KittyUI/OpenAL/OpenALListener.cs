@@ -2,10 +2,9 @@
 {
     using Hexa.NET.KittyUI.Audio;
     using Hexa.NET.Mathematics;
-    using Silk.NET.OpenAL;
+    using Hexa.NET.OpenAL;
     using System;
     using System.Numerics;
-    using static Hexa.NET.KittyUI.OpenAL.Helper;
 
     public class OpenALListener : IListener
     {
@@ -30,7 +29,7 @@
             gain = value;
             if (!isActive)
                 return;
-            al.SetListenerProperty(ListenerFloat.Gain, value);
+            OpenAL.Listenerf(OpenAL.AL_GAIN, value);
         }
 
         public AudioOrientation Orientation
@@ -45,7 +44,7 @@
                 {
                     var valu = value;
                     valu.At = new(value.At.X, value.At.Y, -value.At.Z);
-                    al.SetListenerProperty(ListenerFloatArray.Orientation, (float*)&valu);
+                    OpenAL.Listenerfv(OpenAL.AL_ORIENTATION, (float*)&valu);
                 }
             }
         }
@@ -58,7 +57,7 @@
                 position = value;
                 if (!isActive)
                     return;
-                al.SetListenerProperty(ListenerVector3.Position, new(value.X, value.Y, value.Z));
+                OpenAL.Listener3F(OpenAL.AL_POSITION, value.X, value.Y, value.Z);
             }
         }
 
@@ -70,7 +69,7 @@
                 velocity = value;
                 if (!isActive)
                     return;
-                al.SetListenerProperty(ListenerVector3.Velocity, value);
+                OpenAL.Listener3F(OpenAL.AL_VELOCITY, value.X, value.Y, value.Z);
             }
         }
 
@@ -119,25 +118,25 @@
 
         private void SetListenerActive()
         {
-            al.SetListenerProperty(ListenerFloat.Gain, gain);
+            OpenAL.Listenerf(OpenAL.AL_GAIN, gain);
             unsafe
             {
                 var orient = orientation;
-                al.SetListenerProperty(ListenerFloatArray.Orientation, (float*)&orient);
+                OpenAL.Listenerfv(OpenAL.AL_ORIENTATION, (float*)&orient);
             }
-            al.SetListenerProperty(ListenerVector3.Position, position);
-            al.SetListenerProperty(ListenerVector3.Velocity, velocity);
+            OpenAL.Listener3F(OpenAL.AL_POSITION, position.X, position.Y, position.Z);
+            OpenAL.Listener3F(OpenAL.AL_VELOCITY, velocity.X, velocity.Y, velocity.Z);
         }
 
         private static void ResetListener()
         {
-            al.SetListenerProperty(ListenerFloat.Gain, 1);
+            OpenAL.Listenerf(OpenAL.AL_GAIN, 1);
             unsafe
             {
-                al.SetListenerProperty(ListenerFloatArray.Orientation, null);
+                OpenAL.Listenerfv(OpenAL.AL_ORIENTATION, null);
             }
-            al.SetListenerProperty(ListenerVector3.Position, Vector3.Zero);
-            al.SetListenerProperty(ListenerVector3.Velocity, Vector3.Zero);
+            OpenAL.Listener3F(OpenAL.AL_POSITION, 0, 0, 0);
+            OpenAL.Listener3F(OpenAL.AL_VELOCITY, 0, 0, 0);
         }
 
         protected virtual void Dispose(bool disposing)

@@ -137,9 +137,43 @@
             return this;
         }
 
+        /// <summary>
+        /// Sets the style to buildin custom style.
+        /// </summary>
+        /// <returns></returns>
         public AppBuilder StyleDefault()
         {
             styleBuilders.Add(x => ImGuiManager.StyleKitty());
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the style to <see cref="ImGui.StyleColorsDark()"/>
+        /// </summary>
+        /// <returns></returns>
+        public AppBuilder StyleColorsDark()
+        {
+            styleBuilders.Add(x => ImGui.StyleColorsDark());
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the style to <see cref="ImGui.StyleColorsLight()"/>
+        /// </summary>
+        /// <returns></returns>
+        public AppBuilder StyleColorsLight()
+        {
+            styleBuilders.Add(x => ImGui.StyleColorsLight());
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the style to <see cref="ImGui.StyleColorsClassic()"/>
+        /// </summary>
+        /// <returns></returns>
+        public AppBuilder StyleColorsClassic()
+        {
+            styleBuilders.Add(x => ImGui.StyleColorsClassic());
             return this;
         }
 

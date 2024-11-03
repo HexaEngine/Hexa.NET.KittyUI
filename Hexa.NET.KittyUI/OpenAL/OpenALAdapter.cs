@@ -1,10 +1,9 @@
 ﻿namespace Hexa.NET.KittyUI.OpenAL
 {
     using Hexa.NET.KittyUI.Audio;
-    using Silk.NET.OpenAL;
-    using Silk.NET.OpenAL.Extensions.Enumeration;
-    using System;
+    using Hexa.NET.OpenAL;
     using System.Collections.Generic;
+    using System.Text;
     using static Hexa.NET.KittyUI.OpenAL.Helper;
 
     public class OpenALAdapter : IAudioAdapter
@@ -15,7 +14,7 @@
 
         public unsafe IAudioDevice CreateAudioDevice(string? name)
         {
-            Device* device = alc.OpenDevice(name);
+            ALCdevice* device = OpenAL.OpenDevice(name);
             CheckError(device);
             return new OpenALAudioDevice(device);
         }
@@ -27,16 +26,23 @@
 
         public unsafe List<string> GetAvailableDevices()
         {
-            List<string> devices;
+            List<string> devices = [];
+            if (OpenAL.IsExtensionPresent(null, "ALC_ENUMERATION_EXT") != 0)
+            {
+                var val = OpenAL.GetString(null, OpenAL.ALC_DEVICE_SPECIFIER);
 
-            if (alc.TryGetExtension<Enumeration>(null, out var enumeration))
-            {
-                devices = new(enumeration.GetStringList(GetEnumerationContextStringList.DeviceSpecifiers));
+                while (val != null)
+                {
+                    int len = StrLen(val);
+                    devices.Add(Encoding.UTF8.GetString(val, len));
+                    val += len + 1;
+                    if (*val == '\0')
+                    {
+                        break;
+                    }
+                }
             }
-            else
-            {
-                throw new NotSupportedException();
-            }
+
             return devices;
         }
     }

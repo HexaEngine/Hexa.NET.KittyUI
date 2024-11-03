@@ -1,7 +1,5 @@
 ﻿namespace Hexa.NET.KittyUI.OpenAL
 {
-    using Silk.NET.OpenAL;
-
     public struct OggHeader
     {
     }
@@ -29,8 +27,8 @@
 #pragma warning restore CS0169 // The field 'OggAudioStream.buffer' is never used
         public readonly uint SampleOffset;
         public readonly uint ByteOffset;
-        public readonly SourceType Type;
-        public readonly BufferFormat Format;
+        public readonly int Type;
+        public readonly int Format;
 #pragma warning disable CS0169 // The field 'OggAudioStream.position' is never used
         private int position;
 #pragma warning restore CS0169 // The field 'OggAudioStream.position' is never used

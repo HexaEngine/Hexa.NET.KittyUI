@@ -10,15 +10,17 @@
 		<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
 		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 
-		<AssemblyVersion>1.0.4</AssemblyVersion>
-		<PackageVersion>1.0.4</PackageVersion>
+		<AssemblyVersion>1.0.6</AssemblyVersion>
+		<PackageVersion>1.0.6</PackageVersion>
 		<Description></Description>
 		<PackageTags></PackageTags>
 		<Authors>Juna Meinhold</Authors>
 		<Copyright>Copyright (c) 2024 Juna Meinhold</Copyright>
-		<PackageProjectUrl></PackageProjectUrl>
-		<RepositoryUrl></RepositoryUrl>
+		<PackageProjectUrl>https://github.com/HexaEngine/Hexa.NET.KittyUI</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/HexaEngine/Hexa.NET.KittyUI</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
+		<Description>A Cross-Platform UI-Framework build upon ImGui, simplifying ImGui management in C#.</Description>
+		<PackageTags>UI-Framework UI ImGui Widgets DirectX OpenGL C# .NET DotNet Sharp Windows macOS Linux</PackageTags>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 
@@ -52,26 +54,20 @@
 		<PackageReference Include="Hexa.NET.ImGuizmo" Version="2.1.10" />
 		<PackageReference Include="Hexa.NET.ImNodes" Version="2.1.10" />
 		<PackageReference Include="Hexa.NET.ImPlot" Version="2.1.10" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.5" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.5" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.6" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.6" />
 		<PackageReference Include="Hexa.NET.Logging" Version="2.0.0" />
 		<PackageReference Include="Hexa.NET.Math" Version="2.0.2" />
 		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.8" />
-		<PackageReference Include="Hexa.NET.DirectXTex" Version="2.0.1" />
+		<PackageReference Include="Hexa.NET.DirectXTex" Version="2.0.2" />
 		<PackageReference Include="Hexa.NET.StbImage" Version="1.0.0" />
 		<PackageReference Include="Hexa.NET.OpenGL4" Version="1.0.1" />
-		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.6" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.Direct3D11" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.DXGI" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.DXVK.Native" Version="2.21.0" />
+		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.7" />
+		<PackageReference Include="Hexa.NET.D3DCompiler" Version="1.0.1" />
+		<PackageReference Include="Hexa.NET.D3D11" Version="1.0.1" />
+		<PackageReference Include="Hexa.NET.DXGI" Version="1.0.1" />
 		<PackageReference Include="Hexa.NET.OpenAL" Version="1.2.0" />
-		<PackageReference Include="Silk.NET.OpenAL" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.OpenAL.Extensions.Enumeration" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.OpenAL.Extensions.Soft" Version="2.21.0" />
-		<PackageReference Include="Silk.NET.OpenAL.Soft.Native" Version="1.23.1" />
-		
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />		
 		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
 		<PackageReference Include="System.Text.Json" Version="8.0.5" />
 	</ItemGroup>

@@ -1,12 +1,15 @@
 ﻿namespace Hexa.NET.KittyUI.Graphics.Imaging
 {
+    using Hexa.NET.D3D11;
     using Hexa.NET.DirectXTex;
+    using Hexa.NET.DXGI;
     using Hexa.NET.KittyUI.D3D11;
+    using Hexa.NET.StbImage;
     using HexaGen.Runtime;
-    using Silk.NET.Direct3D11;
-    using Silk.NET.DXGI;
+    using HexaGen.Runtime.COM;
     using System.IO;
-    using System.Numerics;
+    using ID3D11DeviceContext = NET.D3D11.ID3D11DeviceContext;
+    using ID3D11Resource = NET.D3D11.ID3D11Resource;
 
     public enum TextureLoaderFlags
     {
@@ -26,29 +29,16 @@
 
     public unsafe class TextureLoader
     {
-        private TextureLoaderFlags flags = TextureLoaderFlags.GenerateMipMaps | TextureLoaderFlags.Scale;
-        private float scalingFactor = 1;
-
         public TextureLoader()
         {
         }
 
-        /// <summary>
-        /// The Flags are only used for the LoadTextureXD functions which only load textures from assets.
-        /// </summary>
-        public TextureLoaderFlags Flags { get => flags; set => flags = value; }
-
-        /// <summary>
-        /// The ScalingFactor is only used for the LoadTextureXD functions which only load textures from assets.
-        /// </summary>
-        public float ScalingFactor { get => scalingFactor; set => scalingFactor = value; }
-
-        public static bool ForceNonWIC { get; private set; } = false;
+        public static bool ForceNonWIC { get; set; }
 
         public static D3DScratchImage CaptureTexture(ID3D11DeviceContext* context, ID3D11Resource* resource)
         {
             ScratchImage image = DirectXTex.CreateScratchImage();
-            DirectXTex.CaptureTexture((ID3D11Device*)D3D11GraphicsDevice.Device.Handle, context, resource, ref image).ThrowIf();
+            DirectXTex.CaptureTexture((NET.DirectXTex.ID3D11Device*)D3D11GraphicsDevice.Device.Handle, (NET.DirectXTex.ID3D11DeviceContext*)context, (NET.DirectXTex.ID3D11Resource*)resource, ref image).ThrowIf();
             return new D3DScratchImage(image);
         }
 
@@ -73,7 +63,14 @@
                         break;
 
                     default:
-                        HandleWIC(filename, extension, ref image);
+                        if (OperatingSystem.IsWindows() && !ForceNonWIC)
+                        {
+                            DirectXTex.LoadFromWICFile(filename, WICFlags.None, null, ref image, default).ThrowIf();
+                        }
+                        else
+                        {
+                            HandleStbImageFile(filename, ref image).ThrowIf();
+                        }
                         break;
                 };
             }
@@ -86,149 +83,55 @@
             return new D3DScratchImage(image);
         }
 
-        private struct GammaCorrectionOperation
+        private static HResult HandleStbImageFile(string filename, ref ScratchImage image)
         {
-            public byte* Data;
-            public int Stride;
-            public int StridePixel;
-            public int Channels;
-            public int TotalPixels;
-            public float MaxNumber;
-            public int MaxChannels;
-
-            public readonly void DoGammaCorrect()
+            if (StbImage.Is16Bit(filename) == 1)
             {
-                Parallel.For(0, TotalPixels, Execute);
+                return HandleStbImage16File(filename, ref image);
             }
+            int width, height, channels;
+            byte* imgData = StbImage.Load(filename, &width, &height, &channels, 0);
 
-            private readonly void Execute(int index)
-            {
-                byte* pixel = Data + index * StridePixel;
-
-                for (int j = 0; j < MaxChannels; j++)
-                {
-                    int pixelValue = pixel[j * Stride];
-                    if (Stride == 2)
-                    {
-                        pixelValue |= pixel[j * Stride + 1] << 8;
-                    }
-
-                    var corrected = SRGBGamma(pixelValue / MaxNumber);
-                    pixelValue = (int)(corrected * MaxNumber);
-
-                    pixel[j * Stride] = (byte)(pixelValue & 0xFF);
-                    if (Stride == 2)
-                    {
-                        pixel[j * Stride + 1] = (byte)(pixelValue >> 8 & 0xFF);
-                    }
-                }
-            }
-
-            private static float SRGBGamma(float colorValue)
-            {
-                return MathF.Pow(colorValue, 1 / 2.2f);
-            }
+            return LoadStbImage(ref image, width, height, channels, imgData);
         }
 
-        private static void HandleWIC(string filename, ReadOnlySpan<char> extension, ref ScratchImage image)
+        private static HResult HandleStbImage16File(string filename, ref ScratchImage image)
         {
-            if (OperatingSystem.IsWindows() && !ForceNonWIC)
-            {
-                DirectXTex.LoadFromWICFile(filename, WICFlags.None, null, ref image, default).ThrowIf();
-            }
-            else
-            {
-                switch (extension)
-                {
-                    case ".png":
+            int width, height, channels;
+            ushort* imgData = StbImage.Load16(filename, &width, &height, &channels, 0);
 
-                        TexMetadata metadata;
-                        DirectXTex.LoadFromPNGFile(filename, &metadata, ref image).ThrowIf();
-
-                        var img = image.GetImage(0, 0, 0);
-                        byte* data = img->Pixels;
-
-                        int stride = (int)(DirectXTex.BitsPerColor(metadata.Format) / 8);
-                        int stridePixel = (int)(DirectXTex.BitsPerPixel(metadata.Format) / 8);
-                        int channels = stridePixel / stride;
-
-                        int totalPixels = (int)img->SlicePitch / stridePixel; // Total number of pixels
-
-                        float maxNumber = MathF.Pow(2, stride << 3) - 1; // Calculate the maximum number of the color value
-
-                        int maxChannels = Math.Min(channels, 3); // Ignore alpha if it exists
-
-                        // Create the struct and pass all necessary data
-                        GammaCorrectionOperation closure = new()
-                        {
-                            Data = data,
-                            Stride = stride,
-                            StridePixel = stridePixel,
-                            Channels = channels,
-                            TotalPixels = totalPixels,
-                            MaxNumber = maxNumber,
-                            MaxChannels = maxChannels
-                        };
-
-                        // Perform gamma correction
-                        closure.DoGammaCorrect();
-
-                        break;
-
-                    case ".jpeg":
-                    case ".jpg":
-                        DirectXTex.LoadFromJPEGFile(filename, null, ref image).ThrowIf();
-                        break;
-
-                    default:
-                        throw new NotSupportedException("Unsupported image format.");
-                }
-            }
+            return LoadStbImage16(ref image, width, height, channels, imgData);
         }
 
-        private static Vector3 SRGBGamma(Vector3 vec)
-        {
-            Vector3 gamma = new(MathF.Pow(vec.X, 1 / 2.2f), MathF.Pow(vec.Y, 1 / 2.2f), MathF.Pow(vec.Z, 1 / 2.2f));
-            return gamma;
-        }
-
-        private static float SRGBGamma(float colorValue)
-        {
-            return MathF.Pow(colorValue, 1 / 2.2f);
-        }
-
-        public static D3DScratchImage LoadFromMemory(string filename, Stream stream)
+        public static D3DScratchImage LoadFromMemory(ImageFileFormat format, ReadOnlySpan<byte> data)
         {
             ScratchImage image = DirectXTex.CreateScratchImage();
-            var data = new byte[stream.Length];
-            stream.Read(data, 0, data.Length);
-            string extension = Path.GetExtension(filename);
             try
             {
-                fixed (byte* p = data)
+                fixed (byte* pData = data)
                 {
-                    switch (extension)
+                    switch (format)
                     {
-                        case ".dds":
-                            DirectXTex.LoadFromDDSMemory(p, (nuint)data.Length, DDSFlags.None, null, ref image).ThrowIf();
+                        case ImageFileFormat.DDS:
+                            DirectXTex.LoadFromDDSMemory(pData, (nuint)data.Length, DDSFlags.None, null, ref image).ThrowIf();
                             break;
 
-                        case ".tga":
-                            DirectXTex.LoadFromTGAMemory(p, (nuint)data.Length, TGAFlags.None, null, ref image).ThrowIf();
+                        case ImageFileFormat.TGA:
+                            DirectXTex.LoadFromTGAMemory(pData, (nuint)data.Length, TGAFlags.None, null, ref image).ThrowIf();
                             break;
 
-                        case ".hdr":
-                            DirectXTex.LoadFromHDRMemory(p, (nuint)data.Length, null, ref image).ThrowIf();
+                        case ImageFileFormat.HDR:
+                            DirectXTex.LoadFromHDRMemory(pData, (nuint)data.Length, null, ref image).ThrowIf();
                             break;
 
                         default:
-                            if (OperatingSystem.IsWindows())
+                            if (OperatingSystem.IsWindows() && !ForceNonWIC)
                             {
-                                DirectXTex.LoadFromWICMemory(p, (nuint)data.Length, WICFlags.None, null, ref image, default).ThrowIf();
+                                DirectXTex.LoadFromWICMemory(pData, (nuint)data.Length, WICFlags.None, null, ref image, default).ThrowIf();
                             }
                             else
                             {
-                                throw new PlatformNotSupportedException("Only Windows is supported for WIC. Use load from file overload for linux systems for PNG/JPEG.");
+                                HandleStbImageMemory(format, pData, data.Length, ref image).ThrowIf();
                             }
                             break;
                     }
@@ -241,6 +144,148 @@
             }
 
             return new D3DScratchImage(image);
+        }
+
+        private static HResult HandleStbImageMemory(ImageFileFormat format, byte* data, int size, ref ScratchImage image)
+        {
+            if (StbImage.Is16BitFromMemory(data, size) == 1)
+            {
+                return HandleStbImage16Memory(format, data, size, ref image);
+            }
+
+            int width, height, channels;
+            byte* imgData = StbImage.LoadFromMemory(data, size, &width, &height, &channels, 0);
+
+            return LoadStbImage(ref image, width, height, channels, imgData);
+        }
+
+        private static HResult LoadStbImage(ref ScratchImage image, int width, int height, int channels, byte* imgData)
+        {
+            if (imgData == null)
+            {
+                return -1;
+            }
+
+            Format fmt = GetDXGIFormatFromChannelCount(channels);
+            var hresult = image.Initialize2D((int)fmt, (nuint)width, (nuint)height, 1, 1, CPFlags.None);
+            if (hresult.IsFailure)
+            {
+                StbImage.ImageFree(imgData);
+                return hresult;
+            }
+
+            var img = image.GetImages()[0];
+
+            if (channels == 2) // Grayscale + Alpha
+            {
+                for (int i = 0; i < width * height; i++)
+                {
+                    byte gray = imgData[i * 2 + 0];
+                    byte alpha = imgData[i * 2 + 1];
+                    img.Pixels[i * 4 + 0] = gray;  // R
+                    img.Pixels[i * 4 + 1] = gray;  // G
+                    img.Pixels[i * 4 + 2] = gray;  // B
+                    img.Pixels[i * 4 + 3] = alpha; // A
+                }
+            }
+            if (channels == 3)
+            {
+                for (int i = 0; i < width * height; i++)
+                {
+                    img.Pixels[i * 4 + 0] = imgData[i * 3 + 0]; // R
+                    img.Pixels[i * 4 + 1] = imgData[i * 3 + 1]; // G
+                    img.Pixels[i * 4 + 2] = imgData[i * 3 + 2]; // B
+                    img.Pixels[i * 4 + 3] = byte.MaxValue;      // A (full opacity)
+                }
+            }
+            else
+            {
+                Memcpy(imgData, img.Pixels, img.RowPitch * img.Height);
+            }
+
+            StbImage.ImageFree(imgData);
+            return 0;
+        }
+
+        private static HResult HandleStbImage16Memory(ImageFileFormat format, byte* data, int size, ref ScratchImage image)
+        {
+            int width, height, channels;
+            ushort* imgData = StbImage.Load16FromMemory(data, size, &width, &height, &channels, 0);
+
+            return LoadStbImage16(ref image, width, height, channels, imgData);
+        }
+
+        private static HResult LoadStbImage16(ref ScratchImage image, int width, int height, int channels, ushort* imgData)
+        {
+            if (imgData == null)
+            {
+                return -1;
+            }
+
+            Format fmt = GetDXGIFormatFromChannelCount(channels);
+            var hresult = image.Initialize2D((int)fmt, (nuint)width, (nuint)height, 1, 1, CPFlags.None);
+            if (hresult.IsFailure)
+            {
+                StbImage.ImageFree(imgData);
+                return hresult;
+            }
+
+            var img = image.GetImages()[0];
+            var pixels = (ushort*)img.Pixels;
+
+            if (channels == 2) // Grayscale + Alpha
+            {
+                for (int i = 0; i < width * height; i++)
+                {
+                    ushort gray = imgData[i * 2 + 0];
+                    ushort alpha = imgData[i * 2 + 1];
+                    pixels[i * 4 + 0] = gray;  // R
+                    pixels[i * 4 + 1] = gray;  // G
+                    pixels[i * 4 + 2] = gray;  // B
+                    pixels[i * 4 + 3] = alpha; // A
+                }
+            }
+            if (channels == 3)
+            {
+                for (int i = 0; i < width * height; i++)
+                {
+                    pixels[i * 4 + 0] = imgData[i * 3 + 0]; // R
+                    pixels[i * 4 + 1] = imgData[i * 3 + 1]; // G
+                    pixels[i * 4 + 2] = imgData[i * 3 + 2]; // B
+                    pixels[i * 4 + 3] = ushort.MaxValue;    // A (full opacity)
+                }
+            }
+            else
+            {
+                Memcpy(imgData, img.Pixels, img.RowPitch * img.Height);
+            }
+
+            StbImage.ImageFree(imgData);
+            return 0;
+        }
+
+        private static Format GetDXGIFormatFromChannelCount(int channels)
+        {
+            return channels switch
+            {
+                1 => Format.R8Unorm,
+                2 => Format.R8G8B8A8Unorm,
+                3 => Format.R8G8B8A8Unorm,
+                4 => Format.R8G8B8A8Unorm,
+                _ => Format.Unknown
+            };
+        }
+
+        private static Format GetDXGIFormatFromChannelCount16(int channels)
+        {
+            return channels switch
+            {
+                1 => Format.R16Unorm,
+                2 => Format.R16G16B16A16Unorm,
+                3 => Format.R16G16B16A16Unorm,
+                4 => Format.R16G16B16A16Unorm,
+                _ => Format.Unknown
+            };
         }
 
         public static D3DScratchImage Initialize(TexMetadata metadata, CPFlags flags)

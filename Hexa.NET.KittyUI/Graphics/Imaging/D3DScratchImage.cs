@@ -1,15 +1,16 @@
 ﻿namespace Hexa.NET.KittyUI.Graphics.Imaging
 {
+    using Hexa.NET.D3D11;
     using Hexa.NET.DirectXTex;
+    using Hexa.NET.DXGI;
     using Hexa.NET.KittyUI.D3D11;
     using Hexa.NET.KittyUI.OpenGL;
     using Hexa.NET.OpenGL;
-    using Silk.NET.Core.Native;
-    using Silk.NET.Direct3D11;
-    using Silk.NET.DXGI;
+    using HexaGen.Runtime.COM;
     using System.IO;
     using DDSFlags = DirectXTex.DDSFlags;
     using HResult = HexaGen.Runtime.HResult;
+    using ID3D11Device = NET.D3D11.ID3D11Device;
     using TGAFlags = DirectXTex.TGAFlags;
     using WICFlags = DirectXTex.WICFlags;
 
@@ -28,7 +29,7 @@
         ICO,
     }
 
-    public unsafe class D3DScratchImage
+    public unsafe class D3DScratchImage : IDisposable
     {
         private bool _disposed;
         private ScratchImage scImage;
@@ -47,7 +48,7 @@
             ScratchImage inScImage = scImage;
             ScratchImage outScImage = DirectXTex.CreateScratchImage();
             var metadata = inScImage.GetMetadata();
-            DirectXTex.Compress4(device, inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (int)format, flags, 1, ref outScImage);
+            DirectXTex.Compress4((NET.DirectXTex.ID3D11Device*)device, inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (int)format, flags, 1, ref outScImage);
             return new D3DScratchImage(outScImage);
         }
 
@@ -108,7 +109,7 @@
             var nimages = scImage.GetImageCount();
             var metadata = scImage.GetMetadata();
             metadata.MiscFlags = (uint)miscFlag;
-            DirectXTex.CreateTextureEx(device, images, nimages, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (ID3D11Resource**)&resource.Handle);
+            DirectXTex.CreateTextureEx((NET.DirectXTex.ID3D11Device*)device, images, nimages, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (NET.DirectXTex.ID3D11Resource**)&resource.Handle);
             Texture1DDesc desc = default;
             resource.GetDesc(ref desc);
 
@@ -122,7 +123,7 @@
             var nimages = scImage.GetImageCount();
             var metadata = scImage.GetMetadata();
             metadata.MiscFlags = (uint)miscFlag;
-            DirectXTex.CreateTextureEx(device, images, nimages, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (ID3D11Resource**)&resource.Handle);
+            DirectXTex.CreateTextureEx((NET.DirectXTex.ID3D11Device*)device, images, nimages, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (NET.DirectXTex.ID3D11Resource**)&resource.Handle);
             Texture2DDesc desc = default;
             resource.GetDesc(ref desc);
 
@@ -140,7 +141,7 @@
             metadata.ArraySize = 1;
             metadata.MipLevels = 1;
             metadata.MiscFlags = (uint)miscFlag;
-            DirectXTex.CreateTextureEx(device, &image, 1, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (ID3D11Resource**)&resource.Handle);
+            DirectXTex.CreateTextureEx((NET.DirectXTex.ID3D11Device*)device, &image, 1, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (NET.DirectXTex.ID3D11Resource**)&resource.Handle);
             Texture2DDesc desc = default;
             resource.GetDesc(ref desc);
 
@@ -155,7 +156,7 @@
             var nimages = scImage.GetImageCount();
             var metadata = scImage.GetMetadata();
             metadata.MiscFlags = (uint)miscFlag;
-            DirectXTex.CreateTextureEx(device, images, nimages, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (ID3D11Resource**)&resource.Handle);
+            DirectXTex.CreateTextureEx((NET.DirectXTex.ID3D11Device*)device, images, nimages, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (NET.DirectXTex.ID3D11Resource**)&resource.Handle);
             Texture3DDesc desc = default;
             resource.GetDesc(ref desc);
 
@@ -195,7 +196,7 @@
                 }
 
                 // Do uploading
-                for (ulong mip = 0; mip < metadata.MipLevels; mip++)
+                for (uint mip = 0; mip < metadata.MipLevels; mip++)
                 {
                     for (uint item = 0; item < metadata.ArraySize; item++)
                     {
@@ -254,7 +255,7 @@
             var compressed = DirectXTex.IsCompressed(metadata.Format);
 
             // Upload the image data to OpenGL
-            for (ulong mip = 0; mip < metadata.MipLevels; mip++)
+            for (uint mip = 0; mip < metadata.MipLevels; mip++)
             {
                 for (uint item = 0; item < metadata.ArraySize; item++)
                 {
@@ -316,137 +317,137 @@
 
             switch (format)
             {
-                case Format.FormatR8G8B8A8Unorm:
+                case Format.R8G8B8A8Unorm:
                     internalFormat = GLInternalFormat.Rgba8;
                     pixelFormat = GLPixelFormat.Rgba;
                     pixelType = GLPixelType.UnsignedByte;
                     break;
 
-                case Format.FormatR8G8B8A8SNorm:
+                case Format.R8G8B8A8Snorm:
                     internalFormat = GLInternalFormat.Rgba8Snorm;
                     pixelFormat = GLPixelFormat.Rgba;
                     pixelType = GLPixelType.Byte;
                     break;
 
-                case Format.FormatR32G32B32A32Float:
+                case Format.R32G32B32A32Float:
                     internalFormat = GLInternalFormat.Rgba32F;
                     pixelFormat = GLPixelFormat.Rgba;
                     pixelType = GLPixelType.Float;
                     break;
 
-                case Format.FormatR16G16B16A16Float:
+                case Format.R16G16B16A16Float:
                     internalFormat = GLInternalFormat.Rgba16F;
                     pixelFormat = GLPixelFormat.Rgba;
                     pixelType = GLPixelType.HalfFloat;
                     break;
 
-                case Format.FormatBC1Unorm:
+                case Format.Bc1Unorm:
                     internalFormat = GLInternalFormat.CompressedRgbaS3TcDxt1Ext;
                     break;
 
-                case Format.FormatBC2Unorm:
+                case Format.Bc2Unorm:
                     internalFormat = GLInternalFormat.CompressedRgbaS3TcDxt3Ext;
                     break;
 
-                case Format.FormatBC3Unorm:
+                case Format.Bc3Unorm:
                     internalFormat = GLInternalFormat.CompressedRgbaS3TcDxt5Ext;
                     break;
 
-                case Format.FormatBC4Unorm:
+                case Format.Bc4Unorm:
                     internalFormat = GLInternalFormat.CompressedRedRgtc1;
                     break;
 
-                case Format.FormatBC5Unorm:
+                case Format.Bc5Unorm:
                     internalFormat = GLInternalFormat.CompressedRgRgtc2;
                     break;
 
-                case Format.FormatBC6HUF16:
+                case Format.Bc6HUf16:
                     internalFormat = GLInternalFormat.CompressedRgbBptcUnsignedFloat;
                     break;
 
-                case Format.FormatBC7Unorm:
+                case Format.Bc7Unorm:
                     internalFormat = GLInternalFormat.CompressedRgbaBptcUnorm;
                     break;
 
-                case Format.FormatR8Unorm:
+                case Format.R8Unorm:
                     internalFormat = GLInternalFormat.R8;
                     pixelFormat = GLPixelFormat.Red;
                     pixelType = GLPixelType.UnsignedByte;
                     break;
 
-                case Format.FormatR16Float:
+                case Format.R16Float:
                     internalFormat = GLInternalFormat.R16F;
                     pixelFormat = GLPixelFormat.Red;
                     pixelType = GLPixelType.HalfFloat;
                     break;
 
-                case Format.FormatR32Float:
+                case Format.R32Float:
                     internalFormat = GLInternalFormat.R32F;
                     pixelFormat = GLPixelFormat.Red;
                     pixelType = GLPixelType.Float;
                     break;
 
-                case Format.FormatR16G16Float:
+                case Format.R16G16Float:
                     internalFormat = GLInternalFormat.Rg16F;
                     pixelFormat = GLPixelFormat.Rg;
                     pixelType = GLPixelType.HalfFloat;
                     break;
 
-                case Format.FormatR32G32Float:
+                case Format.R32G32Float:
                     internalFormat = GLInternalFormat.Rg32F;
                     pixelFormat = GLPixelFormat.Rg;
                     pixelType = GLPixelType.Float;
                     break;
 
-                case Format.FormatR10G10B10A2Unorm:
+                case Format.R10G10B10A2Unorm:
                     internalFormat = GLInternalFormat.Rgb10A2;
                     pixelFormat = GLPixelFormat.Rgba;
                     pixelType = GLPixelType.UnsignedInt1010102;
                     break;
 
-                case Format.FormatR11G11B10Float:
+                case Format.R11G11B10Float:
                     internalFormat = GLInternalFormat.R11FG11FB10F;
                     pixelFormat = GLPixelFormat.Rgb;
                     pixelType = GLPixelType.UnsignedInt10F11F11FRevExt;
                     break;
 
-                case Format.FormatR16G16B16A16Unorm:
+                case Format.R16G16B16A16Unorm:
                     internalFormat = GLInternalFormat.Rgba16;
                     pixelFormat = GLPixelFormat.Rgba;
                     pixelType = GLPixelType.UnsignedShort;
                     break;
 
-                case Format.FormatR16G16B16A16SNorm:
+                case Format.R16G16B16A16Snorm:
                     internalFormat = GLInternalFormat.Rgba16Snorm;
                     pixelFormat = GLPixelFormat.Rgba;
                     pixelType = GLPixelType.Short;
                     break;
 
-                case Format.FormatR16G16B16A16Uint:
+                case Format.R16G16B16A16Uint:
                     internalFormat = GLInternalFormat.Rgba16Ui;
                     pixelFormat = GLPixelFormat.RgbaInteger;
                     pixelType = GLPixelType.UnsignedShort;
                     break;
 
-                case Format.FormatR16G16B16A16Sint:
+                case Format.R16G16B16A16Sint:
                     internalFormat = GLInternalFormat.Rgba16I;
                     pixelFormat = GLPixelFormat.RgbaInteger;
                     pixelType = GLPixelType.Short;
                     break;
 
-                case Format.FormatR32G32B32A32Uint:
+                case Format.R32G32B32A32Uint:
                     internalFormat = GLInternalFormat.Rgba32Ui;
                     pixelFormat = GLPixelFormat.RgbaInteger;
                     pixelType = GLPixelType.UnsignedInt;
                     break;
 
-                case Format.FormatR32G32B32A32Sint:
+                case Format.R32G32B32A32Sint:
                     internalFormat = GLInternalFormat.Rgba32I;
                     pixelFormat = GLPixelFormat.RgbaInteger;
                     pixelType = GLPixelType.Int;
                     break;
 
-                case Format.FormatB8G8R8A8Unorm:
+                case Format.B8G8R8A8Unorm:
                     internalFormat = GLInternalFormat.Rgba;
                     pixelFormat = GLPixelFormat.Bgra;
                     pixelType = GLPixelType.UnsignedByte;

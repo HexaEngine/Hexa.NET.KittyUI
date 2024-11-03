@@ -1,6 +1,6 @@
 ﻿namespace Hexa.NET.KittyUI.OpenAL
 {
-    using Silk.NET.OpenAL;
+    using Hexa.NET.OpenAL;
     using System.IO;
 
     public struct WaveHeader
@@ -56,17 +56,17 @@
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidDataException"></exception>
-        public BufferFormat GetBufferFormat()
+        public int GetBufferFormat()
         {
-            BufferFormat format;
+            int format;
             if (NumChannels == 1 && BitsPerSample == 8)
-                format = BufferFormat.Mono8;
+                format = OpenAL.AL_FORMAT_MONO8;
             else if (NumChannels == 1 && BitsPerSample == 16)
-                format = BufferFormat.Mono16;
+                format = OpenAL.AL_FORMAT_MONO16;
             else if (NumChannels == 2 && BitsPerSample == 8)
-                format = BufferFormat.Stereo8;
+                format = OpenAL.AL_FORMAT_STEREO8;
             else if (NumChannels == 2 && BitsPerSample == 16)
-                format = BufferFormat.Stereo16;
+                format = OpenAL.AL_FORMAT_STEREO16;
             else
             {
                 throw new InvalidDataException();

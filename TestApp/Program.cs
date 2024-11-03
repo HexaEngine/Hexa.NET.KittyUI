@@ -4,12 +4,15 @@ using Hexa.NET.ImGui.Widgets;
 using Hexa.NET.ImGui.Widgets.Dialogs;
 using Hexa.NET.KittyUI;
 using Hexa.NET.KittyUI.Graphics;
+using Hexa.NET.KittyUI.Graphics.Imaging;
+using Hexa.NET.KittyUI.Web;
 using TestApp;
 
 AppBuilder appBuilder = new();
-appBuilder.SetGraphicsBackend(GraphicsBackend.OpenGL);
+//appBuilder.SetGraphicsBackend(GraphicsBackend.OpenGL);
 appBuilder.SetTitle("Test App");
 appBuilder.AddWindow<MainWindow>(true, true);
+appBuilder.StyleColorsDark();
 appBuilder.Run();
 
 namespace TestApp
@@ -17,7 +20,7 @@ namespace TestApp
     public class MainWindow : ImWindow
     {
         private string? file;
-        private Image? image;
+        private Image2D? image;
 
         protected override string Name => "Main Window";
 
@@ -58,7 +61,19 @@ namespace TestApp
         {
             Task.Run(() =>
             {
-                image = Image.LoadFromFile(path);
+                image = Image2D.LoadFromFile(path);
+            });
+        }
+
+        private void LoadWebTexture()
+        {
+            Task.Run(async () =>
+            {
+                HttpClient client = new();
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0");
+                MemoryStream ms = new();
+                await client.DownloadAsyncCached("https://assets.change.org/photos/2/dn/rv/ScdnRvnrUismCXg-800x450-noPad.jpg?1632662406", ms);
+                image = Image2D.LoadFromMemory(ImageFileFormat.JPEG, ms.GetBuffer(), 0, (int)ms.Length);
             });
         }
 

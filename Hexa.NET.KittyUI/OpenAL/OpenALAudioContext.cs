@@ -1,25 +1,24 @@
 ﻿namespace Hexa.NET.KittyUI.OpenAL
 {
     using Hexa.NET.KittyUI.Audio;
+    using Hexa.NET.OpenAL;
     using Hexa.NET.Utilities;
-    using Silk.NET.OpenAL;
-    using static Hexa.NET.KittyUI.OpenAL.Helper;
 
     public unsafe class OpenALAudioContext : IAudioContext
     {
         internal readonly OpenALAudioDevice AudioDevice;
 
         [SuppressFreeWarning]
-        internal readonly Device* Device;
+        internal readonly ALCdevice* Device;
 
         [SuppressFreeWarning]
-        public readonly Context* Context;
+        public readonly ALCcontext* Context;
 
         private bool disposedValue;
 
         public nint NativePointer => (nint)Context;
 
-        internal OpenALAudioContext(OpenALAudioDevice audioDevice, Context* context)
+        internal OpenALAudioContext(OpenALAudioDevice audioDevice, ALCcontext* context)
         {
             AudioDevice = audioDevice;
             Device = audioDevice.Device;
@@ -30,7 +29,7 @@
         {
             if (!disposedValue)
             {
-                alc.DestroyContext(Context);
+                OpenAL.DestroyContext(Context);
                 disposedValue = true;
             }
         }

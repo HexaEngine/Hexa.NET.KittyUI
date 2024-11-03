@@ -1,23 +1,21 @@
 ﻿namespace Hexa.NET.KittyUI.D3D11
 {
+    using Hexa.NET.D3D11;
+    using Hexa.NET.DXGI;
     using Hexa.NET.KittyUI.Windows;
     using Hexa.NET.Logging;
     using Hexa.NET.SDL2;
-    using Silk.NET.Core.Contexts;
-    using Silk.NET.Core.Native;
-    using Silk.NET.Direct3D11;
-    using Silk.NET.DXGI;
-    using Silk.NET.Maths;
+    using HexaGen.Runtime;
+    using HexaGen.Runtime.COM;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Text;
-    using InfoQueueFilter = Silk.NET.DXGI.InfoQueueFilter;
+    using InfoQueueFilter = Hexa.NET.DXGI.InfoQueueFilter;
     using Window = SDL2.SDLWindow;
 
     public static unsafe class D3D11Adapter
     {
-        internal static DXGI DXGI;
-        private static INativeWindowSource source;
+        private static IWindow source;
         private static bool debug;
 
         internal static ComPtr<IDXGIFactory7> IDXGIFactory;
@@ -36,10 +34,8 @@
         private static readonly ILogger DXGILogger = LoggerFactory.GetLogger(nameof(DXGI));
 
         [SupportedOSPlatform("windows")]
-        public static void Init(INativeWindowSource source, bool debug)
+        public static void Init(IWindow source, bool debug)
         {
-            DXGI = DXGI.GetApi(source);
-
             if (debug)
             {
                 DXGI.GetDebugInterface1(0, out IDXGIDebug);
@@ -47,13 +43,13 @@
 
                 InfoQueueFilter filter = new();
                 filter.DenyList.NumIDs = 1;
-                filter.DenyList.PIDList = (int*)AllocT(MessageID.SetprivatedataChangingparams);
+                filter.DenyList.PIDList = (int*)AllocT(MessageId.SetprivatedataChangingparams);
                 IDXGIInfoQueue.AddStorageFilterEntries(DXGI_DEBUG_ALL, &filter);
-                IDXGIInfoQueue.SetBreakOnSeverity(DXGI_DEBUG_ALL, InfoQueueMessageSeverity.Message, false);
-                IDXGIInfoQueue.SetBreakOnSeverity(DXGI_DEBUG_ALL, InfoQueueMessageSeverity.Info, false);
-                IDXGIInfoQueue.SetBreakOnSeverity(DXGI_DEBUG_ALL, InfoQueueMessageSeverity.Warning, true);
-                IDXGIInfoQueue.SetBreakOnSeverity(DXGI_DEBUG_ALL, InfoQueueMessageSeverity.Error, true);
-                IDXGIInfoQueue.SetBreakOnSeverity(DXGI_DEBUG_ALL, InfoQueueMessageSeverity.Corruption, true);
+                IDXGIInfoQueue.SetBreakOnSeverity(DXGI_DEBUG_ALL, InfoQueueMessageSeverity.Message, 0);
+                IDXGIInfoQueue.SetBreakOnSeverity(DXGI_DEBUG_ALL, InfoQueueMessageSeverity.Info, 0);
+                IDXGIInfoQueue.SetBreakOnSeverity(DXGI_DEBUG_ALL, InfoQueueMessageSeverity.Warning, 1);
+                IDXGIInfoQueue.SetBreakOnSeverity(DXGI_DEBUG_ALL, InfoQueueMessageSeverity.Error, 1);
+                IDXGIInfoQueue.SetBreakOnSeverity(DXGI_DEBUG_ALL, InfoQueueMessageSeverity.Corruption, 1);
                 Free(filter.DenyList.PIDList);
             }
 
@@ -66,7 +62,7 @@
 
             AdapterDesc1 desc;
             IDXGIAdapter.GetDesc1(&desc);
-            string name = new(desc.Description);
+            string name = new(&desc.Description_0);
 
             LoggerFactory.General.Info("Backend: Using Graphics API: D3D11");
             LoggerFactory.General.Info($"Backend: Using Graphics Device: {name}");
@@ -84,7 +80,6 @@
                 IDXGIInfoQueue.Release();
                 IDXGIDebug.Release();
             }
-            DXGI.Dispose();
         }
 
         public static string Convert(InfoQueueMessageSeverity severity)
@@ -166,7 +161,7 @@
                 Height = (uint)window.Height,
                 Format = AutoChooseSwapChainFormat(D3D11GraphicsDevice.Device, IDXGIOutput),
                 BufferCount = 2,
-                BufferUsage = DXGI.UsageRenderTargetOutput,
+                BufferUsage = (uint)DXGI.DXGI_USAGE_RENDER_TARGET_OUTPUT,
                 SampleDesc = new(1, 0),
                 Scaling = Scaling.Stretch,
                 SwapEffect = SwapEffect.FlipSequential,
@@ -182,8 +177,7 @@
             };
 
             nint hwnd = window.GetHWND();
-            ComPtr<IDXGISwapChain2> swapChain = default;
-            IDXGIFactory.CreateSwapChainForHwnd(D3D11GraphicsDevice.Device, hwnd, &desc, &fullscreenDesc, IDXGIOutput, ref swapChain);
+            IDXGIFactory.CreateSwapChainForHwnd(D3D11GraphicsDevice.Device.As<IUnknown>(), hwnd, &desc, &fullscreenDesc, IDXGIOutput.As<IDXGIOutput>(), out ComPtr<IDXGISwapChain1> swapChain);
 
             return new DXGISwapChain(swapChain, (SwapChainFlag)desc.Flags);
         }
@@ -208,7 +202,7 @@
                 Height = (uint)height,
                 Format = AutoChooseSwapChainFormat(D3D11GraphicsDevice.Device, IDXGIOutput),
                 BufferCount = 2,
-                BufferUsage = DXGI.UsageRenderTargetOutput,
+                BufferUsage = (uint)DXGI.DXGI_USAGE_RENDER_TARGET_OUTPUT,
                 SampleDesc = new(1, 0),
                 Scaling = Scaling.Stretch,
                 SwapEffect = SwapEffect.FlipSequential,
@@ -223,8 +217,8 @@
                 ScanlineOrdering = ModeScanlineOrder.Unspecified,
             };
 
-            ComPtr<IDXGISwapChain2> swapChain = default;
-            IDXGIFactory.CreateSwapChainForHwnd(D3D11GraphicsDevice.Device, Hwnd, &desc, &fullscreenDesc, IDXGIOutput, ref swapChain);
+            ComPtr<IDXGISwapChain1> swapChain = default;
+            IDXGIFactory.CreateSwapChainForHwnd(D3D11GraphicsDevice.Device.As<IUnknown>(), Hwnd, &desc, &fullscreenDesc, IDXGIOutput.As<IDXGIOutput>(), out swapChain);
 
             return new DXGISwapChain(swapChain, (SwapChainFlag)desc.Flags);
         }
@@ -240,7 +234,7 @@
                 AdapterDesc1 desc;
                 adapter.GetDesc1(&desc).ThrowHResult();
 
-                var nameSpan = MemoryMarshal.CreateReadOnlySpanFromNullTerminated(desc.Description);
+                var nameSpan = MemoryMarshal.CreateReadOnlySpanFromNullTerminated(&desc.Description_0);
 
                 // select by adapter name (description)
                 if (name != null && nameSpan == name)
@@ -266,28 +260,30 @@
         private static ComPtr<IDXGIOutput6> GetOutput(string? name)
         {
             ComPtr<IDXGIOutput6> selected = null;
-            ComPtr<IDXGIOutput6> output = null;
+            ComPtr<IDXGIOutput> output = null;
+            ComPtr<IDXGIOutput6> output6 = null;
 
             for (uint outputIndex = 0;
-                (ResultCode)IDXGIAdapter.EnumOutputs(outputIndex, ref output) !=
+                (ResultCode)IDXGIAdapter.EnumOutputs(outputIndex, out output) !=
                 ResultCode.DXGI_ERROR_NOT_FOUND;
                 outputIndex++)
 
             {
+                output.QueryInterface(out output6);
                 OutputDesc1 desc;
-                output.GetDesc1(&desc).ThrowHResult();
+                output6.GetDesc1(&desc).ThrowHResult();
 
                 // select the user chosen display by name.
-                var nameSpan = MemoryMarshal.CreateReadOnlySpanFromNullTerminated(desc.DeviceName);
+                var nameSpan = MemoryMarshal.CreateReadOnlySpanFromNullTerminated(&desc.DeviceName_0);
                 if (name != null && nameSpan == name)
                 {
-                    return output;
+                    return output6;
                 }
 
                 // select primary monitor.
-                if (desc.DesktopCoordinates.Min == Vector2D<int>.Zero)
+                if (desc.DesktopCoordinates.X == 0 && desc.DesktopCoordinates.Y == 0)
                 {
-                    selected = output;
+                    selected = output6;
                 }
             }
 
@@ -312,7 +308,7 @@
             else
             {
                 // Fallback to B8G8R8A8_UNorm if the preferred format is not supported
-                return Format.FormatB8G8R8A8Unorm;
+                return Format.B8G8R8A8Unorm;
             }
         }
 
@@ -320,7 +316,7 @@
         {
             if (output.Handle == null)
             {
-                return Format.FormatB8G8R8A8Unorm;
+                return Format.B8G8R8A8Unorm;
             }
 
             OutputDesc1 desc;
@@ -328,16 +324,16 @@
 
             if (desc.ColorSpace == ColorSpaceType.RgbFullG2084NoneP2020)
             {
-                return ChooseSwapChainFormat(device, Format.FormatR10G10B10A2Unorm);
+                return ChooseSwapChainFormat(device, Format.R10G10B10A2Unorm);
             }
 
             if (desc.ColorSpace == ColorSpaceType.RgbFullG22NoneP709)
             {
-                return ChooseSwapChainFormat(device, Format.FormatB8G8R8A8Unorm);
+                return ChooseSwapChainFormat(device, Format.B8G8R8A8Unorm);
             }
 
             // If none of the preferred formats is supported, choose a fallback format
-            return Format.FormatB8G8R8A8Unorm;
+            return Format.B8G8R8A8Unorm;
         }
     }
 }
