@@ -33,15 +33,33 @@
         /// <param name="index">The index of the touch device.</param>
         public TouchDevice(long id, int index)
         {
-            name = SDL.GetTouchNameS(index);
+            byte* pName = SDL.GetTouchName(index);
+            if (pName == null)
+            {
+                SdlLogWarn();
+                name = "Unknown";
+            }
+            else
+            {
+                name = ToStringFromUTF8(pName)!;
+            }
+
             type = (TouchDeviceType)SDL.GetTouchDeviceType(id);
 
             var fingerCount = SDL.GetNumTouchFingers(id);
-            SDL.ClearError();
+            if (fingerCount == 0)
+            {
+                SdlLogWarn();
+            }
             fingers = new Finger[fingerCount];
             for (int i = 0; i < fingerCount; i++)
             {
                 var finger = SDL.GetTouchFinger(id, i);
+                if (finger == null)
+                {
+                    SdlLogger.Warn($"No finger found at index {i} for touch device {id}.");
+                    continue;
+                }
                 fingers[i] = new(finger);
                 fingerIdToIndex.Add(finger->Id, i);
             }
@@ -58,11 +76,19 @@
             type = (TouchDeviceType)SDL.GetTouchDeviceType(id);
 
             var fingerCount = SDL.GetNumTouchFingers(id);
-            SDL.ClearError();
+            if (fingerCount == 0)
+            {
+                SdlLogWarn();
+            }
             fingers = new Finger[fingerCount];
             for (int i = 0; i < fingerCount; i++)
             {
                 var finger = SDL.GetTouchFinger(id, i);
+                if (finger == null)
+                {
+                    SdlLogger.Warn($"No finger found at index {i} for touch device {id}.");
+                    continue;
+                }
                 fingers[i] = new(finger);
                 fingerIdToIndex.Add(finger->Id, i);
             }

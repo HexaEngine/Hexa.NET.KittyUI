@@ -16,7 +16,7 @@
         private static readonly MouseButton[] buttons = Enum.GetValues<MouseButton>();
         private static readonly string[] buttonNames = Enum.GetNames<MouseButton>();
 
-        private static readonly Dictionary<MouseButton, MouseButtonState> states = new();
+        private static readonly MouseButtonState[] states;
         private static readonly MouseMotionEventArgs motionEventArgs = new();
         private static readonly MouseButtonEventArgs buttonEventArgs = new();
         private static readonly MouseWheelEventArgs wheelEventArgs = new();
@@ -24,6 +24,11 @@
         private static Point2 pos;
         private static Vector2 delta;
         private static Vector2 deltaWheel;
+
+        static Mouse()
+        {
+            states = new MouseButtonState[buttons.Length];
+        }
 
         /// <summary>
         /// Initializes the mouse input system.
@@ -39,11 +44,11 @@
             uint maskRight = unchecked(1 << (int)MouseButton.Right - 1);
             uint maskX1 = unchecked(1 << (int)MouseButton.X1 - 1);
             uint maskX2 = unchecked(1 << (int)MouseButton.X2 - 1);
-            states.Add(MouseButton.Left, (MouseButtonState)(state & maskLeft));
-            states.Add(MouseButton.Middle, (MouseButtonState)(state & maskMiddle));
-            states.Add(MouseButton.Right, (MouseButtonState)(state & maskRight));
-            states.Add(MouseButton.X1, (MouseButtonState)(state & maskX1));
-            states.Add(MouseButton.X2, (MouseButtonState)(state & maskX2));
+            states[0] = (MouseButtonState)(state & maskLeft);
+            states[1] = (MouseButtonState)(state & maskMiddle);
+            states[2] = (MouseButtonState)(state & maskRight);
+            states[3] = (MouseButtonState)(state & maskX1);
+            states[4] = (MouseButtonState)(state & maskX2);
         }
 
         /// <summary>
@@ -87,7 +92,7 @@
         /// <summary>
         /// Gets the current state of mouse buttons.
         /// </summary>
-        public static IDictionary<MouseButton, MouseButtonState> States => states;
+        public static MouseButtonState[] States => states;
 
         /// <summary>
         /// Event triggered when the mouse is moved.
@@ -116,8 +121,12 @@
         /// <returns><c>true</c> if the button is in the "Down" state, otherwise <c>false</c>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsDown(MouseButton button)
-        {
-            return states[button] == MouseButtonState.Down;
+        {        
+            if (button < MouseButton.Left || button >= MouseButton.X2)
+            {
+                return false;
+            }   
+            return states[(int)button - 1] == MouseButtonState.Down;
         }
 
         /// <summary>
@@ -128,14 +137,14 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsUp(MouseButton button)
         {
-            return states[button] == MouseButtonState.Down;
+            return states[(int)button - 1] == MouseButtonState.Down;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void OnButtonDown(SDLMouseButtonEvent mouseButtonEvent)
         {
             MouseButton button = (MouseButton)mouseButtonEvent.Button;
-            states[button] = MouseButtonState.Down;
+            states[(int)button - 1] = MouseButtonState.Down;
             buttonEventArgs.Timestamp = mouseButtonEvent.Timestamp;
             buttonEventArgs.Handled = false;
             buttonEventArgs.MouseId = mouseButtonEvent.Which;
@@ -149,7 +158,7 @@
         internal static void OnButtonUp(SDLMouseButtonEvent mouseButtonEvent)
         {
             MouseButton button = (MouseButton)mouseButtonEvent.Button;
-            states[button] = MouseButtonState.Up;
+            states[(int)button - 1] = MouseButtonState.Up;
             buttonEventArgs.Timestamp = mouseButtonEvent.Timestamp;
             buttonEventArgs.Handled = false;
             buttonEventArgs.MouseId = mouseButtonEvent.Which;

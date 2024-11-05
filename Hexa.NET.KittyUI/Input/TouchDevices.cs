@@ -2,6 +2,7 @@
 {
     using Hexa.NET.KittyUI.Input.Events;
     using Hexa.NET.SDL2;
+    using static Hexa.NET.KittyUI.Extensions.SdlErrorHandlingExtensions;
 
     /// <summary>
     /// Provides functionality to manage touch devices.
@@ -52,7 +53,7 @@
 
             for (int i = 0; i < touchDeviceCount; i++)
             {
-                AddTouchDevice(i);
+                AddTouchDeviceFromIndex(i);
             }
         }
 
@@ -66,12 +67,18 @@
             return idToTouch[touchDeviceId];
         }
 
-        internal static TouchDevice? AddTouchDevice(int index)
+        internal static TouchDevice? AddTouchDeviceFromIndex(int index)
         {
-            long id = SDL.GetTouchDevice(index);
-            SDL.ClearError();
-            if (id == 0) return null;
-            TouchDevice dev = new(id, index);
+            long touchId = SDL.GetTouchDevice(index);
+            
+            if (touchId == 0)
+            {
+                SdlLogger.Warn($"Touch device index {index}, id ({touchId}) is invalid, ignoring call.");
+                SdlLogWarn();
+                return null;
+            }
+
+            TouchDevice dev = new(touchId, index);
             touchDevices.Add(dev);
             idToTouch.Add(dev.Id, dev);
             touchDeviceEventArgs.TouchDeviceId = dev.Id;
@@ -79,9 +86,14 @@
             return dev;
         }
 
-        internal static TouchDevice? AddTouchDevice(long touchId)
+        internal static TouchDevice? AddTouchDeviceFromId(long touchId)
         {
-            if (touchId == 0) return null;
+            if (touchId == 0)
+            {
+                // do not log here to avoid log spam.
+                return null;
+            }
+
             TouchDevice dev = new(touchId);
             touchDevices.Add(dev);
             idToTouch.Add(touchId, dev);
@@ -110,7 +122,7 @@
             {
                 return dev;
             }
-            return AddTouchDevice(id);
+            return AddTouchDeviceFromId(id);
         }
 
         internal static void FingerUp(SDLTouchFingerEvent evnt)

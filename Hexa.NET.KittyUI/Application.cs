@@ -174,7 +174,6 @@
 
             ((CoreWindow)mainWindow).DestroyGraphics();
 
-            SdlCheckError();
             SDL.Quit();
         }
 

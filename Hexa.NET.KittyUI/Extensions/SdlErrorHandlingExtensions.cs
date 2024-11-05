@@ -2,6 +2,7 @@
 {
     using Hexa.NET.Logging;
     using Hexa.NET.SDL2;
+    using HexaGen.Runtime;
     using System.Runtime.CompilerServices;
 
     /// <summary>
@@ -72,6 +73,21 @@
         {
             Logger.ThrowIfNotNull(SDL.GetErrorAsException());
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SdlLogWarn()
+        {
+            byte* ex = SDL.GetError();
+
+            if (ex == null || ex[0] == '\0')
+            {
+                return;
+            }
+
+            Logger.Warn(Utils.DecodeStringUTF8(ex));
+        }
+
+        public static ILogger SdlLogger => Logger;
 
         /// <summary>
         /// Checks for SDL errors related to a void pointer and returns the original pointer if it's not null.
