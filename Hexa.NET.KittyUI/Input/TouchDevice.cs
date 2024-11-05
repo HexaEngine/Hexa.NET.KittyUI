@@ -2,6 +2,7 @@
 {
     using Hexa.NET.KittyUI.Input.Events;
     using Hexa.NET.SDL2;
+    using static Hexa.NET.KittyUI.Extensions.SdlErrorHandlingExtensions;
 
     /// <summary>
     /// Represents a generic delegate for handling events in the TouchDevice class.
@@ -28,14 +29,15 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="TouchDevice"/> class using the specified index.
         /// </summary>
+        /// <param name="id"></param>
         /// <param name="index">The index of the touch device.</param>
-        public TouchDevice(int index)
+        public TouchDevice(long id, int index)
         {
-            id = SDL.GetTouchDevice(index);
             name = SDL.GetTouchNameS(index);
             type = (TouchDeviceType)SDL.GetTouchDeviceType(id);
 
             var fingerCount = SDL.GetNumTouchFingers(id);
+            SDL.ClearError();
             fingers = new Finger[fingerCount];
             for (int i = 0; i < fingerCount; i++)
             {
@@ -56,6 +58,7 @@
             type = (TouchDeviceType)SDL.GetTouchDeviceType(id);
 
             var fingerCount = SDL.GetNumTouchFingers(id);
+            SDL.ClearError();
             fingers = new Finger[fingerCount];
             for (int i = 0; i < fingerCount; i++)
             {

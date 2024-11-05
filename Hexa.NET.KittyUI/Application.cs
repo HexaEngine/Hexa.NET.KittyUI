@@ -74,7 +74,7 @@
             SDL.SetHint(SDL.SDL_HINT_MOUSE_NORMAL_SPEED_SCALE, "1");
             SDL.SetHint(SDL.SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
             SDL.SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
-
+        
             SDL.Init(SDL.SDL_INIT_EVENTS + SDL.SDL_INIT_GAMECONTROLLER + SDL.SDL_INIT_HAPTIC + SDL.SDL_INIT_JOYSTICK + SDL.SDL_INIT_SENSOR);
 
             SdlCheckError();
