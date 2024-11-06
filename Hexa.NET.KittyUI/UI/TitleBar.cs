@@ -369,6 +369,38 @@
             }
             context.Cursor = new(context.Area.Max.X - x, context.Cursor.Y);
         }
+
+        public float ComputeLeftContentSize()
+        {
+            float x = 0;
+            for (int i = 0; i < rightAlignAfter; i++)
+            {
+                if (elements[i].IsVisible)
+                {
+                    x += elements[i].Size.X;
+                }
+            }
+            return x;
+        }
+
+        public float ComputeRightContentSize()
+        {
+            float x = 0;
+            for (int i = rightAlignAfter + 1; i < elements.Count; i++)
+            {
+                if (elements[i].IsVisible)
+                {
+                    x += elements[i].Size.X;
+                }
+            }
+            return x;
+        }
+
+        public void ComputePadding(out float left, out float right)
+        {
+            left = ComputeLeftContentSize();
+            right = ComputeRightContentSize();
+        }
     }
 
     public unsafe class TitleBar : ITitleBar
@@ -435,19 +467,21 @@
             builder.RightAlign();
 
             builder.AddButton($"{MaterialIcons.Remove}", 0x1CCCCCCC, 0x1CCCCCCC, null, _ => RequestMinimize());
-            builder.AddButton($"{MaterialIcons.SelectWindow2}", 0x1CCCCCCC, 0x1CCCCCCC, null, _ =>
-            {
-                if (Window.State == WindowState.Maximized)
-                {
-                    RequestRestore();
-                }
-                else
-                {
-                    RequestMaximize();
-                }
-            });
+            builder.AddButton($"{MaterialIcons.SelectWindow2}", 0x1CCCCCCC, 0x1CCCCCCC, null, _ => ToggleState());
 
             builder.AddButton($"{MaterialIcons.Close}", 0xFF3333C6, 0xFF3333C6, null, _ => RequestClose());
+        }
+
+        public void ToggleState()
+        {
+            if (Window.State == WindowState.Maximized)
+            {
+                RequestRestore();
+            }
+            else
+            {
+                RequestMaximize();
+            }
         }
 
         public virtual void Draw()
@@ -591,8 +625,8 @@
         {
             int w, h;
             SDL.GetWindowSize(win, &w, &h);
-
-            if (area->X > buttonSize * 2 && area->X < w - buttonSize * 3)
+            builder.ComputePadding(out var left, out var right);
+            if (area->X > left && area->X < w - right)
             {
                 return SDLHitTestResult.Draggable;
             }
