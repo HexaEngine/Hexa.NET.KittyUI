@@ -9,7 +9,9 @@ using Hexa.NET.KittyUI.Web;
 using TestApp;
 
 AppBuilder appBuilder = new();
-//appBuilder.SetGraphicsBackend(GraphicsBackend.OpenGL);
+appBuilder.EnableLogging(false);
+appBuilder.EnableDebugTools(false);
+appBuilder.SetGraphicsBackend(GraphicsBackend.OpenGL);
 appBuilder.SetTitle("Test App");
 appBuilder.AddWindow<MainWindow>(true, true);
 appBuilder.StyleColorsDark();

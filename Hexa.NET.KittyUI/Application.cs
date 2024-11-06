@@ -7,7 +7,9 @@
     using Hexa.NET.KittyUI.OpenAL;
     using Hexa.NET.KittyUI.Windows;
     using Hexa.NET.KittyUI.Windows.Events;
+    using Hexa.NET.Logging;
     using Hexa.NET.SDL2;
+    using System;
     using System.Collections.Generic;
     using static Hexa.NET.KittyUI.Extensions.SdlErrorHandlingExtensions;
 
@@ -44,6 +46,8 @@
         /// <remarks>This can be only set BEFORE <see cref="Run"/>  <see cref="AppBuilder.Run"/>.</remarks>
         public static GraphicsBackend SelectedGraphicsBackend { get; set; } = GraphicsBackend.Auto;
 
+        public static bool LoggingEnabled { get; set; } = true;
+
         public static void Run(IRenderWindow mainWindow, AppBuilder builder)
         {
             Init(mainWindow, builder);
@@ -58,7 +62,16 @@
 
         private static void Init(IRenderWindow mainWindow, AppBuilder builder)
         {
-            CrashLogger.Initialize();
+            if (LoggingEnabled)
+            {
+                CrashLogger.Initialize();
+            }
+
+            if (ImGuiDebugTools.Enabled)
+            {
+                ImGuiDebugTools.Init();
+            }
+
             OpenALAdapter.Init();
 
 #if DEBUG
@@ -67,14 +80,14 @@
 
             SDL.SetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
             SDL.SetHint(SDL.SDL_HINT_AUTO_UPDATE_JOYSTICKS, "1");
-            SDL.SetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI_PS4, "1");//HintJoystickHidapiPS4
-            SDL.SetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1"); //HintJoystickHidapiPS4Rumble
+            SDL.SetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI_PS4, "1"); // HintJoystickHidapiPS4
+            SDL.SetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1"); // HintJoystickHidapiPS4Rumble
             SDL.SetHint(SDL.SDL_HINT_JOYSTICK_RAWINPUT, "0");
-            SDL.SetHint(SDL.SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1"); //HintWindowsDisableThreadNaming
+            SDL.SetHint(SDL.SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1"); // HintWindowsDisableThreadNaming
             SDL.SetHint(SDL.SDL_HINT_MOUSE_NORMAL_SPEED_SCALE, "1");
             SDL.SetHint(SDL.SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
             SDL.SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
-        
+
             SDL.Init(SDL.SDL_INIT_EVENTS + SDL.SDL_INIT_GAMECONTROLLER + SDL.SDL_INIT_HAPTIC + SDL.SDL_INIT_JOYSTICK + SDL.SDL_INIT_SENSOR);
 
             SdlCheckError();

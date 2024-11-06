@@ -50,9 +50,16 @@
         /// <summary>
         /// Initializes the ImGuiConsole, registers default commands, and sets default settings.
         /// </summary>
-        static ImGuiDebugTools()
+        public static void Init()
         {
-            LoggerFactory.AddGlobalWriter(logListener);
+            if (Application.LoggingEnabled)
+            {
+                LoggerFactory.AddGlobalWriter(logListener);
+            }
+            else
+            {
+                WriteLine("Logging is disabled.");
+            }
 
             DefaultSettings();
 
@@ -178,7 +185,9 @@
         /// <summary>
         /// Gets or sets whether the ImGuiConsole window is displayed.
         /// </summary>
-        public static bool Shown { get => shown; set => shown = value; }
+        public static bool Shown { get => shown && Enabled; set => shown = value && Enabled; }
+
+        public static bool Enabled { get; set; }
 
         /// <summary>
         /// Restores the default settings for ImGuiConsole, including auto-scrolling, colored output, filtering bar, and timestamps.
@@ -284,7 +293,7 @@
         /// </summary>
         public static void Draw()
         {
-            if (!shown)
+            if (!Shown)
                 return;
 
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, windowAlpha);
@@ -305,7 +314,7 @@
                     if (filterBar)
                     { FilterBar(); }
 
-                    LogWindow();
+                    ConsoleWindow();
 
                     ImGui.Separator();
 
@@ -343,7 +352,7 @@
             ImGui.Separator();
         }
 
-        private static unsafe void LogWindow()
+        private static unsafe void ConsoleWindow()
         {
             float suggestionHeight = 0;
 

@@ -31,28 +31,23 @@
         /// <summary>
         /// Caller must be the main thread.
         /// </summary>
-        /// <param name="gl"></param>
         public void CreateTexture()
         {
-            textureId = GL.GenTexture();
-            GL.BindTexture(GLTextureTarget.Texture2D, textureId);
-            // todo sampler logic
-            GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.MinFilter, (int)Desc.MinFilter);
-            GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.MagFilter, (int)Desc.MagFilter);
-            GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.WrapS, (int)Desc.WrapS);
-            GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.WrapT, (int)Desc.WrapT);
-
-            GL.BindTexture(GLTextureTarget.Texture2D, 0);
-
             nint size = CalculatePboSize(Desc.Width, Desc.Height, Desc.MipLevels, Desc.PixelFormat, Desc.PixelType, Desc.ArraySize);
-
+            if (!OpenGLAdapter.CanUploadTexturesAsync)
+            {
+                mappedData = Alloc(size);
+                Fence.Signal();
+                return;
+            }
             GL.CreateBuffers(1, ref pboId);
             //GL.CheckError();
             GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, pboId);
             //GL.CheckError();
             GL.BufferData(GLBufferTargetARB.PixelUnpackBuffer, size, null, GLBufferUsageARB.StreamDraw);
             //GL.CheckError();
-            mappedData = GL.MapBuffer(GLBufferTargetARB.PixelUnpackBuffer, GLBufferAccessARB.WriteOnly);
+
+            mappedData = GL.MapBufferRange(GLBufferTargetARB.PixelUnpackBuffer, 0, size, GLMapBufferAccessMask.WriteBit | GLMapBufferAccessMask.UnsynchronizedBit);
             //GL.CheckError();
             GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, 0);
             //GL.CheckError();
@@ -63,12 +58,16 @@
         /// <summary>
         /// Caller must be the main thread.
         /// </summary>
-        /// <param name="gl"></param>
         public void FinishTexture()
         {
+            if (!OpenGLAdapter.CanUploadTexturesAsync)
+            {
+                return;
+            }
             GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, pboId);
             //GL.CheckError();
             GL.UnmapBuffer(GLBufferTargetARB.PixelUnpackBuffer);
+            GL.MemoryBarrier(GLMemoryBarrierMask.PixelBufferBarrierBit);
             //GL.CheckError();
             syncFence = GL.FenceSync(GLSyncCondition.GpuCommandsComplete, GLSyncBehaviorFlags.None);
             //GL.CheckError();
@@ -79,14 +78,37 @@
         /// <summary>
         /// Polled by the main thread.
         /// </summary>
-        /// <param name="gl"></param>
         public bool CheckIfDone()
         {
+            if (!OpenGLAdapter.CanUploadTexturesAsync)
+            {
+                textureId = OpenGLTexturePool.Global.GetNextTexture();
+                GL.BindTexture(GLTextureTarget.Texture2D, textureId);
+
+                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.MinFilter, (int)Desc.MinFilter);
+                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.MagFilter, (int)Desc.MagFilter);
+                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.WrapS, (int)Desc.WrapS);
+                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.WrapT, (int)Desc.WrapT);
+                GL.TexImage2D(GLTextureTarget.Texture2D, 0, Desc.InternalFormat, Desc.Width, Desc.Height, 0, Desc.PixelFormat, Desc.PixelType, mappedData);
+
+                GL.BindTexture(GLTextureTarget.Texture2D, 0);
+                Free(mappedData);
+                Fence.Signal();
+                return true;
+            }
+
             if (GL.ClientWaitSync(syncFence, GLSyncObjectMask.FlushCommandsBit, 0) == GLEnum.AlreadySignaled)
             {
-                GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, pboId);
+                textureId = OpenGLTexturePool.Global.GetNextTexture();
                 GL.BindTexture(GLTextureTarget.Texture2D, textureId);
+                GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, pboId);
+
+                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.MinFilter, (int)Desc.MinFilter);
+                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.MagFilter, (int)Desc.MagFilter);
+                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.WrapS, (int)Desc.WrapS);
+                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.WrapT, (int)Desc.WrapT);
                 GL.TexImage2D(GLTextureTarget.Texture2D, 0, Desc.InternalFormat, Desc.Width, Desc.Height, 0, Desc.PixelFormat, Desc.PixelType, null);
+
                 GL.BindTexture(GLTextureTarget.Texture2D, 0);
                 GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, 0);
                 GL.DeleteSync(syncFence);

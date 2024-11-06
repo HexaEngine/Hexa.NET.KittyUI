@@ -2,6 +2,7 @@
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
+    using Hexa.NET.KittyUI.Debugging;
     using Hexa.NET.KittyUI.Graphics;
     using Hexa.NET.KittyUI.ImGuiBackend;
     using Hexa.NET.KittyUI.UI;
@@ -29,6 +30,18 @@
                 TitleBar = titlebar,
             };
             Application.Run(window, this);
+        }
+
+        public AppBuilder EnableLogging(bool enabled)
+        {
+            Application.LoggingEnabled = enabled;
+            return this;
+        }
+
+        public AppBuilder EnableDebugTools(bool enabled)
+        {
+            ImGuiDebugTools.Enabled = enabled;
+            return this;
         }
 
         public AppBuilder SetGraphicsBackend(GraphicsBackend backend)

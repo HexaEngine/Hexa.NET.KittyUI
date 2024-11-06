@@ -114,7 +114,7 @@
         {
             if (texture != 0)
             {
-                OpenGLAdapter.DeleteQueue.Enqueue(GLEnum.Texture, texture);
+                OpenGLTexturePool.Global.Return(texture);
                 Handle = 0;
                 texture = 0;
             }

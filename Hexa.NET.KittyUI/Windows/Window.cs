@@ -20,6 +20,7 @@
     using System.Numerics;
     using Hexa.NET.KittyUI.Graphics;
     using Hexa.NET.D3D11;
+    using Hexa.NET.Logging;
 
     public class Window : CoreWindow, IRenderWindow
     {
@@ -124,7 +125,7 @@
             base.OnKeyboardInput(args);
         }
 
-        private void ToggleDebugTools()
+        public void ToggleDebugTools()
         {
             showDebugTools = !showDebugTools;
 
@@ -243,7 +244,7 @@
         {
             resize = true;
             base.OnResized(args);
-            ImGuiDebugTools.WriteLine($"Resized: {args.NewWidth}x{args.NewHeight}");
+            LoggerFactory.General.Info($"Resized: {args.NewWidth}x{args.NewHeight}");
         }
     }
 }

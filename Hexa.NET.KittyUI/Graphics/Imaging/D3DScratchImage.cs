@@ -216,10 +216,7 @@
             }
 
             // Generate a texture ID for OpenGL
-            uint _textureID = 0;
-            GL.GenTextures(1, ref _textureID);
-
-            // Bind the texture
+            uint _textureID = OpenGLTexturePool.Global.GetNextTexture();
 
             GLTextureTarget textureTarget = GLTextureTarget.Texture2D;
             if (metadata.ArraySize > 1)

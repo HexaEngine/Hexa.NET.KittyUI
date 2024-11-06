@@ -94,12 +94,28 @@
                 return null;
             }
 
-            TouchDevice dev = new(touchId);
+            var index = FindIndex(touchId);
+
+            TouchDevice dev = new(touchId, index);
             touchDevices.Add(dev);
             idToTouch.Add(touchId, dev);
             touchDeviceEventArgs.TouchDeviceId = dev.Id;
             TouchDeviceAdded?.Invoke(dev, touchDeviceEventArgs);
             return dev;
+        }
+
+        internal static int FindIndex(long id)
+        {
+            var touchDeviceCount = SDL.GetNumTouchDevices();
+            for (int i = 0; i < touchDeviceCount; i++)
+            {
+                long currentDeviceId = SDL.GetTouchDevice(i);
+                if (currentDeviceId == id)
+                {
+                    return i;
+                }
+            }
+            return -1;
         }
 
         internal static bool RemoveTouchDevice(long touchId)

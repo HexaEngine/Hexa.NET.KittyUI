@@ -1,5 +1,6 @@
 ﻿namespace Hexa.NET.KittyUI.Input
 {
+    using Hexa.NET.KittyUI.Debugging;
     using Hexa.NET.KittyUI.Input.Events;
     using Hexa.NET.SDL2;
     using static Hexa.NET.KittyUI.Extensions.SdlErrorHandlingExtensions;
@@ -142,6 +143,7 @@
             var idx = fingerIdToIndex[evnt.FingerId];
             var finger = fingers[idx];
             finger.OnFingerUp(touchEventArgs);
+            ImGuiDebugTools.WriteLine($"Up {evnt.FingerId}, {evnt.X}, {evnt.Y}");
 
             TouchUp?.Invoke(this, touchEventArgs);
             return (this, touchEventArgs);
@@ -160,6 +162,7 @@
             var idx = fingerIdToIndex[evnt.FingerId];
             var finger = fingers[idx];
             finger.OnFingerDown(touchEventArgs);
+            ImGuiDebugTools.WriteLine($"Down {evnt.FingerId}, {evnt.X}, {evnt.Y}");
 
             TouchDown?.Invoke(this, touchEventArgs);
             return (this, touchEventArgs);
@@ -179,6 +182,7 @@
             var idx = fingerIdToIndex[evnt.FingerId];
             var finger = fingers[idx];
             finger.OnFingerMotion(touchMotionEventArgs);
+            ImGuiDebugTools.WriteLine($"Motion {evnt.FingerId}, {evnt.X}, {evnt.Y}, {evnt.Pressure}");
 
             TouchMotion?.Invoke(this, touchMotionEventArgs);
             return (this, touchMotionEventArgs);
