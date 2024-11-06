@@ -1320,7 +1320,7 @@
 
             if (window != null)
             {
-                SDL.ClearError();
+                SDL.ClearError(); // see issue #5, MacOS adds random error messages.
                 SDL.DestroyWindow(window);
                 SdlCheckError();
                 window = null;
