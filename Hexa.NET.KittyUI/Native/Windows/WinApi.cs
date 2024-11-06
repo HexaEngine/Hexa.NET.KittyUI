@@ -56,6 +56,12 @@
 
         [DllImport("UxTheme.dll")]
         public static extern int GetThemeSysSize(nint htheme, SystemMetrics iSizeId);
+
+        [DllImport("user32.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern int GetSystemMetrics(SystemMetrics nIndex);
+
+        [DllImport("user32.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern uint GetDpiForWindow(nint hwnd);
     }
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]

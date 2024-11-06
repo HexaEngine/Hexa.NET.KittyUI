@@ -11,6 +11,7 @@
     using System;
     using System.Numerics;
     using System.Runtime.InteropServices;
+    using System.Runtime.Intrinsics.Arm;
     using System.Runtime.Versioning;
     using System.Text;
 
@@ -701,7 +702,10 @@
 
                 WindowPos* winPos = nccsp->LpPos;
 
-                int titleBarHeight = WinApi.GetThemeSysSize(0, SystemMetrics.CySize) + WinApi.GetThemeSysSize(0, SystemMetrics.CxPaddedBorder) * 2;
+                // see https://stackoverflow.com/questions/28524463/how-to-get-the-default-caption-bar-height-of-a-window-in-windows/28524464#28524464
+                uint dpi = WinApi.GetDpiForWindow(hwnd);
+                float dpiScale = dpi / 96.0f;
+                int titleBarHeight = (int)MathF.Ceiling((WinApi.GetSystemMetrics(SystemMetrics.CyCaption) + WinApi.GetSystemMetrics(SystemMetrics.CyFrame)) * dpiScale + WinApi.GetSystemMetrics(SystemMetrics.CxPaddedBorder));
 
                 if (WinApi.IsZoomed(hwnd)) // fix for maximized windows.
                 {
