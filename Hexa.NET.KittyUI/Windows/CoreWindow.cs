@@ -1320,6 +1320,7 @@
 
             if (window != null)
             {
+                SDL.ClearError();
                 SDL.DestroyWindow(window);
                 SdlCheckError();
                 window = null;
