@@ -1,13 +1,14 @@
 # Hexa.NET.KittyUI (WIP)
 
-Hexa.NET.KittyUI is a minimalistic UI framework built around the popular **imgui** library, designed to be lightweight and highly portable. It supports cross-platform development and comes with rendering backends for both **Direct3D 11 (D3D11)** and **OpenGL 3**.
+Hexa.NET.KittyUI is a minimalistic UI framework built around the popular **imgui** library, designed to be lightweight and highly portable. It supports cross-platform development and comes with rendering backends for both **Direct3D 11 (D3D11)** and **OpenGL 4**.
 
 ## Features
 
 - **Minimalistic Design**: Focused on providing a clean and simple interface for building user interfaces quickly and efficiently.
 - **Cross-Platform Support**: Compatible with multiple platforms, allowing you to develop and deploy your applications on different operating systems with ease.
-- **Rendering Backends**: Supports **Direct3D 11 (D3D11)** and **OpenGL 3**, giving you flexibility in choosing the right rendering backend for your project.
+- **Rendering Backends**: Supports **Direct3D 11 (D3D11)** and **OpenGL 4**, giving you flexibility in choosing the right rendering backend for your project.
 - **Integration with imgui**: Leverages the powerful **imgui** library, providing an intuitive and efficient way to build UI components.
+- **AOT Ready**: Supports AOT publishing and code trimming. 
 
 ## Getting Started
 
