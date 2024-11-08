@@ -4,6 +4,8 @@
 
     public interface IAudioDevice : IDisposable
     {
+        AudioBackend Backend { get; }
+        
         IAudioContext? Current { get; set; }
 
         IAudioContext Default { get; }

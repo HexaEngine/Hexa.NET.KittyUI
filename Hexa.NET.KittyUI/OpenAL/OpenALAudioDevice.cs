@@ -28,6 +28,8 @@
             Current = context;
         }
 
+        public AudioBackend Backend => AudioBackend.OpenAL;
+
         public IAudioContext Default => context;
 
         public IAudioContext? Current

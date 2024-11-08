@@ -32,6 +32,12 @@
             Application.Run(window, this);
         }
 
+        public AppBuilder EnableSubSystem(SubSystems subSystem)
+        {
+            Application.SubSystems = subSystem;
+            return this;
+        }
+
         public AppBuilder EnableLogging(bool enabled)
         {
             Application.LoggingEnabled = enabled;

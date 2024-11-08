@@ -206,7 +206,7 @@
 
             WidgetManager.Dispose();
             renderDispatcher.Dispose();
-            AudioManager.Release();
+            AudioManager.Dispose();
 
             switch (Backend)
             {
