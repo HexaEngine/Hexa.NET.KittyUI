@@ -10,6 +10,8 @@
 #nullable enable
         private static bool running;
 
+        public static AudioBackend Backend => audioDevice?.Backend ?? AudioBackend.Disabled;
+
         public static IAudioDevice Device => audioDevice;
 
         public static IAudioContext Context => audioContext;
@@ -56,8 +58,9 @@
             }
         }
 
-        public static void Release()
+        public static void Dispose()
         {
+            if (audioDevice == null) return;
             running = false;
             streamThread.Join();
             audioContext.Dispose();

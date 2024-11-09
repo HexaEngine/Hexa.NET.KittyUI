@@ -9,11 +9,8 @@
     using Hexa.NET.KittyUI.Windows.Events;
     using Hexa.NET.Logging;
     using Hexa.NET.SDL2;
-    using System;
     using System.Collections.Generic;
     using static Hexa.NET.KittyUI.Extensions.SdlErrorHandlingExtensions;
-
-    public delegate bool EventHook(SDLEvent evnt);
 
     public static unsafe class Application
     {
@@ -45,6 +42,18 @@
         /// </summary>
         /// <remarks>This can be only set BEFORE <see cref="Run"/>  <see cref="AppBuilder.Run"/>.</remarks>
         public static GraphicsBackend SelectedGraphicsBackend { get; set; } = GraphicsBackend.Auto;
+        
+        /// <summary>
+        /// Sets the audio backend. Default: <see cref="AudioBackend.Auto"/>
+        /// </summary>
+        /// <remarks>This can be only set BEFORE <see cref="Run"/>  <see cref="AppBuilder.Run"/>.</remarks>
+        public static AudioBackend SelectedAudioBackend { get; set; } = AudioBackend.Auto;
+        
+        /// <summary>
+        /// Sets the active sub systems. Default: <see cref="SubSystems.None"/>
+        /// </summary>
+        /// <remarks>This can be only set BEFORE <see cref="Run"/>  <see cref="AppBuilder.Run"/>.</remarks>
+        public static SubSystems SubSystems { get; set; } = SubSystems.None;
 
         public static bool LoggingEnabled { get; set; } = true;
 
@@ -97,9 +106,11 @@
             Gamepads.Init();
             TouchDevices.Init();
 
-            audioDevice = AudioAdapter.CreateAudioDevice(AudioBackend.Auto, null);
-
-            AudioManager.Initialize(audioDevice);
+            if ((SubSystems & SubSystems.Audio) != 0)
+            {
+                audioDevice = AudioAdapter.CreateAudioDevice(SelectedAudioBackend, null);
+                AudioManager.Initialize(audioDevice);
+            }
 
             for (int i = 0; i < windows.Count; i++)
             {
@@ -107,6 +118,35 @@
             }
 
             initialized = true;
+        }
+        
+        /// <summary>
+        /// For Lazy init.
+        /// </summary>
+        /// <param name="subSystem"></param>
+        public static void InitSubSystem(SubSystems subSystem)
+        {
+            if ((SubSystems & SubSystems.Audio) != 0)
+            {
+                audioDevice = AudioAdapter.CreateAudioDevice(SelectedAudioBackend, null);
+                AudioManager.Initialize(audioDevice);
+            }
+
+            SubSystems |= subSystem;
+        }
+        
+        /// <summary>
+        /// For Lazy shutdown.
+        /// </summary>
+        /// <param name="subSystem"></param>
+        public static void ShutdownSubSystem(SubSystems subSystem)
+        {
+            if ((SubSystems & SubSystems.Audio) != 0)
+            {
+                AudioManager.Dispose();
+            }
+            
+            SubSystems &= ~subSystem;
         }
 
         internal static void RegisterWindow(IRenderWindow window)
@@ -186,6 +226,8 @@
             ((CoreWindow)mainWindow).DestroyWindow(true);
 
             ((CoreWindow)mainWindow).DestroyGraphics();
+            
+            AudioManager.Dispose();
 
             SDL.Quit();
         }
