@@ -227,12 +227,12 @@
         {
             ComPtr<IDXGIAdapter4> selected = null;
             for (uint adapterIndex = 0;
-                (ResultCode)IDXGIFactory.EnumAdapterByGpuPreference(adapterIndex, GpuPreference.HighPerformance, out ComPtr<IDXGIAdapter4> adapter) !=
+                (ResultCode)IDXGIFactory.EnumAdapterByGpuPreference(adapterIndex, GpuPreference.HighPerformance, out ComPtr<IDXGIAdapter4> adapter).Value !=
                 ResultCode.DXGI_ERROR_NOT_FOUND;
                 adapterIndex++)
             {
                 AdapterDesc1 desc;
-                adapter.GetDesc1(&desc).ThrowHResult();
+                adapter.GetDesc1(&desc).ThrowIf();
 
                 var nameSpan = MemoryMarshal.CreateReadOnlySpanFromNullTerminated(&desc.Description_0);
 
@@ -264,14 +264,14 @@
             ComPtr<IDXGIOutput6> output6 = null;
 
             for (uint outputIndex = 0;
-                (ResultCode)IDXGIAdapter.EnumOutputs(outputIndex, out output) !=
+                (ResultCode)IDXGIAdapter.EnumOutputs(outputIndex, out output).Value !=
                 ResultCode.DXGI_ERROR_NOT_FOUND;
                 outputIndex++)
 
             {
                 output.QueryInterface(out output6);
                 OutputDesc1 desc;
-                output6.GetDesc1(&desc).ThrowHResult();
+                output6.GetDesc1(&desc).ThrowIf();
 
                 // select the user chosen display by name.
                 var nameSpan = MemoryMarshal.CreateReadOnlySpanFromNullTerminated(&desc.DeviceName_0);
@@ -281,7 +281,7 @@
                 }
 
                 // select primary monitor.
-                if (desc.DesktopCoordinates.X == 0 && desc.DesktopCoordinates.Y == 0)
+                if (desc.DesktopCoordinates.Top == 0 && desc.DesktopCoordinates.Left == 0)
                 {
                     selected = output6;
                 }
@@ -293,7 +293,7 @@
         private static bool CheckSwapChainFormat(ComPtr<ID3D11Device5> device, Format target)
         {
             FormatSupport formatSupport;
-            device.CheckFormatSupport(target, (uint*)&formatSupport).ThrowHResult();
+            device.CheckFormatSupport(target, (uint*)&formatSupport).ThrowIf();
             return formatSupport.HasFlag(FormatSupport.Display | FormatSupport.RenderTarget);
         }
 
@@ -320,7 +320,7 @@
             }
 
             OutputDesc1 desc;
-            output.GetDesc1(&desc).ThrowHResult();
+            output.GetDesc1(&desc).ThrowIf();
 
             if (desc.ColorSpace == ColorSpaceType.RgbFullG2084NoneP2020)
             {
