@@ -38,8 +38,6 @@
             Context.MakeCurrent();
             GL.InitApi(Context);
 
-            NoExtensions = true;
-
             GLVersion.Current = GLVersion.InternalVersion;
 
             if (GLVersion.Current.ES)
@@ -78,8 +76,6 @@
                     IsPersistentMappingSupported = true;
                 }
             }
-
-            IsPersistentMappingSupported = false;
 
             UploadQueue = new(Context, window);
             DeleteQueue = new(Thread.CurrentThread);

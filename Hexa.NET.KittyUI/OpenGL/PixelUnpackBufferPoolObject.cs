@@ -140,11 +140,11 @@
 
             if (GLVersion.Current.ES)
             {
-                MappedData = GLES.MapBufferRange(OpenGLES.GLBufferTargetARB.PixelUnpackBuffer, 0, Size, OpenGLES.GLMapBufferAccessMask.WriteBit);
+                MappedData = GLES.MapBufferRange(OpenGLES.GLBufferTargetARB.PixelUnpackBuffer, 0, Size, OpenGLES.GLMapBufferAccessMask.WriteBit | OpenGLES.GLMapBufferAccessMask.UnsynchronizedBit);
             }
             else
             {
-                MappedData = GL.MapBufferRange(GLBufferTargetARB.PixelUnpackBuffer, 0, Size, GLMapBufferAccessMask.WriteBit);
+                MappedData = GL.MapBufferRange(GLBufferTargetARB.PixelUnpackBuffer, 0, Size, GLMapBufferAccessMask.WriteBit | GLMapBufferAccessMask.UnsynchronizedBit);
             }
 
             GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, 0);
