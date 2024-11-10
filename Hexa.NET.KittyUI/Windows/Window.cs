@@ -135,7 +135,7 @@
         private void RenderOpenGL()
         {
             glContext!.MakeCurrent();
-            OpenGLAdapter.ProcessQueues(); // Process all pending uploads
+
             if (resize)
             {
                 GL.Viewport(0, 0, Width, Height);
@@ -160,6 +160,8 @@
 
             glContext.MakeCurrent();
             glContext.SwapBuffers();
+
+            OpenGLAdapter.ProcessQueues(); // Process all pending uploads
         }
 
         private unsafe void RenderD3D11()

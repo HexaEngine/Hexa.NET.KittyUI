@@ -1,7 +1,9 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
-    using Hexa.NET.Utilities;
+    using Hexa.NET.KittyUI.Windows;
     using Hexa.NET.OpenGL;
+    using Hexa.NET.SDL2;
+    using Hexa.NET.Utilities;
     using System.Collections.Concurrent;
     using System.Threading;
 
@@ -10,11 +12,55 @@
         private readonly ConcurrentQueue<Pointer<OpenGLTextureTask>> creationQueue = new();
         private readonly ConcurrentQueue<Pointer<OpenGLTextureTask>> finishingQueue = new();
         private readonly List<Pointer<OpenGLTextureTask>> waitingList = new();
-        private readonly Thread currentThread;
+        private readonly ManualResetEventSlim signal = new(false);
+        private readonly Thread uploadThread;
 
-        public UploadQueue(Thread currentThread)
+        private bool running = true;
+        private ulong pollingRateMax = 1_000_000;
+        private readonly IGLContext context;
+
+        public UploadQueue(IGLContext mainContext, IWindow window)
         {
-            this.currentThread = currentThread;
+            mainContext.MakeCurrent();
+            SDL.GLSetAttribute(SDLGLattr.GlShareWithCurrentContext, 1);
+            context = window.OpenGLCreateContext();
+
+            mainContext.MakeCurrent();
+
+            uploadThread = new Thread(ThreadVoid)
+            {
+                Name = "GL Upload Thread"
+            };
+            uploadThread.Start();
+        }
+
+        public ulong PollingRateMax { get => pollingRateMax; set => pollingRateMax = value; }
+
+        private void ThreadVoid()
+        {
+            context.MakeCurrent();
+            GL.InitApi(context);
+
+            OpenGLPixelBufferPool.Global = new();
+
+            OpenGLTexturePool.Global = new();
+            OpenGLTexturePool.Global.AllocateNewBlock();
+
+            while (running)
+            {
+                signal.Wait();
+
+                if (!running)
+                {
+                    break;
+                }
+
+                ProcessQueue();
+
+                signal.Reset();
+            }
+
+            context.Dispose();
         }
 
         /// <summary>
@@ -24,17 +70,15 @@
         /// <returns>Returns <c>true</c> if the task was enqueued, <c>false</c> if the current thread is the same as the thread that created the queue.</returns>
         public bool Enqueue(Pointer<OpenGLTextureTask> task)
         {
-            if (Thread.CurrentThread == currentThread)
-            {
-                return false;
-            }
             creationQueue.Enqueue(task);
+            signal.Set();
             return true;
         }
 
         public void EnqueueFinish(Pointer<OpenGLTextureTask> task)
         {
             finishingQueue.Enqueue(task);
+            signal.Set();
         }
 
         public void ProcessQueue()
@@ -50,13 +94,27 @@
                 waitingList.Add(task);
             }
 
-            for (int i = waitingList.Count - 1; i >= 0; i--)
+            while (waitingList.Count > 0)
             {
-                if (waitingList[i].Data->CheckIfDone())
+                int count = waitingList.Count;
+                for (int i = count - 1; i >= 0; i--)
                 {
-                    waitingList.RemoveAt(i);
+                    ulong timeout = pollingRateMax / (ulong)count;
+                    if (waitingList[i].Data->CheckIfDone(timeout))
+                    {
+                        waitingList.RemoveAt(i);
+                        count--;
+                    }
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            running = false;
+            signal.Set();
+            uploadThread.Join();
+            signal.Dispose();
         }
     }
 }

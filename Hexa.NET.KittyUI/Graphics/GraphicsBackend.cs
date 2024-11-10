@@ -19,6 +19,11 @@
         OpenGL,
 
         /// <summary>
+        /// OpenGLES 3 backend. (Android)
+        /// </summary>
+        OpenGLES,
+
+        /// <summary>
         /// Not supported yet.
         /// </summary>
         Vulkan,

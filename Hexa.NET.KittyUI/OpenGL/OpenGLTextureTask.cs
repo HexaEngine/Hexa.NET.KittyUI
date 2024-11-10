@@ -1,23 +1,30 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
-    using Hexa.NET.Utilities;
     using Hexa.NET.OpenGL;
+    using Hexa.NET.Utilities;
 
+    /// <summary>
+    /// Workflow
+    /// Producer thread sends task to <see cref="UploadQueue.Enqueue(Utilities.Pointer{OpenGLTextureTask})"/>
+    /// Upload thread calls <see cref="CreateTexture"/> then <see cref="Fence.Signal"/>
+    /// Producer then copies to mappedData.
+    /// Then Producer enqueues the task again into <see cref="UploadQueue.EnqueueFinish(Utilities.Pointer{OpenGLTextureTask})"/>
+    /// Then upload thread calls <see cref="FinishTexture"/> then the task is enqueued in a internal queue to get polled <see cref="CheckIfDone"/> (polling is adaptively handled)
+    /// After that upload thread calls <see cref="Fence.Signal"/> again telling the producer that everything is done.
+    /// </summary>
     public unsafe struct OpenGLTextureTask
     {
         private Fence Fence;
         public OpenGLTexture2DDesc Desc;
         private uint textureId;
-        private uint pboId;
+        private PixelUnpackBufferPoolObject pboId;
         private void* mappedData;
 
-        private GLSync syncFence;
+        private GLCSync syncFence;
 
         public readonly void* MappedData => mappedData;
 
         public readonly uint TextureId => textureId;
-
-        public readonly bool Created => textureId != 0 || pboId != 0;
 
         /// <summary>
         /// Caller must be the creation thread.
@@ -33,24 +40,14 @@
         /// </summary>
         public void CreateTexture()
         {
-            nint size = CalculatePboSize(Desc.Width, Desc.Height, Desc.MipLevels, Desc.PixelFormat, Desc.PixelType, Desc.ArraySize);
-            if (!OpenGLAdapter.CanUploadTexturesAsync)
-            {
-                mappedData = Alloc(size);
-                Fence.Signal();
-                return;
-            }
-            GL.CreateBuffers(1, ref pboId);
-            //GL.CheckError();
-            GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, pboId);
-            //GL.CheckError();
-            GL.BufferData(GLBufferTargetARB.PixelUnpackBuffer, size, null, GLBufferUsageARB.StreamDraw);
-            //GL.CheckError();
+            textureId = OpenGLTexturePool.Global.GetNextTexture();
 
-            mappedData = GL.MapBufferRange(GLBufferTargetARB.PixelUnpackBuffer, 0, size, GLMapBufferAccessMask.WriteBit | GLMapBufferAccessMask.UnsynchronizedBit);
-            //GL.CheckError();
-            GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, 0);
-            //GL.CheckError();
+            Desc.PrepareTexture(textureId);
+
+            nint size = CalculatePboSize(Desc.Width, Desc.Height, Desc.MipLevels, Desc.PixelFormat, Desc.PixelType, Desc.ArraySize);
+
+            pboId = OpenGLPixelBufferPool.Global.Rent(size);
+            mappedData = pboId.Map();
 
             Fence.Signal();
         }
@@ -60,62 +57,32 @@
         /// </summary>
         public void FinishTexture()
         {
-            if (!OpenGLAdapter.CanUploadTexturesAsync)
-            {
-                return;
-            }
-            GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, pboId);
-            //GL.CheckError();
-            GL.UnmapBuffer(GLBufferTargetARB.PixelUnpackBuffer);
-            GL.MemoryBarrier(GLMemoryBarrierMask.PixelBufferBarrierBit);
-            //GL.CheckError();
-            syncFence = GL.FenceSync(GLSyncCondition.GpuCommandsComplete, GLSyncBehaviorFlags.None);
-            //GL.CheckError();
-            GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, 0);
-            //GL.CheckError();
+            pboId.Upload(textureId, 0, 0, Desc);
+            syncFence = GLCSync.FenceSync(GLSyncCondition.GpuCommandsComplete, GLSyncBehaviorFlags.None);
         }
 
         /// <summary>
         /// Polled by the main thread.
         /// </summary>
-        public bool CheckIfDone()
+        public bool CheckIfDone(ulong timeout)
         {
-            if (!OpenGLAdapter.CanUploadTexturesAsync)
+            GLEnum result = syncFence.ClientWaitSync(0, timeout);
+            if (result == GLEnum.ConditionSatisfied || result == GLEnum.AlreadySignaled)
             {
-                textureId = OpenGLTexturePool.Global.GetNextTexture();
-                GL.BindTexture(GLTextureTarget.Texture2D, textureId);
-
-                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.MinFilter, (int)Desc.MinFilter);
-                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.MagFilter, (int)Desc.MagFilter);
-                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.WrapS, (int)Desc.WrapS);
-                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.WrapT, (int)Desc.WrapT);
-                GL.TexImage2D(GLTextureTarget.Texture2D, 0, Desc.InternalFormat, Desc.Width, Desc.Height, 0, Desc.PixelFormat, Desc.PixelType, mappedData);
-
-                GL.BindTexture(GLTextureTarget.Texture2D, 0);
-                Free(mappedData);
+                OpenGLPixelBufferPool.Global.Return(pboId);
+                syncFence.Delete();
                 Fence.Signal();
                 return true;
             }
 
-            if (GL.ClientWaitSync(syncFence, GLSyncObjectMask.FlushCommandsBit, 0) == GLEnum.AlreadySignaled)
+            if (result == GLEnum.WaitFailed)
             {
-                textureId = OpenGLTexturePool.Global.GetNextTexture();
-                GL.BindTexture(GLTextureTarget.Texture2D, textureId);
-                GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, pboId);
-
-                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.MinFilter, (int)Desc.MinFilter);
-                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.MagFilter, (int)Desc.MagFilter);
-                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.WrapS, (int)Desc.WrapS);
-                GL.TexParameteri(GLTextureTarget.Texture2D, GLTextureParameterName.WrapT, (int)Desc.WrapT);
-                GL.TexImage2D(GLTextureTarget.Texture2D, 0, Desc.InternalFormat, Desc.Width, Desc.Height, 0, Desc.PixelFormat, Desc.PixelType, null);
-
-                GL.BindTexture(GLTextureTarget.Texture2D, 0);
-                GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, 0);
-                GL.DeleteSync(syncFence);
-                syncFence = default;
-                GL.DeleteBuffer(pboId);
-                pboId = 0;
+                OpenGLPixelBufferPool.Global.Return(pboId);
+                syncFence.Delete();
                 Fence.Signal();
+                OpenGLTexturePool.Global.Return(textureId);
+                textureId = 0;
+
                 return true;
             }
             return false;

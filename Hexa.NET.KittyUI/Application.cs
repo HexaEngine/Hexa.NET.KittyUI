@@ -42,13 +42,13 @@
         /// </summary>
         /// <remarks>This can be only set BEFORE <see cref="Run"/>  <see cref="AppBuilder.Run"/>.</remarks>
         public static GraphicsBackend SelectedGraphicsBackend { get; set; } = GraphicsBackend.Auto;
-        
+
         /// <summary>
         /// Sets the audio backend. Default: <see cref="AudioBackend.Auto"/>
         /// </summary>
         /// <remarks>This can be only set BEFORE <see cref="Run"/>  <see cref="AppBuilder.Run"/>.</remarks>
         public static AudioBackend SelectedAudioBackend { get; set; } = AudioBackend.Auto;
-        
+
         /// <summary>
         /// Sets the active sub systems. Default: <see cref="SubSystems.None"/>
         /// </summary>
@@ -67,13 +67,18 @@
             builder.Dispose();
             mainWindow.Show();
             PlatformRun();
+
+            FileLogWriter.Dispose();
         }
+
+        public static readonly LogFileWriter FileLogWriter = new("logs");
 
         private static void Init(IRenderWindow mainWindow, AppBuilder builder)
         {
             if (LoggingEnabled)
             {
                 CrashLogger.Initialize();
+                LoggerFactory.AddGlobalWriter(FileLogWriter);
             }
 
             if (ImGuiDebugTools.Enabled)
@@ -119,7 +124,7 @@
 
             initialized = true;
         }
-        
+
         /// <summary>
         /// For Lazy init.
         /// </summary>
@@ -134,7 +139,7 @@
 
             SubSystems |= subSystem;
         }
-        
+
         /// <summary>
         /// For Lazy shutdown.
         /// </summary>
@@ -145,7 +150,7 @@
             {
                 AudioManager.Dispose();
             }
-            
+
             SubSystems &= ~subSystem;
         }
 
@@ -226,7 +231,7 @@
             ((CoreWindow)mainWindow).DestroyWindow(true);
 
             ((CoreWindow)mainWindow).DestroyGraphics();
-            
+
             AudioManager.Dispose();
 
             SDL.Quit();

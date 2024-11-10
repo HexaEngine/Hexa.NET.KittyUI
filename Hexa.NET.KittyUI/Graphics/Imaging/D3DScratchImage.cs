@@ -4,7 +4,9 @@
     using Hexa.NET.DirectXTex;
     using Hexa.NET.DXGI;
     using Hexa.NET.KittyUI.D3D11;
+    using Hexa.NET.KittyUI.Debugging;
     using Hexa.NET.KittyUI.OpenGL;
+    using Hexa.NET.Logging;
     using Hexa.NET.OpenGL;
     using HexaGen.Runtime.COM;
     using System.IO;
@@ -166,7 +168,6 @@
         public uint CreateTexture2D(GLTextureWrapMode wrapS = GLTextureWrapMode.ClampToEdge, GLTextureWrapMode wrapT = GLTextureWrapMode.ClampToEdge, GLTextureMinFilter minFilter = GLTextureMinFilter.Linear, GLTextureMagFilter magFilter = GLTextureMagFilter.Linear)
         {
             var metadata = scImage.GetMetadata();
-            var (internalFormat, pixelFormat, pixelType) = Convert((Format)metadata.Format);
 
             OpenGLTextureTask* task = stackalloc OpenGLTextureTask[1];
             task->Desc = new OpenGLTexture2DDesc
@@ -175,14 +176,16 @@
                 Height = (int)metadata.Height,
                 MipLevels = (uint)metadata.MipLevels,
                 ArraySize = (uint)metadata.ArraySize,
-                InternalFormat = internalFormat,
-                PixelFormat = pixelFormat,
-                PixelType = pixelType,
+                InternalFormat = 0,
+                PixelFormat = 0,
+                PixelType = 0,
                 WrapS = wrapS,
                 WrapT = wrapT,
                 MinFilter = minFilter,
                 MagFilter = magFilter,
             };
+
+            Convert((Format)metadata.Format, &task->Desc);
 
             if (OpenGLAdapter.UploadQueue.Enqueue(task)) // handle async texture loading.
             {
@@ -264,7 +267,7 @@
                         GL.CompressedTexImage2D(
                             GetTargetForCubeMap(textureTarget, item),
                             (int)mip,
-                            internalFormat,
+                            task->Desc.InternalFormat,
                             (int)image->Width,
                             (int)image->Height,
                             0,
@@ -278,12 +281,12 @@
                         GL.TexImage2D(
                             GetTargetForCubeMap(textureTarget, item),
                             (int)mip,
-                            internalFormat,
+                            task->Desc.InternalFormat,
                             (int)image->Width,
                             (int)image->Height,
                             0,
-                            pixelFormat,
-                            pixelType,
+                            task->Desc.PixelFormat,
+                            task->Desc.PixelType,
                             image->Pixels
                         );
                     }
@@ -306,11 +309,16 @@
             return textureTarget;
         }
 
-        private static (GLInternalFormat internalFormat, GLPixelFormat pixelFormat, GLPixelType pixelType) Convert(Format format)
+        private static void Convert(Format format, OpenGLTexture2DDesc* desc)
         {
             GLInternalFormat internalFormat;
             GLPixelFormat pixelFormat = GLPixelFormat.Rgba; // Default pixel format for most cases
             GLPixelType pixelType = GLPixelType.UnsignedByte; // Default pixel type for most cases
+
+            GLTextureSwizzle swizzleR = GLTextureSwizzle.Red;
+            GLTextureSwizzle swizzleG = GLTextureSwizzle.Green;
+            GLTextureSwizzle swizzleB = GLTextureSwizzle.Blue;
+            GLTextureSwizzle swizzleA = GLTextureSwizzle.Alpha;
 
             switch (format)
             {
@@ -456,7 +464,20 @@
                     throw new NotSupportedException($"DXGI format {format} is not supported.");
             }
 
-            return (internalFormat, pixelFormat, pixelType);
+            if (pixelFormat == GLPixelFormat.Rgba)
+            {
+                pixelFormat = GLPixelFormat.Bgra;
+                swizzleR = GLTextureSwizzle.Blue;
+                swizzleB = GLTextureSwizzle.Red;
+            }
+
+            desc->InternalFormat = internalFormat;
+            desc->PixelFormat = pixelFormat;
+            desc->PixelType = pixelType;
+            desc->SwizzleR = swizzleR;
+            desc->SwizzleG = swizzleG;
+            desc->SwizzleB = swizzleB;
+            desc->SwizzleA = swizzleA;
         }
 
         public void Dispose()

@@ -9,8 +9,8 @@ using Hexa.NET.KittyUI.Web;
 using TestApp;
 
 AppBuilder appBuilder = new();
-appBuilder.EnableLogging(false);
-appBuilder.EnableDebugTools(false);
+appBuilder.EnableLogging(true);
+appBuilder.EnableDebugTools(true);
 appBuilder.SetGraphicsBackend(GraphicsBackend.OpenGL);
 appBuilder.SetTitle("Test App");
 appBuilder.AddWindow<MainWindow>(true, true);
@@ -51,6 +51,7 @@ namespace TestApp
             if (ImGui.Button("Load Texture"))
             {
                 LoadTexture("icon.png");
+                //LoadWebTexture();
             }
 
             if (image != null)
@@ -63,6 +64,7 @@ namespace TestApp
         {
             Task.Run(() =>
             {
+                image?.Dispose();
                 image = Image2D.LoadFromFile(path);
             });
         }

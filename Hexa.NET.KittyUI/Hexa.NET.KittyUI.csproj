@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFrameworks>net8.0;net8.0-android</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -61,7 +61,13 @@
 		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.10" />
 		<PackageReference Include="Hexa.NET.DirectXTex" Version="2.0.2" />
 		<PackageReference Include="Hexa.NET.StbImage" Version="1.0.1" />
-		<PackageReference Include="Hexa.NET.OpenGL4" Version="1.0.1" />
+		<PackageReference Include="Hexa.NET.OpenGL4" Version="1.0.2" /> <!-- Core profile 4.x -->
+		<PackageReference Include="Hexa.NET.OpenGL.EXT" Version="1.0.2" /> 
+		<PackageReference Include="Hexa.NET.OpenGL.ARB" Version="1.0.2" />
+		<PackageReference Include="Hexa.NET.OpenGL.KHR" Version="1.0.2" />
+		<PackageReference Include="Hexa.NET.OpenGLES3" Version="1.0.2" />
+		<PackageReference Include="Hexa.NET.OpenGLES.EXT" Version="1.0.2" />
+		<PackageReference Include="Hexa.NET.OpenGLES.KHR" Version="1.0.2" />
 		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.7" />
 		<PackageReference Include="Hexa.NET.D3DCompiler" Version="1.0.3" />
 		<PackageReference Include="Hexa.NET.D3D11" Version="1.0.3" />

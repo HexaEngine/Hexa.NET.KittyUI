@@ -10,6 +10,8 @@
 
         public static float Delta { get; private set; }
 
+        public static long Frame { get; private set; }
+
         public static double CumulativeFrameTime => cumulativeFrameTime;
 
         public static void Initialize()
@@ -20,6 +22,7 @@
 
         public static void FrameUpdate()
         {
+            Frame++;
             long now = Stopwatch.GetTimestamp();
             double deltaTime = ((double)now - last) / Stopwatch.Frequency;
 

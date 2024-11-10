@@ -23,34 +23,54 @@
             mainThread = thread;
         }
 
-        public static OpenGLTexturePool Global { get; } = new();
+        public static OpenGLTexturePool Global { get; internal set; } = null!;
 
         public uint GetNextTexture()
         {
-            int index = Interlocked.Increment(ref current);
+            semaphore.Wait();
+
+            int index = current;
+            current++;
 
             if (index >= bufferBlockSize)
             {
                 if (Thread.CurrentThread == mainThread)
                 {
-                    AllocateNewBlock();
+                    AllocateNewBlock(false);
                 }
+
+                semaphore.Release();
+
                 while (Volatile.Read(ref current) >= bufferBlockSize)
                 {
                     Thread.Yield();
                 }
-                index = Interlocked.Increment(ref current);
+
+                semaphore.Wait();
+
+                index = current;
+                current++;
             }
+
+            semaphore.Release();
 
             return textures[index];
         }
 
         public void AllocateNewBlock()
         {
+            AllocateNewBlock(true);
+        }
+
+        private void AllocateNewBlock(bool lockBlock)
+        {
             if (current < bufferBlockSize) return;
             if (Thread.CurrentThread != mainThread) return;
 
-            semaphore.Wait();
+            if (lockBlock)
+            {
+                semaphore.Wait();
+            }
 
             int toGenerate = bufferBlockSize - freeList.Size;
             GL.GenTextures(toGenerate, textures);
@@ -60,13 +80,25 @@
 
             Interlocked.Exchange(ref current, 0);
 
-            semaphore.Release();
+            if (lockBlock)
+            {
+                semaphore.Release();
+            }
         }
 
         public void Return(uint texture)
         {
             semaphore.Wait();
-            freeList.PushBack(texture); // this can never fail.
+
+            if (current == 0)
+            {
+                freeList.PushBack(texture); // this can never fail.
+                return;
+            }
+
+            current--;
+            textures[current] = texture;
+
             semaphore.Release();
         }
 

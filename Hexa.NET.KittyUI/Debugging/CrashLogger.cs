@@ -10,15 +10,9 @@
 
     public static class CrashLogger
     {
-        /// <summary>
-        /// Gets the file log writer used for crash logging.
-        /// </summary>
-        public static readonly LogFileWriter FileLogWriter = new("logs");
-
         public static void Initialize()
         {
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;
-            LoggerFactory.AddGlobalWriter(FileLogWriter);
         }
 
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Accessing TargetSite is safe as reflection information is preserved.")]

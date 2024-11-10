@@ -10,6 +10,7 @@
     using Hexa.NET.OpenGL;
     using HexaGen.Runtime.COM;
     using System.Numerics;
+    using System.Threading;
     using ID3D11Device = NET.D3D11.ID3D11Device;
     using ID3D11Resource = NET.D3D11.ID3D11Resource;
     using ID3D11ShaderResourceView = NET.D3D11.ID3D11ShaderResourceView;
