@@ -1,6 +1,15 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
+#if GLES
+
+    using Hexa.NET.OpenGLES;
+
+#else
+
     using Hexa.NET.OpenGL;
+
+#endif
+
     using Hexa.NET.Utilities;
     using System.Threading;
 
@@ -12,10 +21,12 @@
         private readonly Thread mainThread;
         private UnsafeList<uint> freeList = [];
         private readonly SemaphoreSlim semaphore = new(1);
+        private readonly GL GL;
 
-        public OpenGLTexturePool()
+        public OpenGLTexturePool(GL GL)
         {
             mainThread = Thread.CurrentThread;
+            this.GL = GL;
         }
 
         public OpenGLTexturePool(Thread thread)

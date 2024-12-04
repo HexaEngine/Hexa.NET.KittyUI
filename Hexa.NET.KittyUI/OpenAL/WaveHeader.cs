@@ -56,17 +56,17 @@
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidDataException"></exception>
-        public int GetBufferFormat()
+        public ALFormat GetBufferFormat()
         {
-            int format;
+            ALFormat format;
             if (NumChannels == 1 && BitsPerSample == 8)
-                format = OpenAL.AL_FORMAT_MONO8;
+                format = ALFormat.Mono8;
             else if (NumChannels == 1 && BitsPerSample == 16)
-                format = OpenAL.AL_FORMAT_MONO16;
+                format = ALFormat.Mono16;
             else if (NumChannels == 2 && BitsPerSample == 8)
-                format = OpenAL.AL_FORMAT_STEREO8;
+                format = ALFormat.Stereo8;
             else if (NumChannels == 2 && BitsPerSample == 16)
-                format = OpenAL.AL_FORMAT_STEREO16;
+                format = ALFormat.Stereo16;
             else
             {
                 throw new InvalidDataException();

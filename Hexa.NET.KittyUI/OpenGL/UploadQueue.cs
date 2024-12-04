@@ -1,7 +1,16 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
-    using Hexa.NET.KittyUI.Windows;
+#if GLES
+
+    using Hexa.NET.OpenGLES;
+
+#else
+
     using Hexa.NET.OpenGL;
+
+#endif
+
+    using Hexa.NET.KittyUI.Windows;
     using Hexa.NET.SDL2;
     using Hexa.NET.Utilities;
     using System.Collections.Concurrent;
@@ -17,9 +26,11 @@
 
         private bool running = true;
         private ulong pollingRateMax = 1_000_000;
-        private readonly IGLContext context;
+        private readonly HexaGen.Runtime.IGLContext context;
 
-        public UploadQueue(IGLContext mainContext, IWindow window)
+        private GL GL;
+
+        public UploadQueue(HexaGen.Runtime.IGLContext mainContext, IWindow window)
         {
             mainContext.MakeCurrent();
             SDL.GLSetAttribute(SDLGLattr.GlShareWithCurrentContext, 1);
@@ -39,11 +50,11 @@
         private void ThreadVoid()
         {
             context.MakeCurrent();
-            GL.InitApi(context);
+            GL = new(context);
 
-            OpenGLPixelBufferPool.Global = new();
+            OpenGLPixelBufferPool.Global = new(GL);
 
-            OpenGLTexturePool.Global = new();
+            OpenGLTexturePool.Global = new(GL);
             OpenGLTexturePool.Global.AllocateNewBlock();
 
             while (running)
@@ -85,12 +96,12 @@
         {
             while (creationQueue.TryDequeue(out var task))
             {
-                task.Data->CreateTexture();
+                task.Data->CreateTexture(GL);
             }
 
             while (finishingQueue.TryDequeue(out var task))
             {
-                task.Data->FinishTexture();
+                task.Data->FinishTexture(GL);
                 waitingList.Add(task);
             }
 
@@ -100,7 +111,7 @@
                 for (int i = count - 1; i >= 0; i--)
                 {
                     ulong timeout = pollingRateMax / (ulong)count;
-                    if (waitingList[i].Data->CheckIfDone(timeout))
+                    if (waitingList[i].Data->CheckIfDone(GL, timeout))
                     {
                         waitingList.RemoveAt(i);
                         count--;

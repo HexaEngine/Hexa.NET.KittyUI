@@ -10,8 +10,8 @@
 		<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
 		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 
-		<AssemblyVersion>1.0.8</AssemblyVersion>
-		<PackageVersion>1.0.8</PackageVersion>
+		<AssemblyVersion>1.0.9</AssemblyVersion>
+		<PackageVersion>1.0.9</PackageVersion>
 		<Description></Description>
 		<PackageTags></PackageTags>
 		<Authors>Juna Meinhold</Authors>
@@ -28,6 +28,10 @@
 		<NoWarn>$(NoWarn);1591</NoWarn>
 
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
+		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -48,34 +52,34 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hexa.NET.ImGui.Widgets" Version="1.1.18" />
+		<PackageReference Include="Hexa.NET.ImGui.Widgets" Version="1.1.20" />
 		<PackageReference Include="Hexa.NET.ImGui.Widgets.Extras" Version="1.0.2" />
-		<PackageReference Include="Hexa.NET.ImGui" Version="2.2.0" />
-		<PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.0" />
-		<PackageReference Include="Hexa.NET.ImNodes" Version="2.2.0" />
-		<PackageReference Include="Hexa.NET.ImPlot" Version="2.2.0" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.8" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.8" />
+		<PackageReference Include="Hexa.NET.ImGui" Version="2.2.2" />
+		<PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.2" />
+		<PackageReference Include="Hexa.NET.ImNodes" Version="2.2.2" />
+		<PackageReference Include="Hexa.NET.ImPlot" Version="2.2.2" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.10" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.10" />
 		<PackageReference Include="Hexa.NET.Logging" Version="2.0.0" />
-		<PackageReference Include="Hexa.NET.Math" Version="2.0.2" />
-		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.10" />
-		<PackageReference Include="Hexa.NET.DirectXTex" Version="2.0.2" />
-		<PackageReference Include="Hexa.NET.StbImage" Version="1.0.1" />
-		<PackageReference Include="Hexa.NET.OpenGL4" Version="1.0.2" /> <!-- Core profile 4.x -->
-		<PackageReference Include="Hexa.NET.OpenGL.EXT" Version="1.0.2" /> 
-		<PackageReference Include="Hexa.NET.OpenGL.ARB" Version="1.0.2" />
-		<PackageReference Include="Hexa.NET.OpenGL.KHR" Version="1.0.2" />
-		<PackageReference Include="Hexa.NET.OpenGLES3" Version="1.0.2" />
-		<PackageReference Include="Hexa.NET.OpenGLES.EXT" Version="1.0.2" />
-		<PackageReference Include="Hexa.NET.OpenGLES.KHR" Version="1.0.2" />
-		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.7" />
-		<PackageReference Include="Hexa.NET.D3DCompiler" Version="1.0.3" />
-		<PackageReference Include="Hexa.NET.D3D11" Version="1.0.3" />
-		<PackageReference Include="Hexa.NET.DXGI" Version="1.0.3" />
-		<PackageReference Include="Hexa.NET.OpenAL" Version="1.2.0" />
+		<PackageReference Include="Hexa.NET.Math" Version="2.0.3" />
+		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.14" />
+		<PackageReference Include="Hexa.NET.DirectXTex" Version="2.0.3" />
+		<PackageReference Include="Hexa.NET.StbImage" Version="1.0.2" />
+		<PackageReference Include="Hexa.NET.OpenGL4" Version="1.1.0" /> <!-- Core profile 4.x -->
+		<PackageReference Include="Hexa.NET.OpenGL.EXT" Version="1.1.0" /> 
+		<PackageReference Include="Hexa.NET.OpenGL.ARB" Version="1.1.0" />
+		<PackageReference Include="Hexa.NET.OpenGL.KHR" Version="1.1.0" />
+		<PackageReference Include="Hexa.NET.OpenGLES3" Version="1.1.0" />
+		<PackageReference Include="Hexa.NET.OpenGLES.EXT" Version="1.1.0" />
+		<PackageReference Include="Hexa.NET.OpenGLES.KHR" Version="1.1.0" />
+		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.8" />
+		<PackageReference Include="Hexa.NET.D3DCompiler" Version="1.0.6" />
+		<PackageReference Include="Hexa.NET.D3D11" Version="1.0.6" />
+		<PackageReference Include="Hexa.NET.DXGI" Version="1.0.6" />
+		<PackageReference Include="Hexa.NET.OpenAL" Version="1.2.2" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />		
-		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
-		<PackageReference Include="System.Text.Json" Version="8.0.5" />
+		<PackageReference Include="System.IO.Hashing" Version="9.0.0" />
+		<PackageReference Include="System.Text.Json" Version="9.0.0" />
 	</ItemGroup>
 
 </Project>

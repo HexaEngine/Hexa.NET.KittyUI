@@ -11,6 +11,7 @@
     using Hexa.NET.Logging;
     using Hexa.NET.Mathematics;
     using Hexa.NET.SDL2;
+    using HexaGen.Runtime;
     using System;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;

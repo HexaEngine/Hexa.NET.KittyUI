@@ -4,7 +4,7 @@
 
     public static class OpenGLExtensions
     {
-        public static void GLCheckError()
+        public static void GLCheckError(GL GL)
         {
             var error = (GLErrorCode)GL.GetError();
             if (error != GLErrorCode.NoError)

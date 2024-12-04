@@ -1,13 +1,20 @@
 ﻿namespace Hexa.NET.KittyUI.Graphics.Imaging
 {
+#if GLES
+
+    using Hexa.NET.OpenGLES;
+
+#else
+
+    using Hexa.NET.OpenGL;
+
+#endif
+
     using Hexa.NET.D3D11;
     using Hexa.NET.DirectXTex;
     using Hexa.NET.DXGI;
     using Hexa.NET.KittyUI.D3D11;
-    using Hexa.NET.KittyUI.Debugging;
     using Hexa.NET.KittyUI.OpenGL;
-    using Hexa.NET.Logging;
-    using Hexa.NET.OpenGL;
     using HexaGen.Runtime.COM;
     using System.IO;
     using DDSFlags = DirectXTex.DDSFlags;
@@ -187,7 +194,7 @@
 
             Convert((Format)metadata.Format, &task->Desc);
 
-            if (OpenGLAdapter.UploadQueue.Enqueue(task)) // handle async texture loading.
+            OpenGLAdapter.UploadQueue.Enqueue(task);
             {
                 task->Wait();
 
@@ -217,85 +224,6 @@
 
                 return task->TextureId;
             }
-
-            // Generate a texture ID for OpenGL
-            uint _textureID = OpenGLTexturePool.Global.GetNextTexture();
-
-            GLTextureTarget textureTarget = GLTextureTarget.Texture2D;
-            if (metadata.ArraySize > 1)
-            {
-                textureTarget = GLTextureTarget.Texture2DArray;
-                if (metadata.ArraySize % 6 == 0 && metadata.IsCubemap())
-                {
-                    textureTarget = GLTextureTarget.CubeMap;
-                    if (metadata.ArraySize > 6)
-                    {
-                        textureTarget = GLTextureTarget.CubeMapArray;
-                    }
-                }
-            }
-
-            GL.BindTexture(textureTarget, _textureID);
-
-            // Set wrapping modes
-            GL.TexParameteri(textureTarget, GLTextureParameterName.WrapS, (int)wrapS);
-            GL.TexParameteri(textureTarget, GLTextureParameterName.WrapT, (int)wrapT);
-
-            if (textureTarget == GLTextureTarget.CubeMap)
-            {
-                // For cubemaps, set the R wrap mode as well
-                GL.TexParameteri(textureTarget, GLTextureParameterName.WrapR, (int)wrapS);
-            }
-
-            // Set filtering modes
-            GL.TexParameteri(textureTarget, GLTextureParameterName.MinFilter, (int)minFilter);
-            GL.TexParameteri(textureTarget, GLTextureParameterName.MagFilter, (int)magFilter);
-
-            // Determine the appropriate OpenGL internal format, pixel format, and type based on the DXGI format
-            var compressed = DirectXTex.IsCompressed(metadata.Format);
-
-            // Upload the image data to OpenGL
-            for (uint mip = 0; mip < metadata.MipLevels; mip++)
-            {
-                for (uint item = 0; item < metadata.ArraySize; item++)
-                {
-                    var image = scImage.GetImage(mip, item, 0);
-
-                    if (compressed)
-                    {
-                        // Compressed formats
-                        GL.CompressedTexImage2D(
-                            GetTargetForCubeMap(textureTarget, item),
-                            (int)mip,
-                            task->Desc.InternalFormat,
-                            (int)image->Width,
-                            (int)image->Height,
-                            0,
-                            (int)image->SlicePitch,
-                            image->Pixels
-                        );
-                    }
-                    else
-                    {
-                        // Uncompressed formats
-                        GL.TexImage2D(
-                            GetTargetForCubeMap(textureTarget, item),
-                            (int)mip,
-                            task->Desc.InternalFormat,
-                            (int)image->Width,
-                            (int)image->Height,
-                            0,
-                            task->Desc.PixelFormat,
-                            task->Desc.PixelType,
-                            image->Pixels
-                        );
-                    }
-                }
-            }
-
-            GL.BindTexture(textureTarget, 0);
-
-            return _textureID;
         }
 
         private GLTextureTarget GetTargetForCubeMap(GLTextureTarget textureTarget, uint item)

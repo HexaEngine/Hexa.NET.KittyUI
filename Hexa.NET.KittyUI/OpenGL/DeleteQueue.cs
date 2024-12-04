@@ -1,15 +1,26 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
+#if GLES
+
+    using Hexa.NET.OpenGLES;
+
+#else
+
     using Hexa.NET.OpenGL;
+
+#endif
+
     using System.Collections.Concurrent;
 
     public class DeleteQueue
     {
         private readonly ConcurrentQueue<(GLEnum, uint)> queue = new();
+        private readonly GL GL;
         private readonly Thread thread;
 
-        public DeleteQueue(Thread thread)
+        public DeleteQueue(GL GL, Thread thread)
         {
+            this.GL = GL;
             this.thread = thread;
         }
 

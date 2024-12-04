@@ -2,16 +2,23 @@
 {
     using Hexa.NET.KittyUI.Windows;
     using Hexa.NET.Logging;
-    using Hexa.NET.OpenGL;
 
-    using GLES = Hexa.NET.OpenGLES.GL;
-    using GLESKHRDebug = Hexa.NET.OpenGLES.KHR.GLKHRDebug;
-    using System;
-    using System.Runtime.InteropServices;
-    using System.Threading;
+#if GLES
+
+    using Hexa.NET.OpenGLES;
+    using Hexa.NET.OpenGLES.KHR;
+
+#else
+
+    using Hexa.NET.OpenGL;
     using Hexa.NET.OpenGL.ARB;
     using Hexa.NET.OpenGL.KHR;
+
+#endif
+
+    using System.Threading;
     using Hexa.NET.KittyUI.Threading;
+    using HexaGen.Runtime;
 
     public unsafe class OpenGLAdapter
     {
@@ -20,6 +27,8 @@
         public static readonly ILogger GLLogger = LoggerFactory.GetLogger(nameof(GL));
 
         public static IGLContext Context { get; private set; } = null!;
+
+        public static GL GL { get; private set; }
 
         public static UploadQueue UploadQueue { get; private set; } = null!;
 
@@ -36,49 +45,46 @@
             dispatcher = new ThreadDispatcher(Thread.CurrentThread);
             Context = window.OpenGLCreateContext();
             Context.MakeCurrent();
-            GL.InitApi(Context);
+            GL = new(Context);
 
-            GLVersion.Current = GLVersion.InternalVersion;
+            GLVersion.Current = GLVersion.GetInternalVersion(GL);
 
-            if (GLVersion.Current.ES)
+#if GLES
+            if (GLVersion.Current >= new GLVersion(3, 1, true))
             {
-                if (GLVersion.Current >= new GLVersion(3, 1, true))
-                {
-                    GLES.DebugMessageCallback(GLESDebugCallback, null);
-                    GLES.Enable(OpenGLES.GLEnableCap.DebugOutput);
-                }
-                else if (!NoExtensions && GLESKHRDebug.TryInitExtension())
-                {
-                    GLESKHRDebug.DebugMessageCallback(GLESDebugCallback, null);
-                    GLES.Enable(OpenGLES.GLEnableCap.DebugOutput);
-                }
+                GL.DebugMessageCallback(GLESDebugCallback, null);
+                GL.Enable(GLEnableCap.DebugOutput);
             }
-            else
+            else if (!NoExtensions && GL.TryGetExtension<GLKHRDebug>(out var GLKHRDebug))
             {
-                if (GLVersion.Current >= new GLVersion(4, 3))
-                {
-                    GL.DebugMessageCallback(GLDebugCallback, null);
-                    GL.Enable(GLEnableCap.DebugOutput);
-                }
-                else if (!NoExtensions && GLARBDebugOutput.TryInitExtension())
-                {
-                    GLARBDebugOutput.DebugMessageCallbackARB(GLDebugCallback, null);
-                    GL.Enable(GLEnableCap.DebugOutput);
-                }
-                else if (!NoExtensions && GLKHRDebug.TryInitExtension())
-                {
-                    GLKHRDebug.DebugMessageCallback(GLDebugCallback, null);
-                    GL.Enable(GLEnableCap.DebugOutput);
-                }
-
-                if (GLVersion.Current >= new GLVersion(4, 4))
-                {
-                    IsPersistentMappingSupported = true;
-                }
+                GLKHRDebug.DebugMessageCallback(GLESDebugCallback, null);
+                GL.Enable(GLEnableCap.DebugOutput);
             }
+#else
+            if (GLVersion.Current >= new GLVersion(4, 3))
+            {
+                GL.DebugMessageCallback(GLDebugCallback, null);
+                GL.Enable(GLEnableCap.DebugOutput);
+            }
+            else if (!NoExtensions && GL.TryGetExtension<GLARBDebugOutput>(out var GLARBDebugOutput))
+            {
+                GLARBDebugOutput.DebugMessageCallbackARB(GLDebugCallback, null);
+                GL.Enable(GLEnableCap.DebugOutput);
+            }
+            else if (!NoExtensions && GL.TryGetExtension<GLKHRDebug>(out var GLKHRDebug))
+            {
+                GLKHRDebug.DebugMessageCallback(GLDebugCallback, null);
+                GL.Enable(GLEnableCap.DebugOutput);
+            }
+
+            if (GLVersion.Current >= new GLVersion(4, 4))
+            {
+                IsPersistentMappingSupported = true;
+            }
+#endif
 
             UploadQueue = new(Context, window);
-            DeleteQueue = new(Thread.CurrentThread);
+            DeleteQueue = new(GL, Thread.CurrentThread);
 
             LoggerFactory.General.Info($"Backend: Using Graphics API: OpenGL {ToStringFromUTF8(GL.GetString(GLStringName.Version))}");
             LoggerFactory.General.Info($"Backend: Using Graphics Device: {ToStringFromUTF8(GL.GetString(GLStringName.Renderer))}");
@@ -138,7 +144,7 @@
         {
             UploadQueue.Dispose();
             Context.Dispose();
-            GL.FreeApi();
+            GL.Dispose();
         }
     }
 }

@@ -1,6 +1,15 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
+#if GLES
+
+    using Hexa.NET.OpenGLES;
+
+#else
+
     using Hexa.NET.OpenGL;
+
+#endif
+
     using System;
 
     public struct GLVersion : IEquatable<GLVersion>
@@ -18,62 +27,59 @@
 
         public unsafe static GLVersion Current { get; internal set; }
 
-        internal unsafe static GLVersion InternalVersion
+        internal static unsafe GLVersion GetInternalVersion(GL GL)
         {
-            get
+            byte* versionStr = GL.GetString(GLStringName.Version);
+
+            if (versionStr == null)
             {
-                byte* versionStr = GL.GetString(GLStringName.Version);
-
-                if (versionStr == null)
-                {
-                    return default;
-                }
-
-                int major = 0, minor = 0;
-                bool isES = false;
-
-                byte* ptr = versionStr;
-                while (*ptr != 0)
-                {
-                    if (*ptr == (byte)'E' && *(ptr + 1) == (byte)'S')
-                    {
-                        isES = true;
-                        break;
-                    }
-                    ptr++;
-                }
-
-                ptr = versionStr;
-
-                if (*ptr >= '0' && *ptr <= '9')
-                {
-                    major = *ptr - '0';
-                    ptr++;
-                    if (*ptr >= '0' && *ptr <= '9')
-                    {
-                        major = major * 10 + (*ptr - '0');
-                        ptr++;
-                    }
-                }
-
-                while (*ptr != 0 && *ptr != (byte)'.')
-                {
-                    ptr++;
-                }
-                ptr++; // Move past the dot
-
-                if (*ptr >= '0' && *ptr <= '9')
-                {
-                    minor = *ptr - '0';
-                    ptr++;
-                    if (*ptr >= '0' && *ptr <= '9')
-                    {
-                        minor = minor * 10 + (*ptr - '0');
-                    }
-                }
-
-                return new GLVersion(major, minor, isES);
+                return default;
             }
+
+            int major = 0, minor = 0;
+            bool isES = false;
+
+            byte* ptr = versionStr;
+            while (*ptr != 0)
+            {
+                if (*ptr == (byte)'E' && *(ptr + 1) == (byte)'S')
+                {
+                    isES = true;
+                    break;
+                }
+                ptr++;
+            }
+
+            ptr = versionStr;
+
+            if (*ptr >= '0' && *ptr <= '9')
+            {
+                major = *ptr - '0';
+                ptr++;
+                if (*ptr >= '0' && *ptr <= '9')
+                {
+                    major = major * 10 + (*ptr - '0');
+                    ptr++;
+                }
+            }
+
+            while (*ptr != 0 && *ptr != (byte)'.')
+            {
+                ptr++;
+            }
+            ptr++; // Move past the dot
+
+            if (*ptr >= '0' && *ptr <= '9')
+            {
+                minor = *ptr - '0';
+                ptr++;
+                if (*ptr >= '0' && *ptr <= '9')
+                {
+                    minor = minor * 10 + (*ptr - '0');
+                }
+            }
+
+            return new GLVersion(major, minor, isES);
         }
 
         public readonly bool IsAtLeast(int major, int minor)

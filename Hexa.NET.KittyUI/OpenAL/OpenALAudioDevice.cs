@@ -22,7 +22,7 @@
             Device = device;
             var pcontext = OpenAL.CreateContext(Device, null);
             CheckError(Device);
-            OpenAL.DistanceModel(OpenAL.AL_INVERSE_DISTANCE_CLAMPED);
+            OpenAL.DistanceModel(ALEnum.InverseDistanceClamped);
             CheckError(Device);
             context = new(this, pcontext);
             Current = context;

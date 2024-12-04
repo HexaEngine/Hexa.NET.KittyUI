@@ -1,6 +1,15 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
+#if GLES
+
+    using Hexa.NET.OpenGLES;
+
+#else
+
     using Hexa.NET.OpenGL;
+
+#endif
+
     using Hexa.NET.Utilities;
 
     /// <summary>
@@ -20,7 +29,7 @@
         private PixelUnpackBufferPoolObject pboId;
         private void* mappedData;
 
-        private GLCSync syncFence;
+        private GLSync syncFence;
 
         public readonly void* MappedData => mappedData;
 
@@ -38,16 +47,16 @@
         /// <summary>
         /// Caller must be the main thread.
         /// </summary>
-        public void CreateTexture()
+        public void CreateTexture(GL GL)
         {
             textureId = OpenGLTexturePool.Global.GetNextTexture();
 
-            Desc.PrepareTexture(textureId);
+            Desc.PrepareTexture(GL, textureId);
 
             nint size = CalculatePboSize(Desc.Width, Desc.Height, Desc.MipLevels, Desc.PixelFormat, Desc.PixelType, Desc.ArraySize);
 
             pboId = OpenGLPixelBufferPool.Global.Rent(size);
-            mappedData = pboId.Map();
+            mappedData = pboId.Map(GL);
 
             Fence.Signal();
         }
@@ -55,22 +64,22 @@
         /// <summary>
         /// Caller must be the main thread.
         /// </summary>
-        public void FinishTexture()
+        public void FinishTexture(GL GL)
         {
-            pboId.Upload(textureId, 0, 0, Desc);
-            syncFence = GLCSync.FenceSync(GLSyncCondition.GpuCommandsComplete, GLSyncBehaviorFlags.None);
+            pboId.Upload(GL, textureId, 0, 0, Desc);
+            syncFence = GL.FenceSync(GLSyncCondition.GpuCommandsComplete, GLSyncBehaviorFlags.None);
         }
 
         /// <summary>
         /// Polled by the main thread.
         /// </summary>
-        public bool CheckIfDone(ulong timeout)
+        public bool CheckIfDone(GL GL, ulong timeout)
         {
-            GLEnum result = syncFence.ClientWaitSync(0, timeout);
+            GLEnum result = GL.ClientWaitSync(syncFence, 0, timeout);
             if (result == GLEnum.ConditionSatisfied || result == GLEnum.AlreadySignaled)
             {
                 OpenGLPixelBufferPool.Global.Return(pboId);
-                syncFence.Delete();
+                GL.DeleteSync(syncFence);
                 Fence.Signal();
                 return true;
             }
@@ -78,7 +87,7 @@
             if (result == GLEnum.WaitFailed)
             {
                 OpenGLPixelBufferPool.Global.Return(pboId);
-                syncFence.Delete();
+                GL.DeleteSync(syncFence);
                 Fence.Signal();
                 OpenGLTexturePool.Global.Return(textureId);
                 textureId = 0;

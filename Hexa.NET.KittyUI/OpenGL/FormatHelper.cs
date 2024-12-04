@@ -1,11 +1,16 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
+#if GLES
+
+    using Hexa.NET.OpenGLES;
+
+#else
+
     using Hexa.NET.OpenGL;
+
+#endif
+
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
     public class FormatHelper
     {

@@ -28,14 +28,14 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static AudioSourceState Convert(int state)
+        public static AudioSourceState Convert(ALEnum state)
         {
             return state switch
             {
-                OpenAL.AL_INITIAL => AudioSourceState.Initial,
-                OpenAL.AL_PLAYING => AudioSourceState.Playing,
-                OpenAL.AL_PAUSED => AudioSourceState.Paused,
-                OpenAL.AL_STOPPED => AudioSourceState.Stopped,
+                ALEnum.Initial => AudioSourceState.Initial,
+                ALEnum.Playing => AudioSourceState.Playing,
+                ALEnum.Paused => AudioSourceState.Paused,
+                ALEnum.Stopped => AudioSourceState.Stopped,
                 _ => throw new NotImplementedException(),
             };
         }

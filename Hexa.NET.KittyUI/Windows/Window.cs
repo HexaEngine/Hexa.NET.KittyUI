@@ -1,5 +1,15 @@
 ﻿namespace Hexa.NET.KittyUI.Windows
 {
+#if GLES
+
+    using Hexa.NET.OpenGLES;
+
+#else
+
+    using Hexa.NET.OpenGL;
+
+#endif
+
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Backends.D3D11;
     using Hexa.NET.ImGui.Backends.OpenGL3;
@@ -15,12 +25,12 @@
     using Hexa.NET.KittyUI.OpenGL;
     using Hexa.NET.KittyUI.Threading;
     using Hexa.NET.KittyUI.Windows.Events;
-    using Hexa.NET.OpenGL;
     using System;
     using System.Numerics;
     using Hexa.NET.KittyUI.Graphics;
     using Hexa.NET.D3D11;
     using Hexa.NET.Logging;
+    using HexaGen.Runtime;
 
     public class Window : CoreWindow, IRenderWindow
     {
@@ -33,6 +43,7 @@
         private DXGISwapChain? swapChain;
         private IGLContext? glContext;
         private bool showDebugTools = false;
+        private GL? GL;
 
         public IThreadDispatcher Dispatcher => renderDispatcher;
 
@@ -70,6 +81,7 @@
                 case GraphicsBackend.OpenGL:
                     glContext = OpenGLAdapter.Context;
                     glContext.SwapInterval(1);
+                    GL = OpenGLAdapter.GL;
                     imGuiRenderer = new(appBuilder, ImGuiImplOpenGL3.NewFrame, ImGuiImplOpenGL3.RenderDrawData);
                     context = ImGui.GetCurrentContext();
                     ImGuiImplSDL2.SetCurrentContext(context);

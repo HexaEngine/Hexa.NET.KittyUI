@@ -2,6 +2,7 @@
 {
     using Hexa.NET.Mathematics;
     using Hexa.NET.SDL2;
+    using HexaGen.Runtime;
 
     public unsafe class SdlContext : IGLContext
     {

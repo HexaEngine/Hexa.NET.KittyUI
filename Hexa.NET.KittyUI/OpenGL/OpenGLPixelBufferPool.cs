@@ -1,12 +1,20 @@
 ﻿namespace Hexa.NET.KittyUI.OpenGL
 {
+#if GLES
+
+    using Hexa.NET.OpenGLES;
+    using Hexa.NET.OpenGLES.EXT;
+
+#else
+
     using Hexa.NET.OpenGL;
     using Hexa.NET.OpenGL.ARB;
-    using Hexa.NET.OpenGLES.EXT;
+
+#endif
+
     using Hexa.NET.Utilities;
     using System;
     using System.Threading;
-    using GLES = OpenGLES.GL;
 
     public unsafe class OpenGLPixelBufferPool
     {
@@ -14,11 +22,21 @@
         private UnsafeList<PixelUnpackBufferPoolObject> free = [];
         private readonly SemaphoreSlim semaphore = new(1);
         private readonly AutoResetEvent waitHandle = new(false);
+        private readonly GL GL;
         private const nint DefaultBufferSize = 16_777_216; // 16 MiB
         private const int DefaultBufferCount = 16;
 
-        public OpenGLPixelBufferPool()
+#if GLES
+        private readonly GLEXTBufferStorage? GLEXTBufferStorage;
+        private readonly GLEXTMapBufferRange? GLEXTMapBufferRange;
+#else
+        private readonly GLARBBufferStorage? GLARBBufferStorage;
+        private readonly GLARBMapBufferRange? GLARBMapBufferRange;
+#endif
+
+        public OpenGLPixelBufferPool(GL GL)
         {
+            this.GL = GL;
             uint* buffers = stackalloc uint[DefaultBufferCount];
             GL.GenBuffers(DefaultBufferCount, buffers);
             objects.Reserve(DefaultBufferCount);
@@ -29,9 +47,35 @@
                 objects.Add(poolObject);
                 free.Add(poolObject);
             }
+            if (!OpenGLAdapter.NoExtensions)
+            {
+#if GLES
+
+                if (!GL.TryGetExtension(out GLEXTBufferStorage))
+                {
+                    GLEXTBufferStorage = null;
+                }
+                if (!GL.TryGetExtension(out GLEXTMapBufferRange))
+                {
+                    GLEXTMapBufferRange = null;
+                }
+
+#else
+
+                if (!GL.TryGetExtension(out GLARBBufferStorage))
+                {
+                    GLARBBufferStorage = null;
+                }
+                if (!GL.TryGetExtension(out GLARBMapBufferRange))
+                {
+                    GLARBMapBufferRange = null;
+                }
+
+#endif
+            }
         }
 
-        private static PixelUnpackBufferPoolObject MakeBuffer(nint bufferSize, uint buffer)
+        private PixelUnpackBufferPoolObject MakeBuffer(nint bufferSize, uint buffer)
         {
             PixelUnpackBufferPoolObject poolObject = new()
             {
@@ -39,60 +83,41 @@
                 Size = bufferSize,
             };
 
-            if (GLVersion.Current.ES)
+            GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, buffer);
+
+            if (OpenGLAdapter.IsPersistentMappingSupported)
             {
-                GLES.BindBuffer(OpenGLES.GLBufferTargetARB.PixelUnpackBuffer, buffer);
+                GLMapBufferAccessMask mask = GLMapBufferAccessMask.WriteBit | GLMapBufferAccessMask.PersistentBit | GLMapBufferAccessMask.UnsynchronizedBit | GLMapBufferAccessMask.FlushExplicitBit;
 
-                if (OpenGLAdapter.IsPersistentMappingSupported)
-                {
-                    OpenGLES.GLMapBufferAccessMask mask = OpenGLES.GLMapBufferAccessMask.WriteBit | OpenGLES.GLMapBufferAccessMask.PersistentBit | OpenGLES.GLMapBufferAccessMask.UnsynchronizedBit | OpenGLES.GLMapBufferAccessMask.FlushExplicitBit;
+                GL.BufferStorage(GLBufferStorageTarget.PixelUnpackBuffer, bufferSize, null, GLBufferStorageMask.MapPersistentBit | GLBufferStorageMask.MapWriteBit);
 
-                    GLES.BufferStorage(OpenGLES.GLBufferStorageTarget.PixelUnpackBuffer, bufferSize, null, OpenGLES.GLBufferStorageMask.MapPersistentBit | OpenGLES.GLBufferStorageMask.MapWriteBit);
-
-                    poolObject.MappedData = GLES.MapBufferRange(OpenGLES.GLBufferTargetARB.PixelUnpackBuffer, 0, bufferSize, mask);
-                }
-                else if (!OpenGLAdapter.NoExtensions && GLEXTBufferStorage.TryInitExtension() && GLEXTMapBufferRange.TryInitExtension())
-                {
-                    OpenGLES.GLMapBufferAccessMask mask = OpenGLES.GLMapBufferAccessMask.WriteBitExt | OpenGLES.GLMapBufferAccessMask.PersistentBitExt | OpenGLES.GLMapBufferAccessMask.UnsynchronizedBitExt | OpenGLES.GLMapBufferAccessMask.FlushExplicitBitExt;
-
-                    GLEXTBufferStorage.BufferStorageEXT(OpenGLES.GLBufferStorageTarget.PixelUnpackBuffer, bufferSize, null, OpenGLES.GLBufferStorageMask.MapPersistentBit | OpenGLES.GLBufferStorageMask.MapWriteBit);
-
-                    poolObject.MappedData = GLEXTMapBufferRange.MapBufferRangeEXT(OpenGLES.GLBufferTargetARB.PixelUnpackBuffer, 0, bufferSize, mask);
-                }
-                else
-                {
-                    GLES.BufferData(OpenGLES.GLBufferTargetARB.PixelUnpackBuffer, bufferSize, null, OpenGLES.GLBufferUsageARB.StreamDraw);
-                }
-
-                GLES.BindBuffer(OpenGLES.GLBufferTargetARB.PixelUnpackBuffer, 0);
+                poolObject.MappedData = GL.MapBufferRange(GLBufferTargetARB.PixelUnpackBuffer, 0, bufferSize, mask);
             }
+#if GLES
+            else if (!OpenGLAdapter.NoExtensions && GLEXTBufferStorage != null && GLEXTMapBufferRange != null)
+            {
+                GLMapBufferAccessMask mask = GLMapBufferAccessMask.WriteBitExt | GLMapBufferAccessMask.PersistentBitExt | GLMapBufferAccessMask.UnsynchronizedBitExt | GLMapBufferAccessMask.FlushExplicitBitExt;
+
+                GLEXTBufferStorage.BufferStorageEXT(GLBufferStorageTarget.PixelUnpackBuffer, bufferSize, null, GLBufferStorageMask.MapPersistentBit | GLBufferStorageMask.MapWriteBit);
+
+                poolObject.MappedData = GLEXTMapBufferRange.MapBufferRangeEXT(GLBufferTargetARB.PixelUnpackBuffer, 0, bufferSize, mask);
+            }
+#else
+            else if (GLARBBufferStorage != null && GLARBMapBufferRange != null)
+            {
+                GLMapBufferAccessMask mask = GLMapBufferAccessMask.WriteBit | GLMapBufferAccessMask.PersistentBit | GLMapBufferAccessMask.UnsynchronizedBit | GLMapBufferAccessMask.FlushExplicitBit;
+                GLARBBufferStorage.BufferStorage(GLBufferStorageTarget.PixelUnpackBuffer, bufferSize, null,
+                    GLBufferStorageMask.MapPersistentBit |
+                    GLBufferStorageMask.MapWriteBit);
+                poolObject.MappedData = GLARBMapBufferRange.MapBufferRange(GLBufferTargetARB.PixelUnpackBuffer, 0, bufferSize, mask);
+            }
+#endif
             else
             {
-                GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, buffer);
-
-                if (OpenGLAdapter.IsPersistentMappingSupported)
-                {
-                    GLMapBufferAccessMask mask = GLMapBufferAccessMask.WriteBit | GLMapBufferAccessMask.PersistentBit | GLMapBufferAccessMask.UnsynchronizedBit | GLMapBufferAccessMask.FlushExplicitBit;
-
-                    GL.BufferStorage(GLBufferStorageTarget.PixelUnpackBuffer, bufferSize, null, GLBufferStorageMask.MapPersistentBit | GLBufferStorageMask.MapWriteBit);
-
-                    poolObject.MappedData = GL.MapBufferRange(GLBufferTargetARB.PixelUnpackBuffer, 0, bufferSize, mask);
-                }
-                else if (!OpenGLAdapter.NoExtensions && GLARBBufferStorage.TryInitExtension() && GLARBMapBufferRange.TryInitExtension())
-                {
-                    GLMapBufferAccessMask mask = GLMapBufferAccessMask.WriteBit | GLMapBufferAccessMask.PersistentBit | GLMapBufferAccessMask.UnsynchronizedBit | GLMapBufferAccessMask.FlushExplicitBit;
-                    GLARBBufferStorage.BufferStorage(GLBufferStorageTarget.PixelUnpackBuffer, bufferSize, null,
-                        GLBufferStorageMask.MapPersistentBit |
-                        GLBufferStorageMask.MapWriteBit);
-                    poolObject.MappedData = GLARBMapBufferRange.MapBufferRange(GLBufferTargetARB.PixelUnpackBuffer, 0, bufferSize, mask);
-                }
-                else
-                {
-                    GL.BufferData(GLBufferTargetARB.PixelUnpackBuffer, bufferSize, null, GLBufferUsageARB.StreamDraw);
-                }
-
-                GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, 0);
+                GL.BufferData(GLBufferTargetARB.PixelUnpackBuffer, bufferSize, null, GLBufferUsageARB.StreamDraw);
             }
+
+            GL.BindBuffer(GLBufferTargetARB.PixelUnpackBuffer, 0);
 
             return poolObject;
         }

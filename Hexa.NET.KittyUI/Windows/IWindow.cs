@@ -5,6 +5,7 @@
     using Hexa.NET.KittyUI.Threading;
     using Hexa.NET.KittyUI.Windows.Events;
     using Hexa.NET.Mathematics;
+    using HexaGen.Runtime;
 
     public interface IRenderWindow : IWindow
     {

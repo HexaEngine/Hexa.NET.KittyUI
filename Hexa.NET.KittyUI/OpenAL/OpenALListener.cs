@@ -29,7 +29,7 @@
             gain = value;
             if (!isActive)
                 return;
-            OpenAL.Listenerf(OpenAL.AL_GAIN, value);
+            OpenAL.SetListenerProperty(ALEnum.Gain, value);
         }
 
         public AudioOrientation Orientation
@@ -44,7 +44,7 @@
                 {
                     var valu = value;
                     valu.At = new(value.At.X, value.At.Y, -value.At.Z);
-                    OpenAL.Listenerfv(OpenAL.AL_ORIENTATION, (float*)&valu);
+                    OpenAL.SetListenerProperty(ALEnum.Orientation, (float*)&valu);
                 }
             }
         }
@@ -57,7 +57,7 @@
                 position = value;
                 if (!isActive)
                     return;
-                OpenAL.Listener3F(OpenAL.AL_POSITION, value.X, value.Y, value.Z);
+                OpenAL.SetListenerProperty(ALEnum.Position, value);
             }
         }
 
@@ -69,7 +69,7 @@
                 velocity = value;
                 if (!isActive)
                     return;
-                OpenAL.Listener3F(OpenAL.AL_VELOCITY, value.X, value.Y, value.Z);
+                OpenAL.SetListenerProperty(ALEnum.Position, value);
             }
         }
 
@@ -118,25 +118,25 @@
 
         private void SetListenerActive()
         {
-            OpenAL.Listenerf(OpenAL.AL_GAIN, gain);
+            OpenAL.SetListenerProperty(ALEnum.Gain, gain);
             unsafe
             {
                 var orient = orientation;
-                OpenAL.Listenerfv(OpenAL.AL_ORIENTATION, (float*)&orient);
+                OpenAL.SetListenerProperty(ALEnum.Orientation, (float*)&orient);
             }
-            OpenAL.Listener3F(OpenAL.AL_POSITION, position.X, position.Y, position.Z);
-            OpenAL.Listener3F(OpenAL.AL_VELOCITY, velocity.X, velocity.Y, velocity.Z);
+            OpenAL.SetListenerProperty(ALEnum.Position, position);
+            OpenAL.SetListenerProperty(ALEnum.Velocity, velocity);
         }
 
         private static void ResetListener()
         {
-            OpenAL.Listenerf(OpenAL.AL_GAIN, 1);
+            OpenAL.SetListenerProperty(ALEnum.Gain, 1);
             unsafe
             {
-                OpenAL.Listenerfv(OpenAL.AL_ORIENTATION, null);
+                OpenAL.SetListenerProperty(ALEnum.Orientation, (float*)null);
             }
-            OpenAL.Listener3F(OpenAL.AL_POSITION, 0, 0, 0);
-            OpenAL.Listener3F(OpenAL.AL_VELOCITY, 0, 0, 0);
+            OpenAL.SetListenerProperty(ALEnum.Position, 0, 0, 0);
+            OpenAL.SetListenerProperty(ALEnum.Velocity, 0, 0, 0);
         }
 
         protected virtual void Dispose(bool disposing)
