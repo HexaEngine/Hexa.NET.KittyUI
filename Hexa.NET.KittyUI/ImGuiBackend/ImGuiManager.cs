@@ -73,6 +73,8 @@
             io.ConfigDragClickToInputText = true;
             io.ConfigDebugIsDebuggerPresent = Debugger.IsAttached;
 
+            appBuilder.BuildImGuiConfig(guiContext, io);
+
             var fonts = io.Fonts;
             fonts.FontBuilderFlags = (uint)ImFontAtlasFlags.NoPowerOfTwoHeight;
             fonts.TexDesiredWidth = 2048;

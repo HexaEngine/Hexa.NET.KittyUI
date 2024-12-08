@@ -14,13 +14,21 @@
 
     public delegate void ImGuiStyleBuilderCallback(ImGuiStylePtr style);
 
+    public delegate void ImGuiConfigureCallback(ImGuiContextPtr context, ImGuiIOPtr io);
+
     public unsafe class AppBuilder
     {
         internal readonly List<(ImGuiFontBuilderCallback, string? alias)> fontBuilders = new();
         internal readonly List<ImGuiFontBuilder> builders = new();
         internal readonly List<ImGuiStyleBuilderCallback> styleBuilders = [];
+        internal readonly List<ImGuiConfigureCallback> configureCallbacks = [];
         private string title = "Kitty";
         private TitleBar? titlebar;
+
+        public static AppBuilder Create()
+        {
+            return new AppBuilder();
+        }
 
         public void Run()
         {
@@ -110,6 +118,14 @@
             }
         }
 
+        internal void BuildImGuiConfig(ImGuiContextPtr context, ImGuiIOPtr io)
+        {
+            foreach (var callback in configureCallbacks)
+            {
+                callback(context, io);
+            }
+        }
+
         internal void Dispose()
         {
             for (int i = 0; i < builders.Count; i++)
@@ -153,6 +169,12 @@
         public AppBuilder Style(ImGuiStyleBuilderCallback action)
         {
             styleBuilders.Add(action);
+            return this;
+        }
+
+        public AppBuilder ImGuiConfigure(ImGuiConfigureCallback callback)
+        {
+            configureCallbacks.Add(callback);
             return this;
         }
 
