@@ -68,15 +68,16 @@
             mainWindow.Show();
             PlatformRun();
 
-            FileLogWriter.Dispose();
+            FileLogWriter?.Dispose();
         }
 
-        public static readonly LogFileWriter FileLogWriter = new("logs");
+        public static LogFileWriter? FileLogWriter { get; set; }
 
         private static void Init(IRenderWindow mainWindow, AppBuilder builder)
         {
             if (LoggingEnabled)
             {
+                FileLogWriter = new("logs");
                 CrashLogger.Initialize();
                 LoggerFactory.AddGlobalWriter(FileLogWriter);
             }

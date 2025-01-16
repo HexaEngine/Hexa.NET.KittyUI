@@ -166,7 +166,7 @@
                 case GraphicsBackend.D3D11:
                     if (OperatingSystem.IsWindows())
                     {
-                        D3D11Adapter.Init(this, true); break;
+                        D3D11Adapter.Init(this, Application.GraphicsDebugging); break;
                     }
 
                     goto default;

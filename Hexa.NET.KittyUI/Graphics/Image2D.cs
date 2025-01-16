@@ -49,7 +49,7 @@
             return LoadFromMemory(format, data.AsSpan(start, length));
         }
 
-        public static Image2D CreateImage(D3DScratchImage scratchImage)
+        public static Image2D CreateImage(Imaging.ImageSource scratchImage)
         {
             return Application.GraphicsBackend switch
             {
@@ -65,7 +65,7 @@
         private ComPtr<ID3D11Texture2D> texture;
         private ComPtr<ID3D11ShaderResourceView> srv;
 
-        public D3D11Image(D3DScratchImage scratchImage)
+        public D3D11Image(Imaging.ImageSource scratchImage)
         {
             var device = D3D11GraphicsDevice.Device;
             texture = scratchImage.CreateTexture2D((ID3D11Device*)device.Handle, Usage.Immutable, BindFlag.ShaderResource, 0, 0);
@@ -100,7 +100,7 @@
     {
         private uint texture;
 
-        public OpenGLImage(D3DScratchImage scratchImage)
+        public OpenGLImage(Imaging.ImageSource scratchImage)
         {
             texture = scratchImage.CreateTexture2D();
             Metadata = scratchImage.Metadata;

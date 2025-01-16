@@ -3,6 +3,7 @@
     using Hexa.NET.KittyUI;
     using Hexa.NET.KittyUI.Input.Events;
     using Hexa.NET.KittyUI.Threading;
+    using Hexa.NET.KittyUI.UI;
     using Hexa.NET.KittyUI.Windows.Events;
     using Hexa.NET.Mathematics;
     using HexaGen.Runtime;
@@ -89,6 +90,8 @@
         /// Gets the windows border size.
         /// </summary>
         Rect BorderSize { get; }
+
+        ITitleBar? TitleBar { get; set; }
 
         /// <summary>
         /// Event triggered when the window is closing.

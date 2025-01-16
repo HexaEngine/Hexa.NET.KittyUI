@@ -30,6 +30,13 @@
             return new AppBuilder();
         }
 
+        public void Run(IRenderWindow window)
+        {
+            window.Title = title;
+            window.TitleBar = titlebar;
+            Application.Run(window, this);
+        }
+
         public void Run()
         {
             Window window = new()
@@ -61,6 +68,24 @@
         public AppBuilder SetGraphicsBackend(GraphicsBackend backend)
         {
             Application.SelectedGraphicsBackend = backend;
+            return this;
+        }
+
+        public AppBuilder EnableImNodes()
+        {
+            ImGuiManager.AddAddon(new ImNodesAddon());
+            return this;
+        }
+
+        public AppBuilder EnableImPlot()
+        {
+            ImGuiManager.AddAddon(new ImPlotAddon());
+            return this;
+        }
+
+        public AppBuilder EnableImGuizmo()
+        {
+            ImGuiManager.AddAddon(new ImGuizmoAddon());
             return this;
         }
 

@@ -23,27 +23,12 @@
     using TGAFlags = DirectXTex.TGAFlags;
     using WICFlags = DirectXTex.WICFlags;
 
-    public enum TexFileFormat
-    {
-        Auto,
-        DDS,
-        TGA,
-        HDR,
-        BMP,
-        JPEG,
-        PNG,
-        TIFF,
-        GIF,
-        WMP,
-        ICO,
-    }
-
-    public unsafe class D3DScratchImage : IDisposable
+    public unsafe class ImageSource : IDisposable
     {
         private bool _disposed;
         private ScratchImage scImage;
 
-        public D3DScratchImage(ScratchImage outScImage)
+        public ImageSource(ScratchImage outScImage)
         {
             scImage = outScImage;
         }
@@ -52,58 +37,84 @@
 
         public int ImageCount => (int)scImage.GetImageCount();
 
-        public D3DScratchImage Compress(ID3D11Device* device, Format format, TexCompressFlags flags)
+        public void SetScratchImage(ScratchImage outScImage)
         {
-            ScratchImage inScImage = scImage;
-            ScratchImage outScImage = DirectXTex.CreateScratchImage();
-            var metadata = inScImage.GetMetadata();
-            DirectXTex.Compress4((NET.DirectXTex.ID3D11Device*)device, inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (int)format, flags, 1, ref outScImage);
-            return new D3DScratchImage(outScImage);
+            scImage.Release();
+            scImage = outScImage;
         }
 
-        public D3DScratchImage Decompress(Format format)
+        public ScratchImage GetScratchImage() => scImage;
+
+        public ImageSource Compress(ID3D11Device* device, Format format, TexCompressFlags flags)
         {
             ScratchImage inScImage = scImage;
             ScratchImage outScImage = DirectXTex.CreateScratchImage();
             var metadata = inScImage.GetMetadata();
-            DirectXTex.Decompress2(inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (int)format, ref outScImage);
-            return new D3DScratchImage(outScImage);
+            DirectXTex.Compress4((NET.DirectXTex.ID3D11Device*)device, inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (int)format, flags, 1, ref outScImage).ThrowIf();
+            return new ImageSource(outScImage);
         }
 
-        public D3DScratchImage Convert(Format format, TexFilterFlags flags)
+        public ImageSource Compress(Format format, TexCompressFlags flags)
         {
             ScratchImage inScImage = scImage;
             ScratchImage outScImage = DirectXTex.CreateScratchImage();
             var metadata = inScImage.GetMetadata();
-            DirectXTex.Convert2(inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (int)format, flags, 0, ref outScImage);
-            return new D3DScratchImage(outScImage);
+            DirectXTex.Compress2(inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (int)format, flags, 1, ref outScImage).ThrowIf();
+            return new ImageSource(outScImage);
         }
 
-        public D3DScratchImage GenerateMipMaps(TexFilterFlags flags)
+        public ImageSource Decompress(Format format)
         {
             ScratchImage inScImage = scImage;
             ScratchImage outScImage = DirectXTex.CreateScratchImage();
             var metadata = inScImage.GetMetadata();
-            DirectXTex.GenerateMipMaps2(inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, flags, (nuint)TextureHelper.ComputeMipLevels((int)Metadata.Width, (int)Metadata.Height), ref outScImage);
-            return new D3DScratchImage(outScImage);
+            DirectXTex.Decompress2(inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (int)format, ref outScImage).ThrowIf();
+            return new ImageSource(outScImage);
         }
 
-        public D3DScratchImage Resize(float scale, TexFilterFlags flags)
+        public ImageSource Convert(Format format, TexFilterFlags flags, float threshold = 0.5f)
         {
             ScratchImage inScImage = scImage;
             ScratchImage outScImage = DirectXTex.CreateScratchImage();
             var metadata = inScImage.GetMetadata();
-            DirectXTex.Resize2(inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (nuint)(Metadata.Width * scale), (nuint)(Metadata.Height * scale), flags, ref outScImage);
-            return new D3DScratchImage(outScImage);
+            DirectXTex.Convert2(inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (int)format, flags, threshold, ref outScImage).ThrowIf();
+            return new ImageSource(outScImage);
         }
 
-        public D3DScratchImage Resize(int width, int height, TexFilterFlags flags)
+        public ImageSource GenerateMipMaps(TexFilterFlags flags)
         {
             ScratchImage inScImage = scImage;
             ScratchImage outScImage = DirectXTex.CreateScratchImage();
             var metadata = inScImage.GetMetadata();
-            DirectXTex.Resize2(inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (nuint)width, (nuint)height, flags, ref outScImage);
-            return new D3DScratchImage(outScImage);
+            DirectXTex.GenerateMipMaps2(inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, flags, (nuint)TextureHelper.ComputeMipLevels((int)Metadata.Width, (int)Metadata.Height), ref outScImage).ThrowIf();
+            return new ImageSource(outScImage);
+        }
+
+        public ImageSource Resize(float scale, TexFilterFlags flags)
+        {
+            ScratchImage inScImage = scImage;
+            ScratchImage outScImage = DirectXTex.CreateScratchImage();
+            var metadata = inScImage.GetMetadata();
+            DirectXTex.Resize2(inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (nuint)(Metadata.Width * scale), (nuint)(Metadata.Height * scale), flags, ref outScImage).ThrowIf();
+            return new ImageSource(outScImage);
+        }
+
+        public ImageSource Resize(int width, int height, TexFilterFlags flags)
+        {
+            ScratchImage inScImage = scImage;
+            ScratchImage outScImage = DirectXTex.CreateScratchImage();
+            var metadata = inScImage.GetMetadata();
+            DirectXTex.Resize2(inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, (nuint)width, (nuint)height, flags, ref outScImage).ThrowIf();
+            return new ImageSource(outScImage);
+        }
+
+        public ImageSource FlipRotate(TexFRFlags flags)
+        {
+            ScratchImage inScImage = scImage;
+            ScratchImage outScImage = DirectXTex.CreateScratchImage();
+            var metadata = inScImage.GetMetadata();
+            DirectXTex.FlipRotate2(inScImage.GetImages(), inScImage.GetImageCount(), ref metadata, flags, ref outScImage).ThrowIf();
+            return new ImageSource(outScImage);
         }
 
         public bool OverwriteFormat(Format format)
@@ -118,7 +129,7 @@
             var nimages = scImage.GetImageCount();
             var metadata = scImage.GetMetadata();
             metadata.MiscFlags = (uint)miscFlag;
-            DirectXTex.CreateTextureEx((NET.DirectXTex.ID3D11Device*)device, images, nimages, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (NET.DirectXTex.ID3D11Resource**)&resource.Handle);
+            DirectXTex.CreateTextureEx((NET.DirectXTex.ID3D11Device*)device, images, nimages, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (NET.DirectXTex.ID3D11Resource**)&resource.Handle).ThrowIf();
             Texture1DDesc desc = default;
             resource.GetDesc(ref desc);
 
@@ -132,7 +143,7 @@
             var nimages = scImage.GetImageCount();
             var metadata = scImage.GetMetadata();
             metadata.MiscFlags = (uint)miscFlag;
-            DirectXTex.CreateTextureEx((NET.DirectXTex.ID3D11Device*)device, images, nimages, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (NET.DirectXTex.ID3D11Resource**)&resource.Handle);
+            DirectXTex.CreateTextureEx((NET.DirectXTex.ID3D11Device*)device, images, nimages, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (NET.DirectXTex.ID3D11Resource**)&resource.Handle).ThrowIf();
             Texture2DDesc desc = default;
             resource.GetDesc(ref desc);
 
@@ -150,7 +161,7 @@
             metadata.ArraySize = 1;
             metadata.MipLevels = 1;
             metadata.MiscFlags = (uint)miscFlag;
-            DirectXTex.CreateTextureEx((NET.DirectXTex.ID3D11Device*)device, &image, 1, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (NET.DirectXTex.ID3D11Resource**)&resource.Handle);
+            DirectXTex.CreateTextureEx((NET.DirectXTex.ID3D11Device*)device, &image, 1, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (NET.DirectXTex.ID3D11Resource**)&resource.Handle).ThrowIf();
             Texture2DDesc desc = default;
             resource.GetDesc(ref desc);
 
@@ -159,13 +170,12 @@
 
         public ComPtr<ID3D11Texture3D> CreateTexture3D(ID3D11Device* device, Usage usage, BindFlag BindFlag, CpuAccessFlag accessFlags, ResourceMiscFlag miscFlag)
         {
-            ScratchImage inScImage = scImage;
             ComPtr<ID3D11Texture3D> resource;
             var images = scImage.GetImages();
             var nimages = scImage.GetImageCount();
             var metadata = scImage.GetMetadata();
             metadata.MiscFlags = (uint)miscFlag;
-            DirectXTex.CreateTextureEx((NET.DirectXTex.ID3D11Device*)device, images, nimages, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (NET.DirectXTex.ID3D11Resource**)&resource.Handle);
+            DirectXTex.CreateTextureEx((NET.DirectXTex.ID3D11Device*)device, images, nimages, ref metadata, (int)usage, (uint)BindFlag, (uint)accessFlags, (uint)miscFlag, CreateTexFlags.Default, (NET.DirectXTex.ID3D11Resource**)&resource.Handle).ThrowIf();
             Texture3DDesc desc = default;
             resource.GetDesc(ref desc);
 
@@ -479,19 +489,19 @@
                     break;
 
                 case TexFileFormat.DDS:
-                    DirectXTex.SaveToDDSFile2(image.GetImages(), image.GetImageCount(), ref meta, (DDSFlags)flags, path);
+                    DirectXTex.SaveToDDSFile2(image.GetImages(), image.GetImageCount(), ref meta, (DDSFlags)flags, path).ThrowIf();
                     break;
 
                 case TexFileFormat.TGA:
-                    DirectXTex.SaveToTGAFile(image.GetImages(), (TGAFlags)flags, path, ref meta);
+                    DirectXTex.SaveToTGAFile(image.GetImages(), (TGAFlags)flags, path, ref meta).ThrowIf();
                     break;
 
                 case TexFileFormat.HDR:
-                    DirectXTex.SaveToHDRFile(image.GetImages(), path);
+                    DirectXTex.SaveToHDRFile(image.GetImages(), path).ThrowIf();
                     break;
 
                 default:
-                    DirectXTex.SaveToWICFile2(image.GetImages(), image.GetImageCount(), (WICFlags)flags, DirectXTex.GetWICCodec(Convert(format)), path, null, default);
+                    DirectXTex.SaveToWICFile2(image.GetImages(), image.GetImageCount(), (WICFlags)flags, DirectXTex.GetWICCodec(Convert(format)), path, null, default).ThrowIf();
                     break;
             }
         }
@@ -505,19 +515,19 @@
             switch (format)
             {
                 case TexFileFormat.DDS:
-                    DirectXTex.SaveToDDSMemory2(image.GetImages(), image.GetImageCount(), ref meta, (DDSFlags)flags, ref blob);
+                    DirectXTex.SaveToDDSMemory2(image.GetImages(), image.GetImageCount(), ref meta, (DDSFlags)flags, ref blob).ThrowIf();
                     break;
 
                 case TexFileFormat.TGA:
-                    DirectXTex.SaveToTGAMemory(image.GetImages(), (TGAFlags)flags, ref blob, ref meta);
+                    DirectXTex.SaveToTGAMemory(image.GetImages(), (TGAFlags)flags, ref blob, ref meta).ThrowIf();
                     break;
 
                 case TexFileFormat.HDR:
-                    DirectXTex.SaveToHDRMemory(image.GetImages(), ref blob);
+                    DirectXTex.SaveToHDRMemory(image.GetImages(), ref blob).ThrowIf();
                     break;
 
                 default:
-                    DirectXTex.SaveToWICMemory2(image.GetImages(), image.GetImageCount(), (WICFlags)flags, DirectXTex.GetWICCodec(Convert(format)), ref blob, null, default);
+                    DirectXTex.SaveToWICMemory2(image.GetImages(), image.GetImageCount(), (WICFlags)flags, DirectXTex.GetWICCodec(Convert(format)), ref blob, null, default).ThrowIf();
                     break;
             }
 
@@ -568,7 +578,7 @@
             target = scratchImage;
         }
 
-        public void CopyTo(D3DScratchImage scratchImage)
+        public void CopyTo(ImageSource scratchImage)
         {
             var a = this;
             var b = scratchImage;

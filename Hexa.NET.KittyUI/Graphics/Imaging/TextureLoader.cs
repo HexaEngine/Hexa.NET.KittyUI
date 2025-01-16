@@ -35,15 +35,18 @@
 
         public static bool ForceNonWIC { get; set; }
 
-        public static D3DScratchImage CaptureTexture(ID3D11DeviceContext* context, ID3D11Resource* resource)
+        public static bool ConvertSRGBToRGB { get; set; } = true;
+
+        public static ImageSource CaptureTexture(ID3D11DeviceContext* context, ID3D11Resource* resource)
         {
             ScratchImage image = DirectXTex.CreateScratchImage();
             DirectXTex.CaptureTexture((NET.DirectXTex.ID3D11Device*)D3D11GraphicsDevice.Device.Handle, (NET.DirectXTex.ID3D11DeviceContext*)context, (NET.DirectXTex.ID3D11Resource*)resource, ref image).ThrowIf();
-            return new D3DScratchImage(image);
+            return new ImageSource(image);
         }
 
-        public static D3DScratchImage LoadFormFile(string filename)
+        public static ImageSource LoadFormFile(string filename)
         {
+            TexMetadata metadata;
             ScratchImage image = DirectXTex.CreateScratchImage();
             ReadOnlySpan<char> extension = Path.GetExtension(filename.AsSpan());
             try
@@ -51,36 +54,65 @@
                 switch (extension)
                 {
                     case ".dds":
-                        DirectXTex.LoadFromDDSFile(filename, DDSFlags.None, null, ref image).ThrowIf();
+                        DirectXTex.LoadFromDDSFile(filename, DDSFlags.None, &metadata, ref image).ThrowIf();
                         break;
 
                     case ".tga":
-                        DirectXTex.LoadFromTGAFile(filename, TGAFlags.None, null, ref image).ThrowIf();
+                        DirectXTex.LoadFromTGAFile(filename, TGAFlags.None, &metadata, ref image).ThrowIf();
                         break;
 
                     case ".hdr":
-                        DirectXTex.LoadFromHDRFile(filename, null, ref image).ThrowIf();
+                        DirectXTex.LoadFromHDRFile(filename, &metadata, ref image).ThrowIf();
                         break;
 
                     default:
                         if (OperatingSystem.IsWindows() && !ForceNonWIC)
                         {
-                            DirectXTex.LoadFromWICFile(filename, WICFlags.None, null, ref image, default).ThrowIf();
+                            DirectXTex.LoadFromWICFile(filename, WICFlags.IgnoreSrgb, &metadata, ref image, null).ThrowIf();
                         }
                         else
                         {
                             HandleStbImageFile(filename, ref image).ThrowIf();
+                            metadata = image.GetMetadata();
                         }
                         break;
                 };
             }
             catch (Exception)
             {
-                image.Release(); // avoid memory leak if exception is thrown
+                image.Release();
                 throw;
             }
 
-            return new D3DScratchImage(image);
+            if (ConvertSRGBToRGB && DirectXTex.IsSRGB(metadata.Format) && !DirectXTex.IsCompressed(metadata.Format))
+            {
+                ScratchImage image2 = DirectXTex.CreateScratchImage();
+                try
+                {
+                    DirectXTex.Convert2(image.GetImages(), image.GetImageCount(), &metadata, (int)SRGBToRGB((Format)metadata.Format), TexFilterFlags.ForceNonWic, 0.5f, &image2).ThrowIf();
+                }
+                catch (Exception)
+                {
+                    image2.Release();
+                    throw;
+                }
+
+                image.Release();
+                image = image2;
+            }
+
+            return new ImageSource(image);
+        }
+
+        private static Format SRGBToRGB(Format format)
+        {
+            return format switch
+            {
+                Format.R8G8B8A8UnormSrgb => Format.R8G8B8A8Unorm,
+                Format.B8G8R8X8UnormSrgb => Format.B8G8R8X8Unorm,
+                Format.B8G8R8A8UnormSrgb => Format.B8G8R8A8Unorm,
+                _ => format
+            };
         }
 
         private static HResult HandleStbImageFile(string filename, ref ScratchImage image)
@@ -103,7 +135,7 @@
             return LoadStbImage16(ref image, width, height, channels, imgData);
         }
 
-        public static D3DScratchImage LoadFromMemory(ImageFileFormat format, ReadOnlySpan<byte> data)
+        public static ImageSource LoadFromMemory(ImageFileFormat format, ReadOnlySpan<byte> data)
         {
             ScratchImage image = DirectXTex.CreateScratchImage();
             try
@@ -143,7 +175,7 @@
                 throw;
             }
 
-            return new D3DScratchImage(image);
+            return new ImageSource(image);
         }
 
         private static HResult HandleStbImageMemory(ImageFileFormat format, byte* data, int size, ref ScratchImage image)
@@ -288,35 +320,35 @@
             };
         }
 
-        public static D3DScratchImage Initialize(TexMetadata metadata, CPFlags flags)
+        public static ImageSource Initialize(TexMetadata metadata, CPFlags flags)
         {
             ScratchImage image = DirectXTex.CreateScratchImage();
             image.Initialize(ref metadata, flags);
-            return new D3DScratchImage(image);
+            return new ImageSource(image);
         }
 
-        public static D3DScratchImage Initialize1D(Format fmt, int length, int arraySize, int mipLevels, CPFlags flags = CPFlags.None)
+        public static ImageSource Initialize1D(Format fmt, int length, int arraySize, int mipLevels, CPFlags flags = CPFlags.None)
         {
             ScratchImage image = DirectXTex.CreateScratchImage();
             image.Initialize1D((int)fmt, (nuint)length, (nuint)arraySize, (nuint)mipLevels, flags);
-            return new D3DScratchImage(image);
+            return new ImageSource(image);
         }
 
-        public static D3DScratchImage Initialize2D(Format fmt, int width, int height, int arraySize, int mipLevels, CPFlags flags = CPFlags.None)
+        public static ImageSource Initialize2D(Format fmt, int width, int height, int arraySize, int mipLevels, CPFlags flags = CPFlags.None)
         {
             ScratchImage image = DirectXTex.CreateScratchImage();
             image.Initialize2D((int)fmt, (nuint)width, (nuint)height, (nuint)arraySize, (nuint)mipLevels, flags);
-            return new D3DScratchImage(image);
+            return new ImageSource(image);
         }
 
-        public static D3DScratchImage Initialize3D(Format fmt, int width, int height, int depth, int mipLevels, CPFlags flags = CPFlags.None)
+        public static ImageSource Initialize3D(Format fmt, int width, int height, int depth, int mipLevels, CPFlags flags = CPFlags.None)
         {
             ScratchImage image = DirectXTex.CreateScratchImage();
             image.Initialize3D((int)fmt, (nuint)width, (nuint)height, (nuint)depth, (nuint)mipLevels, flags);
-            return new D3DScratchImage(image);
+            return new ImageSource(image);
         }
 
-        public static D3DScratchImage Initialize3DFromImages(Image[] images, int depth, CPFlags flags = CPFlags.None)
+        public static ImageSource Initialize3DFromImages(Image[] images, int depth, CPFlags flags = CPFlags.None)
         {
             ScratchImage image = DirectXTex.CreateScratchImage();
             fixed (Image* pImages = images)
@@ -324,10 +356,10 @@
                 image.Initialize3DFromImages(pImages, (nuint)depth, flags);
             }
 
-            return new D3DScratchImage(image);
+            return new ImageSource(image);
         }
 
-        public static D3DScratchImage InitializeArrayFromImages(Image[] images, bool allow1D = false, CPFlags flags = CPFlags.None)
+        public static ImageSource InitializeArrayFromImages(Image[] images, bool allow1D = false, CPFlags flags = CPFlags.None)
         {
             ScratchImage image = DirectXTex.CreateScratchImage();
             fixed (Image* pImages = images)
@@ -335,17 +367,17 @@
                 image.InitializeArrayFromImages(pImages, (nuint)images.Length, allow1D, flags);
             }
 
-            return new D3DScratchImage(image);
+            return new ImageSource(image);
         }
 
-        public static D3DScratchImage InitializeCube(Format fmt, int width, int height, int nCubes, int mipLevels, CPFlags flags = CPFlags.None)
+        public static ImageSource InitializeCube(Format fmt, int width, int height, int nCubes, int mipLevels, CPFlags flags = CPFlags.None)
         {
             ScratchImage image = DirectXTex.CreateScratchImage();
             image.InitializeCube((int)fmt, (nuint)width, (nuint)height, (nuint)nCubes, (nuint)mipLevels, flags);
-            return new D3DScratchImage(image);
+            return new ImageSource(image);
         }
 
-        public static D3DScratchImage InitializeCubeFromImages(Image[] images, CPFlags flags = CPFlags.None)
+        public static ImageSource InitializeCubeFromImages(Image[] images, CPFlags flags = CPFlags.None)
         {
             ScratchImage image = DirectXTex.CreateScratchImage();
             fixed (Image* pImages = images)
@@ -353,14 +385,14 @@
                 image.InitializeCubeFromImages(pImages, (nuint)images.Length, flags);
             }
 
-            return new D3DScratchImage(image);
+            return new ImageSource(image);
         }
 
-        public static D3DScratchImage InitializeFromImage(Image image, bool allow1D = false, CPFlags flags = CPFlags.None)
+        public static ImageSource InitializeFromImage(Image image, bool allow1D = false, CPFlags flags = CPFlags.None)
         {
             ScratchImage scratchImage = DirectXTex.CreateScratchImage();
             scratchImage.InitializeFromImage(image, allow1D, flags);
-            return new D3DScratchImage(scratchImage);
+            return new ImageSource(scratchImage);
         }
     }
 }

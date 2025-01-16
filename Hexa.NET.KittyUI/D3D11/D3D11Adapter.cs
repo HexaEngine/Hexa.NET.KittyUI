@@ -152,6 +152,8 @@
             IDXGIInfoQueue.ClearStoredMessages(DXGI_DEBUG_ALL);
         }
 
+        public static SwapChainFlag SwapChainFlags { get; set; }
+
         [SupportedOSPlatform("windows")]
         public static DXGISwapChain CreateSwapChainForWindow(CoreWindow window)
         {
@@ -165,7 +167,7 @@
                 SampleDesc = new(1, 0),
                 Scaling = Scaling.Stretch,
                 SwapEffect = SwapEffect.FlipSequential,
-                Flags = (uint)(SwapChainFlag.AllowModeSwitch | SwapChainFlag.AllowTearing)
+                Flags = (uint)(SwapChainFlag.AllowModeSwitch | SwapChainFlag.AllowTearing | SwapChainFlags)
             };
 
             SwapChainFullscreenDesc fullscreenDesc = new()
@@ -206,7 +208,7 @@
                 SampleDesc = new(1, 0),
                 Scaling = Scaling.Stretch,
                 SwapEffect = SwapEffect.FlipSequential,
-                Flags = (uint)(SwapChainFlag.AllowModeSwitch | SwapChainFlag.AllowTearing)
+                Flags = (uint)(SwapChainFlag.AllowModeSwitch | SwapChainFlag.AllowTearing | SwapChainFlags)
             };
 
             SwapChainFullscreenDesc fullscreenDesc = new()

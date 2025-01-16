@@ -39,11 +39,12 @@
 
 #nullable restore
         private bool resize = false;
-        private ImGuiManager? imGuiRenderer;
-        private DXGISwapChain? swapChain;
-        private IGLContext? glContext;
         private bool showDebugTools = false;
-        private GL? GL;
+
+        protected ImGuiManager? imGuiRenderer;
+        protected DXGISwapChain? swapChain;
+        protected IGLContext? glContext;
+        protected GL? GL;
 
         public IThreadDispatcher Dispatcher => renderDispatcher;
 
@@ -52,8 +53,6 @@
         public virtual unsafe void Initialize(AppBuilder appBuilder)
         {
             renderDispatcher = new(Thread.CurrentThread);
-
-            OnRendererInitialize();
 
             ImGuiContextPtr context;
             switch (Backend)
@@ -94,6 +93,8 @@
             Application.RegisterHook(SDLEventHook);
 
             WidgetManager.Init();
+
+            OnRendererInitialize();
         }
 
         private unsafe bool SDLEventHook(SDL2.SDLEvent evnt)
@@ -101,7 +102,7 @@
             return ImGuiImplSDL2.ProcessEvent((SDLEvent*)&evnt);
         }
 
-        public void Render()
+        public virtual void Render()
         {
             switch (Backend)
             {
@@ -144,7 +145,7 @@
             ImGuiDebugTools.Shown = showDebugTools;
         }
 
-        private void RenderOpenGL()
+        protected virtual void RenderOpenGL()
         {
             glContext!.MakeCurrent();
 
@@ -176,7 +177,7 @@
             OpenGLAdapter.ProcessQueues(); // Process all pending uploads
         }
 
-        private unsafe void RenderD3D11()
+        protected virtual unsafe void RenderD3D11()
         {
             if (resize)
             {

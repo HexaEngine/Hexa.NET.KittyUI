@@ -11,7 +11,6 @@ using TestApp;
 AppBuilder appBuilder = new();
 appBuilder.EnableLogging(true);
 appBuilder.EnableDebugTools(true);
-appBuilder.SetGraphicsBackend(GraphicsBackend.OpenGL);
 appBuilder.SetTitle("Test App");
 appBuilder.AddWindow<MainWindow>(true, true);
 appBuilder.StyleColorsDark();
@@ -50,7 +49,7 @@ namespace TestApp
 
             if (ImGui.Button("Load Texture"))
             {
-                LoadTexture("icon.png");
+                LoadTexture("D:\\SteamLibrary\\steamapps\\common\\RimWorld\\Data\\Ideology\\About\\Preview.png");
                 //LoadWebTexture();
             }
 

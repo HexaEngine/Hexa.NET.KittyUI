@@ -2,9 +2,6 @@
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Backends.SDL2;
-    using Hexa.NET.ImGuizmo;
-    using Hexa.NET.ImNodes;
-    using Hexa.NET.ImPlot;
     using Hexa.NET.KittyUI;
     using System.Diagnostics;
     using System.Numerics;
@@ -12,10 +9,14 @@
     public class ImGuiManager
     {
         private ImGuiContextPtr guiContext;
-        private ImNodesContextPtr nodesContext;
-        private ImPlotContextPtr plotContext;
+        private static readonly List<ImGuiAddon> addons = [];
         private static readonly Dictionary<string, ImFontPtr> aliasToFont = new();
         private static int fontPushes = 0;
+
+        public static void AddAddon(ImGuiAddon addon)
+        {
+            addons.Add(addon);
+        }
 
         public static void PushFont(string name)
         {
@@ -53,18 +54,12 @@
             guiContext = ImGui.CreateContext(null);
             ImGui.SetCurrentContext(guiContext);
 
+            foreach (var addon in addons)
+            {
+                addon.Initialize(guiContext);
+            }
+
             ImGui.SetCurrentContext(guiContext);
-            ImGuizmo.SetImGuiContext(guiContext);
-            ImPlot.SetImGuiContext(guiContext);
-            ImNodes.SetImGuiContext(guiContext);
-
-            nodesContext = ImNodes.CreateContext();
-            ImNodes.SetCurrentContext(nodesContext);
-            ImNodes.StyleColorsDark(ImNodes.GetStyle());
-
-            plotContext = ImPlot.CreateContext();
-            ImPlot.SetCurrentContext(plotContext);
-            ImPlot.StyleColorsDark(ImPlot.GetStyle());
 
             var io = ImGui.GetIO();
             io.ConfigFlags |= flags;
@@ -183,17 +178,20 @@
         public unsafe void NewFrame()
         {
             ImGui.SetCurrentContext(guiContext);
-            ImGuizmo.SetImGuiContext(guiContext);
-            ImPlot.SetImGuiContext(guiContext);
-            ImNodes.SetImGuiContext(guiContext);
 
-            ImNodes.SetCurrentContext(nodesContext);
-            ImPlot.SetCurrentContext(plotContext);
+            foreach (var addon in addons)
+            {
+                addon.NewFrame(guiContext);
+            }
 
             RendererNewFrameCallback();
             ImGuiImplSDL2.NewFrame();
             ImGui.NewFrame();
-            ImGuizmo.BeginFrame();
+
+            foreach (var addon in addons)
+            {
+                addon.PostNewFrame(guiContext);
+            }
         }
 
         public Action RendererNewFrameCallback;
@@ -201,6 +199,10 @@
 
         public unsafe void EndFrame()
         {
+            foreach (var addon in addons)
+            {
+                addon.EndFrame();
+            }
             var io = ImGui.GetIO();
             ImGui.Render();
             ImGui.EndFrame();
@@ -211,6 +213,11 @@
             {
                 ImGui.UpdatePlatformWindows();
                 ImGui.RenderPlatformWindowsDefault();
+            }
+
+            foreach (var addon in addons)
+            {
+                addon.PostEndFrame();
             }
         }
     }
