@@ -16,7 +16,7 @@
             ImNodes.StyleColorsDark(ImNodes.GetStyle());
         }
 
-        public override void DisposeCore()
+        protected override void DisposeCore()
         {
             if (!nodesContext.IsNull)
             {

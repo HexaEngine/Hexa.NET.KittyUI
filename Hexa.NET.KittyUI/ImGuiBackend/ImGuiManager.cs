@@ -6,9 +6,10 @@
     using System.Diagnostics;
     using System.Numerics;
 
-    public class ImGuiManager
+    public class ImGuiManager : IDisposable
     {
         private ImGuiContextPtr guiContext;
+        private bool disposedValue;
         private static readonly List<ImGuiAddon> addons = [];
         private static readonly Dictionary<string, ImFontPtr> aliasToFont = new();
         private static int fontPushes = 0;
@@ -219,6 +220,23 @@
             {
                 addon.PostEndFrame();
             }
+        }
+
+        public void Dispose()
+        {
+            if (!disposedValue)
+            {
+                foreach (var addon in addons)
+                {
+                    addon.Dispose();
+                }
+
+                ImGui.DestroyContext(guiContext);
+                ImGui.SetCurrentContext(null);
+                disposedValue = true;
+            }
+
+            GC.SuppressFinalize(this);
         }
     }
 }

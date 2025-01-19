@@ -10,7 +10,7 @@
             ImGuizmo.SetImGuiContext(context);
         }
 
-        public override void DisposeCore()
+        protected override void DisposeCore()
         {
             ImGuizmo.SetImGuiContext(null);
         }

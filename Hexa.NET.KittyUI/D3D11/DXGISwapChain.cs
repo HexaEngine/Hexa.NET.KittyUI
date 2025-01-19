@@ -1,10 +1,9 @@
 ﻿namespace Hexa.NET.KittyUI.D3D11
 {
-    using Hexa.NET.KittyUI.Windows.Events;
-    using HexaGen.Runtime;
-    using HexaGen.Runtime.COM;
     using Hexa.NET.D3D11;
     using Hexa.NET.DXGI;
+    using Hexa.NET.KittyUI.Windows.Events;
+    using HexaGen.Runtime.COM;
     using System;
     using System.Diagnostics;
     using System.Runtime.CompilerServices;
@@ -14,11 +13,7 @@
         private ComPtr<IDXGISwapChain1> swapChain;
         private readonly SwapChainFlag flags;
         private ComPtr<ID3D11Texture2D> backbuffer;
-        private long fpsStartTime;
-        private long fpsFrameCount;
         private bool vSync;
-        private bool limitFPS;
-        private int targetFPS = 120;
         private bool active;
         private ComPtr<ID3D11RenderTargetView> backbufferRTV;
 
@@ -56,10 +51,6 @@
 
         public bool VSync { get => vSync; set => vSync = value; }
 
-        public bool LimitFPS { get => limitFPS; set => limitFPS = value; }
-
-        public int TargetFPS { get => targetFPS; set => targetFPS = value; }
-
         public bool Active { get => active; set => active = value; }
 
         public void Present(bool sync)
@@ -87,33 +78,6 @@
             else
             {
                 swapChain.Present(0, (uint)DXGI.DXGI_PRESENT_ALLOW_TEARING);
-            }
-        }
-
-        public void Wait()
-        {
-            if (!vSync && limitFPS)
-            {
-                LimitFrameRate();
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void LimitFrameRate()
-        {
-            int fps = targetFPS;
-            long freq = Stopwatch.Frequency;
-            long frame = Stopwatch.GetTimestamp();
-            while ((frame - fpsStartTime) * fps < freq * fpsFrameCount)
-            {
-                int sleepTime = (int)((fpsStartTime * fps + freq * fpsFrameCount - frame * fps) * 1000 / (freq * fps));
-                if (sleepTime > 0) Thread.Sleep(sleepTime);
-                frame = Stopwatch.GetTimestamp();
-            }
-            if (++fpsFrameCount > fps)
-            {
-                fpsFrameCount = 0;
-                fpsStartTime = frame;
             }
         }
 

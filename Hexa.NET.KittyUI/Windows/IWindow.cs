@@ -32,11 +32,6 @@
         bool Focused { get; }
 
         /// <summary>
-        /// Gets or sets the height of the window.
-        /// </summary>
-        int Height { get; set; }
-
-        /// <summary>
         /// Gets a value indicating whether the mouse is hovering over the window.
         /// </summary>
         bool Hovering { get; }
@@ -67,16 +62,6 @@
         Viewport Viewport { get; }
 
         /// <summary>
-        /// Gets or sets the width of the window.
-        /// </summary>
-        int Width { get; set; }
-
-        /// <summary>
-        /// Gets the ID of the window.
-        /// </summary>
-        uint WindowID { get; }
-
-        /// <summary>
         /// Gets or sets the X position of the window.
         /// </summary>
         int X { get; set; }
@@ -85,6 +70,31 @@
         /// Gets or sets the Y position of the window.
         /// </summary>
         int Y { get; set; }
+
+        /// <summary>
+        /// Gets or sets the position of the window.
+        /// </summary>
+        Point2 Position { get; set; }
+
+        /// <summary>
+        /// Gets or sets the width of the window.
+        /// </summary>
+        int Width { get; set; }
+
+        /// <summary>
+        /// Gets or sets the height of the window.
+        /// </summary>
+        int Height { get; set; }
+
+        /// <summary>
+        /// Gets or sets the size of the window.
+        /// </summary>
+        Point2 Size { get; set; }
+
+        /// <summary>
+        /// Gets the ID of the window.
+        /// </summary>
+        uint WindowID { get; }
 
         /// <summary>
         /// Gets the windows border size.

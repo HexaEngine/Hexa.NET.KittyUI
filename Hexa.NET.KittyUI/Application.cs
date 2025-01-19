@@ -57,6 +57,8 @@
 
         public static bool LoggingEnabled { get; set; } = true;
 
+        public static event Action? Exiting;
+
         public static void Run(IRenderWindow mainWindow, AppBuilder builder)
         {
             Init(mainWindow, builder);
@@ -72,6 +74,8 @@
         }
 
         public static LogFileWriter? FileLogWriter { get; set; }
+
+        public static uint InitFlags { get; set; } = SDL.SDL_INIT_GAMECONTROLLER + SDL.SDL_INIT_JOYSTICK;
 
         private static void Init(IRenderWindow mainWindow, AppBuilder builder)
         {
@@ -103,7 +107,7 @@
             SDL.SetHint(SDL.SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
             SDL.SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
 
-            SDL.Init(SDL.SDL_INIT_EVENTS + SDL.SDL_INIT_GAMECONTROLLER + SDL.SDL_INIT_HAPTIC + SDL.SDL_INIT_JOYSTICK + SDL.SDL_INIT_SENSOR);
+            SDL.Init(InitFlags);
 
             SdlCheckError();
 
@@ -211,7 +215,6 @@
                     {
                         if (hooks[i](evnt))
                         {
-                            break;
                         }
                     }
                     SDLEventType type = (SDLEventType)evnt.Type;
@@ -229,9 +232,9 @@
                 windows[i].Uninitialize();
             }
 
-            ((CoreWindow)mainWindow).DestroyWindow(true);
+            Exiting?.Invoke();
 
-            ((CoreWindow)mainWindow).DestroyGraphics();
+            ((CoreWindow)mainWindow).DestroyWindow(true);
 
             AudioManager.Dispose();
 

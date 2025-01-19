@@ -33,9 +33,13 @@
         private static readonly ILogger D3D11Logger = LoggerFactory.GetLogger(nameof(D3D11));
         private static readonly ILogger DXGILogger = LoggerFactory.GetLogger(nameof(DXGI));
 
+        public static bool Initialized { get; private set; }
+
         [SupportedOSPlatform("windows")]
         public static void Init(IWindow source, bool debug)
         {
+            Initialized = true;
+
             if (debug)
             {
                 DXGI.GetDebugInterface1(0, out IDXGIDebug);

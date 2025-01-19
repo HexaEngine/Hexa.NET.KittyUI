@@ -1,5 +1,15 @@
 ﻿namespace Hexa.NET.KittyUI.Windows
 {
+#if GLES
+
+    using Hexa.NET.OpenGLES;
+
+#else
+
+    using Hexa.NET.OpenGL;
+
+#endif
+
     using Hexa.NET.KittyUI;
     using Hexa.NET.KittyUI.D3D11;
     using Hexa.NET.KittyUI.Graphics;
@@ -14,7 +24,6 @@
     using HexaGen.Runtime;
     using System;
     using System.Runtime.CompilerServices;
-    using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Text;
     using static Hexa.NET.KittyUI.Extensions.SdlErrorHandlingExtensions;
@@ -64,18 +73,12 @@
         private bool lockCursor;
         private bool resizable = true;
         private bool bordered = true;
+        private bool vSync = true;
 
         private SDLCursor** cursors;
 
         public CoreWindow(SDLWindowFlags flags = SDLWindowFlags.Resizable)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-            }
-            else
-            {
-            }
-
             PlatformConstruct(flags);
         }
 
@@ -85,12 +88,6 @@
             this.y = y;
             this.width = width;
             this.height = height;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-            }
-            else
-            {
-            }
 
             PlatformConstruct(flags);
         }
@@ -134,7 +131,7 @@
                     break;
             }
 
-            window = SdlCheckError(SDL.CreateWindow(ptr, (int)x, (int)y, (int)width, (int)height, (uint)windowFlags));
+            window = SdlCheckError(SDL.CreateWindow(ptr, x, y, width, height, (uint)windowFlags));
 
             WindowID = SDL.GetWindowID(window).SdlThrowIf();
 
@@ -164,12 +161,19 @@
             switch (backend)
             {
                 case GraphicsBackend.D3D11:
-                    if (OperatingSystem.IsWindows())
+                    if (!OperatingSystem.IsWindows())
                     {
-                        D3D11Adapter.Init(this, Application.GraphicsDebugging); break;
+                        goto default;
                     }
 
-                    goto default;
+                    if (!D3D11Adapter.Initialized)
+                    {
+                        D3D11Adapter.Init(this, Application.GraphicsDebugging);
+                    }
+                    DXGISwapChain = D3D11Adapter.CreateSwapChainForWindow(this);
+                    DXGISwapChain.Active = true;
+                    DXGISwapChain.VSync = vSync;
+                    break;
 
                 case GraphicsBackend.OpenGL:
                     if (OperatingSystem.IsMacOS())
@@ -185,8 +189,21 @@
                         SDL.GLSetAttribute(SDLGLattr.GlContextMinorVersion, 5);
                     }
                     SDL.GLSetAttribute(SDLGLattr.GlContextProfileMask, (int)SDLGLprofile.GlContextProfileCore);
-
-                    OpenGLAdapter.Init(this);
+                    if (!OpenGLAdapter.Initialized)
+                    {
+                        OpenGLAdapter.Init(this);
+                        GLContext = OpenGLAdapter.Context;
+                        GL = OpenGLAdapter.GL;
+                    }
+                    else
+                    {
+                        SDL.GLSetAttribute(SDLGLattr.GlShareWithCurrentContext, 1);
+                        OpenGLAdapter.Context.MakeCurrent();
+                        GLContext = OpenGLCreateContext();
+                        GLContext.MakeCurrent();
+                        GL = new(GLContext);
+                    }
+                    GLContext.SwapInterval(vSync ? 1 : 0);
                     break;
 
                 default:
@@ -231,6 +248,20 @@
         {
             Logger.ThrowIf(destroyed, "The window is already destroyed");
             SDL.SetWindowFullscreen(window, (uint)mode);
+        }
+
+        public bool VSync
+        {
+            get => vSync;
+            set
+            {
+                vSync = value;
+                if (DXGISwapChain != null)
+                {
+                    DXGISwapChain.VSync = value;
+                }
+                GLContext?.SwapInterval(value ? 1 : 0);
+            }
         }
 
         [SupportedOSPlatform("windows")]
@@ -291,6 +322,18 @@
             }
         }
 
+        public Point2 Position
+        {
+            get => new(x, y);
+            set
+            {
+                Logger.ThrowIf(destroyed, "The window is already destroyed");
+                x = value.X;
+                y = value.Y;
+                SDL.SetWindowPosition(window, value.X, value.Y);
+            }
+        }
+
         public int Width
         {
             get => width;
@@ -316,6 +359,25 @@
                 resizedEventArgs.NewHeight = value;
                 height = value;
                 SDL.SetWindowSize(window, width, value);
+                Viewport = new(width, height);
+                OnResized(resizedEventArgs);
+            }
+        }
+
+        public Point2 Size
+        {
+            get => new(width, height);
+            set
+            {
+                Logger.ThrowIf(destroyed, "The window is already destroyed");
+                resizedEventArgs.OldWidth = width;
+                resizedEventArgs.OldHeight = height;
+                resizedEventArgs.NewWidth = value.X;
+                resizedEventArgs.NewHeight = value.Y;
+
+                width = value.X;
+                height = value.Y;
+                SDL.SetWindowSize(window, value.X, value.Y);
                 Viewport = new(width, height);
                 OnResized(resizedEventArgs);
             }
@@ -476,6 +538,12 @@
         public nint? DXHandle { get; }
 
         public (nint? Display, nint? Surface)? EGL { get; }
+
+        public DXGISwapChain? DXGISwapChain { get; private set; }
+
+        public GL? GL { get; private set; }
+
+        public IGLContext? GLContext { get; private set; }
 
         #region Events
 
@@ -1319,6 +1387,8 @@
                 cursors = null;
             }
 
+            DestroyGraphics();
+
             if (window != null)
             {
                 SDL.ClearError(); // see issue #5, MacOS adds random error messages.
@@ -1336,11 +1406,22 @@
             switch (Backend)
             {
                 case GraphicsBackend.D3D11:
-                    D3D11Adapter.Shutdown();
+                    DXGISwapChain!.Dispose();
+                    if (WindowID == Application.MainWindow.WindowID)
+                    {
+                        D3D11Adapter.Shutdown();
+                    }
+
                     break;
 
                 case GraphicsBackend.OpenGL:
-                    OpenGLAdapter.Shutdown();
+                    if (WindowID == Application.MainWindow.WindowID)
+                    {
+                        OpenGLAdapter.Shutdown();
+                    }
+
+                    GLContext.Dispose();
+                    GL.Dispose();
                     break;
             }
         }

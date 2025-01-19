@@ -26,7 +26,7 @@
         {
         }
 
-        public abstract void DisposeCore();
+        protected abstract void DisposeCore();
 
         public void Dispose()
         {

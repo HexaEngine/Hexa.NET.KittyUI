@@ -31,6 +31,8 @@
     using Hexa.NET.D3D11;
     using Hexa.NET.Logging;
     using HexaGen.Runtime;
+    using System.Diagnostics;
+    using System.Runtime.CompilerServices;
 
     public class Window : CoreWindow, IRenderWindow
     {
@@ -40,15 +42,21 @@
 #nullable restore
         private bool resize = false;
         private bool showDebugTools = false;
+        private bool limitFPS;
 
         protected ImGuiManager? imGuiRenderer;
-        protected DXGISwapChain? swapChain;
-        protected IGLContext? glContext;
-        protected GL? GL;
+        protected FPSLimiter limiter = new();
 
         public IThreadDispatcher Dispatcher => renderDispatcher;
 
         public event Action? Draw;
+
+        public bool LimitFPS { get => limitFPS; set => limitFPS = value; }
+
+        public int TargetFPS
+        {
+            get => limiter.TargetFPS; set => limiter.TargetFPS = value;
+        }
 
         public virtual unsafe void Initialize(AppBuilder appBuilder)
         {
@@ -63,10 +71,6 @@
                         throw new PlatformNotSupportedException("Direct3D 11 is only supported on Windows.");
                     }
 
-                    swapChain = D3D11Adapter.CreateSwapChainForWindow(this);
-                    swapChain.Active = true;
-                    swapChain.LimitFPS = false;
-                    swapChain.VSync = true;
                     var dev = D3D11GraphicsDevice.Device;
                     var ctx = D3D11GraphicsDevice.DeviceContext;
                     imGuiRenderer = new(appBuilder, ImGuiImplD3D11.NewFrame, ImGuiImplD3D11.RenderDrawData);
@@ -78,13 +82,10 @@
                     break;
 
                 case GraphicsBackend.OpenGL:
-                    glContext = OpenGLAdapter.Context;
-                    glContext.SwapInterval(1);
-                    GL = OpenGLAdapter.GL;
                     imGuiRenderer = new(appBuilder, ImGuiImplOpenGL3.NewFrame, ImGuiImplOpenGL3.RenderDrawData);
                     context = ImGui.GetCurrentContext();
                     ImGuiImplSDL2.SetCurrentContext(context);
-                    ImGuiImplSDL2.InitForOpenGL((SDLWindow*)GetWindow(), (void*)glContext.Handle);
+                    ImGuiImplSDL2.InitForOpenGL((SDLWindow*)GetWindow(), (void*)GLContext.Handle);
                     ImGuiImplOpenGL3.SetCurrentContext(context);
                     ImGuiImplOpenGL3.Init((byte*)null);
                     break;
@@ -147,14 +148,14 @@
 
         protected virtual void RenderOpenGL()
         {
-            glContext!.MakeCurrent();
+            GLContext!.MakeCurrent();
 
             if (resize)
             {
-                GL.Viewport(0, 0, Width, Height);
+                GL!.Viewport(0, 0, Width, Height);
             }
 
-            GL.Clear(GLClearBufferMask.ColorBufferBit);
+            GL!.Clear(GLClearBufferMask.ColorBufferBit);
 
             renderDispatcher.ExecuteQueue();
 
@@ -171,17 +172,22 @@
             GL.BindFramebuffer(GLFramebufferTarget.Framebuffer, 0);
             imGuiRenderer?.EndFrame();
 
-            glContext.MakeCurrent();
-            glContext.SwapBuffers();
+            GLContext.MakeCurrent();
+            GLContext.SwapBuffers();
 
             OpenGLAdapter.ProcessQueues(); // Process all pending uploads
+
+            if (limitFPS)
+            {
+                limiter.LimitFrameRate();
+            }
         }
 
         protected virtual unsafe void RenderD3D11()
         {
             if (resize)
             {
-                swapChain!.Resize(Width, Height);
+                DXGISwapChain!.Resize(Width, Height);
                 resize = false;
             }
 
@@ -191,7 +197,7 @@
                 return;
             }
             var color = Vector4.Zero;
-            context.ClearRenderTargetView(swapChain!.BackbufferRTV, (float*)&color);
+            context.ClearRenderTargetView(DXGISwapChain!.BackbufferRTV, (float*)&color);
 
             renderDispatcher.ExecuteQueue();
 
@@ -205,13 +211,16 @@
 
             OnRender();
 
-            var rtv = swapChain.BackbufferRTV.Handle;
+            var rtv = DXGISwapChain.BackbufferRTV.Handle;
             context.OMSetRenderTargets(1, ref rtv, (ID3D11DepthStencilView*)null);
             imGuiRenderer?.EndFrame();
 
-            swapChain.Present();
+            DXGISwapChain.Present();
 
-            swapChain.Wait();
+            if (limitFPS)
+            {
+                limiter.LimitFrameRate();
+            }
         }
 
         public virtual void Uninitialize()
@@ -221,13 +230,12 @@
 
             WidgetManager.Dispose();
             renderDispatcher.Dispose();
-            AudioManager.Dispose();
+          
 
             switch (Backend)
             {
                 case GraphicsBackend.D3D11:
                     ImGuiImplD3D11.Shutdown();
-                    swapChain?.Dispose();
                     break;
 
                 case GraphicsBackend.OpenGL:
@@ -236,6 +244,8 @@
             }
 
             ImGuiImplSDL2.Shutdown();
+
+            imGuiRenderer?.Dispose();
         }
 
         protected virtual void OnRendererInitialize()

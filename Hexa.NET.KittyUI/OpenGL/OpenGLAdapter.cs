@@ -22,7 +22,7 @@
 
     public unsafe class OpenGLAdapter
     {
-        static ThreadDispatcher dispatcher = null!;
+        private static ThreadDispatcher dispatcher = null!;
 
         public static readonly ILogger GLLogger = LoggerFactory.GetLogger(nameof(GL));
 
@@ -40,8 +40,12 @@
 
         public static bool NoExtensions { get; private set; }
 
+        public static bool Initialized { get; private set; }
+
         public static void Init(IWindow window)
         {
+            Initialized = true;
+
             dispatcher = new ThreadDispatcher(Thread.CurrentThread);
             Context = window.OpenGLCreateContext();
             Context.MakeCurrent();
@@ -143,8 +147,6 @@
         public static void Shutdown()
         {
             UploadQueue.Dispose();
-            Context.Dispose();
-            GL.Dispose();
         }
     }
 }

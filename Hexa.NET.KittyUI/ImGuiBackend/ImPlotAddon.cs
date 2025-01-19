@@ -16,7 +16,7 @@
             ImPlot.StyleColorsDark(ImPlot.GetStyle());
         }
 
-        public override void DisposeCore()
+        protected override void DisposeCore()
         {
             if (!plotContext.IsNull)
             {
