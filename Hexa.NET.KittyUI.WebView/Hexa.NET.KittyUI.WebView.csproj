@@ -10,8 +10,8 @@
 		<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
 		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 
-		<AssemblyVersion>1.0.0</AssemblyVersion>
-		<PackageVersion>1.0.0</PackageVersion>
+		<AssemblyVersion>1.0.1</AssemblyVersion>
+		<PackageVersion>1.0.1</PackageVersion>
 		<Authors>Juna Meinhold</Authors>
 		<Copyright>Copyright (c) 2025 Juna Meinhold</Copyright>
 		<PackageProjectUrl>https://github.com/HexaEngine/Hexa.NET.KittyUI</PackageProjectUrl>
@@ -38,12 +38,20 @@
 
 	<ItemGroup>
 		<PackageReference Include="CefSharp.OffScreen.NETCore" Version="131.3.50" />
-		<PackageReference Include="chromiumembeddedframework.runtime.win-x64" Version="131.3.5" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Content Include="../README.md" Pack="true" PackagePath="\" />
 		<Content Include="../LICENSE.txt" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="locales\*">
+			<Link>locales\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<PackagePath>locales</PackagePath>
+			<Pack>true</Pack>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>

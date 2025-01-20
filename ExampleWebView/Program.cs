@@ -31,11 +31,11 @@ namespace TestApp
 
         public override void Init()
         {
-            view = new()
+            view = new("https://google.com")
             {
                 Size = new(1280, 720)
             };
-            view.Browser.LoadUrl("https://google.com");
+            
         }
 
         public override void Dispose()

@@ -22,7 +22,11 @@
 
         public void Release()
         {
-            Free(Data);
+            if (Data!=null)
+            {
+                Free(Data);
+                Data = null;
+            }
         }
     }
 }

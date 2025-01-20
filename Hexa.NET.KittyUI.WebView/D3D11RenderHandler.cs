@@ -45,6 +45,12 @@
 
         protected override void SetBufferSize(int width, int height)
         {
+            if (srv.Handle != null)
+            {
+                srv.Release();
+                srv = default;
+            }
+
             if (texture.Handle != null)
             {
                 texture.Release();
