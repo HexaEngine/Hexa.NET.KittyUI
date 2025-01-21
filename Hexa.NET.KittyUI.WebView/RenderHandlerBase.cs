@@ -1,9 +1,9 @@
 ﻿namespace Hexa.NET.KittyUI.WebView
 {
-    using CefSharp.OffScreen;
     using CefSharp;
-    using CefSharp.Structs;
     using CefSharp.Enums;
+    using CefSharp.OffScreen;
+    using CefSharp.Structs;
     using Hexa.NET.ImGui;
     using Hexa.NET.SDL2;
     using System.Collections.Concurrent;
@@ -18,17 +18,23 @@
 
         public bool IsDisposed => disposedValue;
 
+        public int Width => width;
+
+        public int Height => height;
+
         public void SetSize(int width, int height)
         {
             if (this.width == width && this.height == height) return;
+            int oldWidth = width;
+            int oldHeight = height;
             this.width = width;
             this.height = height;
-            SetBufferSize(width, height);
+            SetBufferSize(oldWidth, oldHeight, width, height);
         }
 
-        protected abstract void SetBufferSize(int width, int height);
+        protected abstract void SetBufferSize(int oldWidth, int oldHeight, int width, int height);
 
-        public abstract void Draw(ImDrawListPtr draw, ImRect bb);
+        public abstract void Draw(ImDrawListPtr draw, ImRect bb, bool hovered);
 
         public virtual ScreenInfo? GetScreenInfo()
         {

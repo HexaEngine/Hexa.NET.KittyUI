@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ExampleWebView": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

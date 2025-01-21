@@ -104,9 +104,13 @@
             get => size;
             set
             {
+
                 size = value;
                 renderHandler.SetSize(value.X, value.Y);
+
                 host?.WasResized();
+
+                host?.Invalidate(PaintElementType.View);
             }
         }
 
@@ -136,6 +140,8 @@
         protected virtual void OnLeave()
         {
             isHovered = false;
+            var pos = GetMousePos();
+            host?.SendMouseMoveEvent(new(pos.X, pos.Y, eventFlags), true);
         }
 
         protected virtual void OnEnter()
@@ -586,7 +592,9 @@
 
             var draw = ImGui.GetWindowDrawList();
 
-            renderHandler.Draw(draw, bb);
+          
+
+            renderHandler.Draw(draw, bb, hovered);
         }
 
         protected virtual void DisposeCore()

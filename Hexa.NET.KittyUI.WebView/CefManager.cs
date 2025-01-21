@@ -29,7 +29,7 @@
                 Javascript = CefState.Enabled,
                 WebGl = CefState.Enabled,
                 Databases = CefState.Enabled,
-                LocalStorage = CefState.Enabled
+                LocalStorage = CefState.Enabled,
             };
         }
 
@@ -45,8 +45,12 @@
                 LogSeverity = LogSeverity.Disable,
                 CachePath = Path.GetFullPath("cefcache"),
                 WindowlessRenderingEnabled = true,
+                PersistSessionCookies=true,
                 RemoteDebuggingPort = 0,
+                
             };
+
+            //settings.SetOffScreenRenderingBestPerformanceArgs();
 
             settings.CefCommandLineArgs.Add("disable-breakpad", "1");
             settings.CefCommandLineArgs.Add("disable-metrics", "1"); 
