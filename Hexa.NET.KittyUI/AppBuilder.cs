@@ -243,15 +243,16 @@
             return this;
         }
 
-        public AppBuilder AddWindow<T>(bool show = false, bool mainWindow = false) where T : IImGuiWindow, new()
+        public AppBuilder AddWindow<T>() where T : IImGuiWindow, new()
         {
-            WidgetManager.Register<T>(show, mainWindow);
+            T window = new();
+            window.Show();
             return this;
         }
 
-        public AppBuilder AddWindow(IImGuiWindow window, bool show = false, bool mainWindow = false)
+        public AppBuilder AddWindow(IImGuiWindow window)
         {
-            WidgetManager.Register(window, show, mainWindow);
+            window.Show();
             return this;
         }
 
@@ -259,7 +260,7 @@
         {
             ShellBuilder builder = new(title);
             action(builder);
-            WidgetManager.Register(builder.Shell, true, true);
+            builder.Shell.Show();
             SetTitle(title);
 
             builder.Shell.Navigation.NavigateToRoot();
@@ -285,7 +286,7 @@
                 Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoDecoration;
             }
 
-            protected override string Name => name;
+            public override string Name => name;
 
             public override unsafe void DrawWindow(ImGuiWindowFlags overwriteFlags)
             {
@@ -317,9 +318,10 @@
             }
         }
 
-        public AppBuilder AddWindow(string name, Action window)
+        public AppBuilder AddWindow(string name, Action draw)
         {
-            WidgetManager.Register(new WrappedWindow(name, window));
+            WrappedWindow window = new(name, draw);
+            window.Show();
             return this;
         }
     }

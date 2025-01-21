@@ -21,7 +21,7 @@
             showMenu = !showMenu;
         }
 
-        protected override string Name { get; }
+        public override string Name { get; }
 
         public INavigation Navigation => navigation;
 

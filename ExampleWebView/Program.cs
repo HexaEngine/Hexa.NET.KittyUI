@@ -12,7 +12,7 @@ appBuilder.EnableLogging(true);
 appBuilder.EnableDebugTools(true);
 appBuilder.SetTitle("Test App");
 //appBuilder.SetGraphicsBackend(Hexa.NET.KittyUI.Graphics.GraphicsBackend.OpenGL);
-appBuilder.AddWindow<MainWindow>(true, true);
+appBuilder.AddWindow<MainWindow>();
 appBuilder.StyleColorsDark();
 appBuilder.Run();
 
@@ -20,11 +20,11 @@ namespace TestApp
 {
     public class MainWindow : ImWindow
     {
-        protected override string Name => "Main Window";
+        public override string Name => "Main Window";
 
         public override void Init()
         {
-           
+
         }
 
         public override void DrawContent()
@@ -32,20 +32,16 @@ namespace TestApp
             ImGui.Text("Hello, World!");
             if (ImGui.Button("Open"))
             {
-                WidgetManager.Register<Browser>(true); 
+                new Browser().Show();
             }
         }
     }
 
     public class Browser : ImWindow
     {
-        private WebView view;
+        private WebView view = null!;
 
-        public Browser()
-        {
-        }
-
-        protected override string Name => "Browser";
+        public override string Name => "Browser";
 
         public override void Init()
         {

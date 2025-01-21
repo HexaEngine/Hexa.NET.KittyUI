@@ -12,7 +12,7 @@ AppBuilder appBuilder = new();
 appBuilder.EnableLogging(true);
 appBuilder.EnableDebugTools(true);
 appBuilder.SetTitle("Test App");
-appBuilder.AddWindow<MainWindow>(true, true);
+appBuilder.AddWindow<MainWindow>();
 appBuilder.StyleColorsDark();
 appBuilder.Run();
 
@@ -23,7 +23,7 @@ namespace TestApp
         private string? file;
         private Image2D? image;
 
-        protected override string Name => "Main Window";
+        public override string Name => "Main Window";
 
         public override unsafe void DrawContent()
         {
