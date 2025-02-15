@@ -3,6 +3,7 @@ using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Widgets;
 using Hexa.NET.KittyUI;
 using Hexa.NET.KittyUI.WebView;
+using Hexa.NET.Mathematics;
 using System.Numerics;
 using TestApp;
 
@@ -24,7 +25,6 @@ namespace TestApp
 
         public override void Init()
         {
-
         }
 
         public override void DrawContent()
@@ -49,7 +49,6 @@ namespace TestApp
             {
                 Size = new(1280, 720)
             };
-
         }
 
         public override void DrawWindow(ImGuiWindowFlags overwriteFlags)
@@ -61,7 +60,7 @@ namespace TestApp
 
         protected override void OnSizeChanged(Vector2 oldSize, Vector2 size)
         {
-            view.Size = ImGui.GetContentRegionAvail();
+            view.Size = (Point2)ImGui.GetContentRegionAvail();
         }
 
         public override void Dispose()

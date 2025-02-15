@@ -104,7 +104,6 @@
             get => size;
             set
             {
-
                 size = value;
                 renderHandler.SetSize(value.X, value.Y);
 
@@ -448,7 +447,7 @@
         {
             int x, y;
             SDL.GetGlobalMouseState(&x, &y);
-            Vector2 point = new(x - position.X, y - position.Y);
+            Point2 point = new(x - position.X, y - position.Y);
             return point;
         }
 
@@ -531,7 +530,7 @@
             UpdateScroll(ref wheelDeltaAccumulatorX);
             UpdateScroll(ref wheelDeltaAccumulatorY);
 
-            Point2 newPos = ImGui.GetCursorScreenPos();
+            Point2 newPos = (Point2)ImGui.GetCursorScreenPos();
 
             if (newPos != position)
             {
@@ -591,8 +590,6 @@
             }
 
             var draw = ImGui.GetWindowDrawList();
-
-          
 
             renderHandler.Draw(draw, bb, hovered);
         }
