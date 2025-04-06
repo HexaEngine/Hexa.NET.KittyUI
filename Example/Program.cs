@@ -49,7 +49,7 @@ namespace TestApp
 
             if (ImGui.Button("Load Texture"))
             {
-                LoadTexture("D:\\SteamLibrary\\steamapps\\common\\RimWorld\\Data\\Ideology\\About\\Preview.png");
+                LoadTexture("icon.png");
                 //LoadWebTexture();
             }
 

@@ -33,8 +33,8 @@
             {
                 if (ImGui.Begin("ShellMenuPopup", ImGuiWindowFlags.NoDecoration))
                 {
-                    ImGuiP.SetWindowPos(viewport.WorkPos);
-                    ImGuiP.SetWindowSize(new Vector2(0, viewport.WorkSize.Y));
+                    ImGui.SetWindowPos(viewport.WorkPos);
+                    ImGui.SetWindowSize(new Vector2(0, viewport.WorkSize.Y));
                     ImGui.Text("Hello world");
 
                     if (!ImGui.IsWindowFocused())

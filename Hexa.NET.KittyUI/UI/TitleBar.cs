@@ -205,7 +205,7 @@
             ImRect rect = new(pos, pos + size);
 
             bool isHovered = rect.Contains(mousePos);
-            bool isMouseDown = ImGuiP.IsMouseDown(ImGuiMouseButton.Left) && isHovered;
+            bool isMouseDown = ImGui.IsMouseDown(ImGuiMouseButton.Left) && isHovered;
 
             if (!isHovered && context.HoveredId == id)
             {
@@ -250,7 +250,7 @@
                 context.DrawList.AddRectFilled(rect.Min, rect.Max, color);
             }
 
-            bool clicked = ImGuiP.IsMouseReleased(ImGuiMouseButton.Left);
+            bool clicked = ImGui.IsMouseReleased(ImGuiMouseButton.Left);
             var textSizeClose = ImGui.CalcTextSize(label);
             var midpoint = rect.Midpoint() - textSizeClose / 2;
             context.DrawList.AddText(midpoint, context.ForegroundColor, label);
@@ -488,7 +488,7 @@
         public virtual void Draw()
         {
             var viewport = ImGui.GetMainViewport();
-            draw = ImGuiP.GetForegroundDrawList(viewport);
+            draw = ImGui.GetForegroundDrawList(viewport);
 
             // Draw the custom title bar
             titleBarPos = viewport.Pos; // Start at the top of the viewport
