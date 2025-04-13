@@ -10,8 +10,8 @@
 		<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
 		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 
-		<AssemblyVersion>1.1.8</AssemblyVersion>
-		<PackageVersion>1.1.8</PackageVersion>
+		<AssemblyVersion>1.1.9</AssemblyVersion>
+		<PackageVersion>1.1.9</PackageVersion>
 		<Authors>Juna Meinhold</Authors>
 		<Copyright>Copyright (c) 2024 Juna Meinhold</Copyright>
 		<PackageProjectUrl>https://github.com/HexaEngine/Hexa.NET.KittyUI</PackageProjectUrl>
@@ -54,8 +54,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hexa.NET.ImGui.Widgets" Version="1.2.11" />
-		<PackageReference Include="Hexa.NET.ImGui.Widgets.Extras" Version="1.0.4" />
+		<PackageReference Include="Hexa.NET.ImGui.Widgets" Version="1.2.13" />
+		<PackageReference Include="Hexa.NET.ImGui.Widgets.Extras" Version="1.0.6" />
 		<PackageReference Include="Hexa.NET.ImGui" Version="2.2.7" />
 		<PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.7" />
 		<PackageReference Include="Hexa.NET.ImNodes" Version="2.2.7" />
@@ -80,8 +80,8 @@
 		<PackageReference Include="Hexa.NET.DXGI" Version="1.0.6" />
 		<PackageReference Include="Hexa.NET.OpenAL" Version="1.2.2" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />		
-		<PackageReference Include="System.IO.Hashing" Version="9.0.3" />
-		<PackageReference Include="System.Text.Json" Version="9.0.3" />
+		<PackageReference Include="System.IO.Hashing" Version="9.0.4" />
+		<PackageReference Include="System.Text.Json" Version="9.0.4" />
 	</ItemGroup>
 
 </Project>

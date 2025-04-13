@@ -10,8 +10,8 @@
 		<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
 		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 
-		<AssemblyVersion>1.0.3</AssemblyVersion>
-		<PackageVersion>1.0.3</PackageVersion>
+		<AssemblyVersion>1.0.4</AssemblyVersion>
+		<PackageVersion>1.0.4</PackageVersion>
 		<Authors>Juna Meinhold</Authors>
 		<Copyright>Copyright (c) 2025 Juna Meinhold</Copyright>
 		<PackageProjectUrl>https://github.com/HexaEngine/Hexa.NET.KittyUI</PackageProjectUrl>
@@ -37,7 +37,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CefSharp.OffScreen.NETCore" Version="132.3.11" />
+		<PackageReference Include="CefSharp.OffScreen.NETCore" Version="135.0.170" />
 	</ItemGroup>
 
 	<ItemGroup>

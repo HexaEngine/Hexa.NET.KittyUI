@@ -14,8 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.0.4" />
-    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.15.0.1" />
+    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.0.5" />
+    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.15.0.2" />
   </ItemGroup>
 
   <ItemGroup>

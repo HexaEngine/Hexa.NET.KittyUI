@@ -550,7 +550,7 @@
 
             bool focused = ImGui.IsItemFocused();
 
-            bool clicked = hovered && ImGuiP.IsMouseClicked(ImGuiMouseButton.Left);
+            bool clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
 
             var viewport = ImGui.GetWindowViewport();
 
@@ -580,13 +580,13 @@
 
             if (hovered)
             {
-                ImGuiP.SetItemKeyOwner(ImGuiKey.MouseWheelY);
-                ImGuiP.SetItemKeyOwner(ImGuiKey.MouseWheelX);
-                ImGuiP.SetItemKeyOwner(ImGuiKey.Tab);
-                ImGuiP.SetItemKeyOwner(ImGuiKey.UpArrow);
-                ImGuiP.SetItemKeyOwner(ImGuiKey.DownArrow);
-                ImGuiP.SetItemKeyOwner(ImGuiKey.LeftArrow);
-                ImGuiP.SetItemKeyOwner(ImGuiKey.RightArrow);
+                ImGui.SetItemKeyOwner(ImGuiKey.MouseWheelY);
+                ImGui.SetItemKeyOwner(ImGuiKey.MouseWheelX);
+                ImGui.SetItemKeyOwner(ImGuiKey.Tab);
+                ImGui.SetItemKeyOwner(ImGuiKey.UpArrow);
+                ImGui.SetItemKeyOwner(ImGuiKey.DownArrow);
+                ImGui.SetItemKeyOwner(ImGuiKey.LeftArrow);
+                ImGui.SetItemKeyOwner(ImGuiKey.RightArrow);
             }
 
             var draw = ImGui.GetWindowDrawList();
