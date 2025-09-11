@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents the power level of a joystick.
     /// </summary>
-    public enum JoystickPowerLevel
+    public enum PowerState
     {
         /// <summary>
         /// The power level is unknown.

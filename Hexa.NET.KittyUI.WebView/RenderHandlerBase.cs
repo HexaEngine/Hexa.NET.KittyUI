@@ -5,7 +5,7 @@
     using CefSharp.OffScreen;
     using CefSharp.Structs;
     using Hexa.NET.ImGui;
-    using Hexa.NET.SDL2;
+    using Hexa.NET.SDL3;
     using System.Collections.Concurrent;
 
     public abstract class RenderHandlerBase : IRenderHandler
@@ -141,7 +141,7 @@
 
         public virtual void OnVirtualKeyboardRequested(IBrowser browser, TextInputMode inputMode)
         {
-            if (SDL.HasScreenKeyboardSupport() == SDLBool.True)
+            if (SDL.HasScreenKeyboardSupport() == true)
             {
                 if (inputMode == TextInputMode.None)
                 {

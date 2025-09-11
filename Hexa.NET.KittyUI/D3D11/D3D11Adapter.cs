@@ -4,14 +4,14 @@
     using Hexa.NET.DXGI;
     using Hexa.NET.KittyUI.Windows;
     using Hexa.NET.Logging;
-    using Hexa.NET.SDL2;
+    using Hexa.NET.SDL3;
     using HexaGen.Runtime;
     using HexaGen.Runtime.COM;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Text;
     using InfoQueueFilter = Hexa.NET.DXGI.InfoQueueFilter;
-    using Window = SDL2.SDLWindow;
+    using Window = SDL3.SDLWindow;
 
     public static unsafe class D3D11Adapter
     {
@@ -184,47 +184,6 @@
 
             nint hwnd = window.GetHWND();
             IDXGIFactory.CreateSwapChainForHwnd(D3D11GraphicsDevice.Device.As<IUnknown>(), hwnd, &desc, &fullscreenDesc, IDXGIOutput.As<IDXGIOutput>(), out ComPtr<IDXGISwapChain1> swapChain);
-
-            return new DXGISwapChain(swapChain, (SwapChainFlag)desc.Flags);
-        }
-
-        [SupportedOSPlatform("windows")]
-        internal static DXGISwapChain CreateSwapChainForWindow(Window* window)
-        {
-            SDLSysWMInfo info;
-            SDL.GetVersion(&info.Version);
-            SDL.GetWindowWMInfo(window, &info);
-
-            int width = 0;
-            int height = 0;
-
-            SDL.GetWindowSize(window, &width, &height);
-
-            var Hwnd = info.Info.Win.Window;
-
-            SwapChainDesc1 desc = new()
-            {
-                Width = (uint)width,
-                Height = (uint)height,
-                Format = AutoChooseSwapChainFormat(D3D11GraphicsDevice.Device, IDXGIOutput),
-                BufferCount = 2,
-                BufferUsage = (uint)DXGI.DXGI_USAGE_RENDER_TARGET_OUTPUT,
-                SampleDesc = new(1, 0),
-                Scaling = Scaling.Stretch,
-                SwapEffect = SwapEffect.FlipSequential,
-                Flags = (uint)(SwapChainFlag.AllowModeSwitch | SwapChainFlag.AllowTearing | SwapChainFlags)
-            };
-
-            SwapChainFullscreenDesc fullscreenDesc = new()
-            {
-                Windowed = 1,
-                RefreshRate = new Rational(0, 1),
-                Scaling = ModeScaling.Unspecified,
-                ScanlineOrdering = ModeScanlineOrder.Unspecified,
-            };
-
-            ComPtr<IDXGISwapChain1> swapChain = default;
-            IDXGIFactory.CreateSwapChainForHwnd(D3D11GraphicsDevice.Device.As<IUnknown>(), Hwnd, &desc, &fullscreenDesc, IDXGIOutput.As<IDXGIOutput>(), out swapChain);
 
             return new DXGISwapChain(swapChain, (SwapChainFlag)desc.Flags);
         }

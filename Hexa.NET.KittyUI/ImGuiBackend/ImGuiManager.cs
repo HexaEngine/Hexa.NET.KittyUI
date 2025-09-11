@@ -1,7 +1,7 @@
 ﻿namespace Hexa.NET.KittyUI.ImGuiBackend
 {
     using Hexa.NET.ImGui;
-    using Hexa.NET.ImGui.Backends.SDL2;
+    using Hexa.NET.ImGui.Backends.SDL3;
     using Hexa.NET.KittyUI;
     using System.Diagnostics;
     using System.Numerics;
@@ -186,7 +186,7 @@
             }
 
             RendererNewFrameCallback();
-            ImGuiImplSDL2.NewFrame();
+            ImGuiImplSDL3.SDL3NewFrame();
             ImGui.NewFrame();
 
             foreach (var addon in addons)
@@ -231,6 +231,11 @@
                     addon.Dispose();
                 }
 
+                var io = ImGui.GetIO();
+                if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
+                {
+                    ImGui.DestroyPlatformWindows();
+                }
                 ImGui.DestroyContext(guiContext);
                 ImGui.SetCurrentContext(null);
                 disposedValue = true;

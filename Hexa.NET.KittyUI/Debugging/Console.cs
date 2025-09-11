@@ -369,7 +369,7 @@
                 footerHeightToReserve += ImGui.GetStyle().ItemSpacing.Y;
             }
 
-            if (ImGui.BeginChild("ScrollRegion##", new Vector2(0, -footerHeightToReserve), 0, 0))
+            if (ImGui.BeginChild("ScrollRegion##"u8, new Vector2(0, -footerHeightToReserve)))
             {
                 float scrollPos = ImGui.GetScrollY();
                 float lineHeight = ImGui.GetTextLineHeightWithSpacing();

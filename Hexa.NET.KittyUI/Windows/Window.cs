@@ -13,10 +13,8 @@
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Backends.D3D11;
     using Hexa.NET.ImGui.Backends.OpenGL3;
-    using Hexa.NET.ImGui.Backends.SDL2;
     using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.KittyUI;
-    using Hexa.NET.KittyUI.Audio;
     using Hexa.NET.KittyUI.D3D11;
     using Hexa.NET.KittyUI.Debugging;
     using Hexa.NET.KittyUI.ImGuiBackend;
@@ -30,9 +28,7 @@
     using Hexa.NET.KittyUI.Graphics;
     using Hexa.NET.D3D11;
     using Hexa.NET.Logging;
-    using HexaGen.Runtime;
-    using System.Diagnostics;
-    using System.Runtime.CompilerServices;
+    using Hexa.NET.ImGui.Backends.SDL3;
 
     public class Window : CoreWindow, IRenderWindow
     {
@@ -75,8 +71,8 @@
                     var ctx = D3D11GraphicsDevice.DeviceContext;
                     imGuiRenderer = new(appBuilder, ImGuiImplD3D11.NewFrame, ImGuiImplD3D11.RenderDrawData);
                     context = ImGui.GetCurrentContext();
-                    ImGuiImplSDL2.SetCurrentContext(context);
-                    ImGuiImplSDL2.InitForD3D((SDLWindow*)GetWindow());
+                    ImGuiImplSDL3.SetCurrentContext(context);
+                    ImGuiImplSDL3.SDL3InitForD3D((SDLWindow*)GetWindow());
                     ImGuiImplD3D11.SetCurrentContext(context);
                     ImGuiImplD3D11.Init((NET.ImGui.Backends.D3D11.ID3D11Device*)dev.Handle, (NET.ImGui.Backends.D3D11.ID3D11DeviceContext*)ctx.Handle);
                     break;
@@ -84,8 +80,8 @@
                 case GraphicsBackend.OpenGL:
                     imGuiRenderer = new(appBuilder, ImGuiImplOpenGL3.NewFrame, ImGuiImplOpenGL3.RenderDrawData);
                     context = ImGui.GetCurrentContext();
-                    ImGuiImplSDL2.SetCurrentContext(context);
-                    ImGuiImplSDL2.InitForOpenGL((SDLWindow*)GetWindow(), (void*)GLContext.Handle);
+                    ImGuiImplSDL3.SetCurrentContext(context);
+                    ImGuiImplSDL3.SDL3InitForOpenGL((SDLWindow*)GetWindow(), (void*)GLContext.Handle);
                     ImGuiImplOpenGL3.SetCurrentContext(context);
                     ImGuiImplOpenGL3.Init((byte*)null);
                     break;
@@ -98,9 +94,9 @@
             OnRendererInitialize();
         }
 
-        private unsafe bool SDLEventHook(SDL2.SDLEvent evnt)
+        private unsafe bool SDLEventHook(SDL3.SDLEvent evnt)
         {
-            return ImGuiImplSDL2.ProcessEvent((SDLEvent*)&evnt);
+            return ImGuiImplSDL3.SDL3ProcessEvent((SDLEvent*)&evnt);
         }
 
         public virtual void Render()
@@ -230,20 +226,23 @@
 
             WidgetManager.Dispose();
             renderDispatcher.Dispose();
-          
+
 
             switch (Backend)
             {
                 case GraphicsBackend.D3D11:
                     ImGuiImplD3D11.Shutdown();
+                    ImGuiImplD3D11.SetCurrentContext(null);
                     break;
 
                 case GraphicsBackend.OpenGL:
                     ImGuiImplOpenGL3.Shutdown();
+                    ImGuiImplOpenGL3.SetCurrentContext(null);
                     break;
             }
 
-            ImGuiImplSDL2.Shutdown();
+            ImGuiImplSDL3.SDL3Shutdown();
+            ImGuiImplSDL3.SetCurrentContext(null);
 
             imGuiRenderer?.Dispose();
         }

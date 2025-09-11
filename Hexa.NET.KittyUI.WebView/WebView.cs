@@ -9,7 +9,7 @@
     using Hexa.NET.KittyUI.Input;
     using Hexa.NET.KittyUI.Windows;
     using Hexa.NET.Mathematics;
-    using Hexa.NET.SDL2;
+    using Hexa.NET.SDL3;
     using System;
     using System.Numerics;
     using System.Runtime.CompilerServices;
