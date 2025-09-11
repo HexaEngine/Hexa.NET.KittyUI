@@ -5,6 +5,7 @@ using Hexa.NET.ImGui.Widgets.Dialogs;
 using Hexa.NET.KittyUI;
 using Hexa.NET.KittyUI.Graphics;
 using Hexa.NET.KittyUI.Graphics.Imaging;
+using Hexa.NET.KittyUI.UI;
 using Hexa.NET.KittyUI.Web;
 using TestApp;
 
@@ -12,6 +13,7 @@ AppBuilder appBuilder = new();
 appBuilder.EnableLogging(true);
 appBuilder.EnableDebugTools(true);
 appBuilder.SetTitle("Test App");
+appBuilder.AddTitleBar<TitleBar>();
 appBuilder.AddWindow<MainWindow>();
 appBuilder.StyleColorsDark();
 appBuilder.Run();

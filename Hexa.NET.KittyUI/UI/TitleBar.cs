@@ -20,24 +20,19 @@
     public class TitleBarContext
     {
         private Vector2 cursor;
+        public float DpiScale;
 
-        public CoreWindow Window { get; set; } = null!;
-
-        public Vector2 Cursor { get => cursor; set => cursor = value; }
-
-        public uint HoveredId { get; set; }
-
-        public uint ForegroundColor { get; set; }
-
-        public uint BackgroundColor { get; set; }
-
-        public ImRect Area { get; set; }
-
-        public ImDrawListPtr DrawList { get; set; }
+        public CoreWindow Window = null!;
+        public Vector2 Cursor;
+        public uint HoveredId;
+        public uint ForegroundColor;
+        public uint BackgroundColor;
+        public ImRect Area;
+        public ImDrawListPtr DrawList;
 
         public void AddItem(Vector2 size)
         {
-            cursor.X += size.X; // no y addition horizontal layout.
+            cursor.X += size.X * DpiScale; // no y addition horizontal layout.
         }
 
         public void NewFrame(ImRect area)
@@ -200,9 +195,11 @@
 
             var transitionState = ImGui.GetStateStorage().GetFloatRef(id, 0);
 
+            size *= context.DpiScale;
             context.Cursor += new Vector2(size.X, 0);
-
+            
             ImRect rect = new(pos, pos + size);
+
 
             bool isHovered = rect.Contains(mousePos);
             bool isMouseDown = ImGui.IsMouseDown(ImGuiMouseButton.Left) && isHovered;
@@ -365,42 +362,42 @@
             {
                 if (elements[i].IsVisible)
                 {
-                    x += elements[i].Size.X;
+                    x += elements[i].Size.X * context.DpiScale;
                 }
             }
-            context.Cursor = new(context.Area.Max.X - x, context.Cursor.Y);
+            context.Cursor = new(context.Area.Max.X - x, context.Area.Min.Y);
         }
 
-        public float ComputeLeftContentSize()
+        public float ComputeLeftContentSize(TitleBarContext context)
         {
             float x = 0;
             for (int i = 0; i < rightAlignAfter; i++)
             {
                 if (elements[i].IsVisible)
                 {
-                    x += elements[i].Size.X;
+                    x += elements[i].Size.X * context.DpiScale;
                 }
             }
             return x;
         }
 
-        public float ComputeRightContentSize()
+        public float ComputeRightContentSize(TitleBarContext context)
         {
             float x = 0;
             for (int i = rightAlignAfter + 1; i < elements.Count; i++)
             {
                 if (elements[i].IsVisible)
                 {
-                    x += elements[i].Size.X;
+                    x += elements[i].Size.X * context.DpiScale;
                 }
             }
             return x;
         }
 
-        public void ComputePadding(out float left, out float right)
+        public void ComputePadding(TitleBarContext context, out float left, out float right)
         {
-            left = ComputeLeftContentSize();
-            right = ComputeRightContentSize();
+            left = ComputeLeftContentSize(context) ;
+            right = ComputeRightContentSize(context) ;
         }
     }
 
@@ -490,15 +487,18 @@
             var viewport = ImGui.GetMainViewport();
             draw = ImGui.GetForegroundDrawList(viewport);
 
+            var scale = viewport.DpiScale;
+
             // Draw the custom title bar
             titleBarPos = viewport.Pos; // Start at the top of the viewport
-            titleBarSize = new Vector2(viewport.Size.X, titleBarHeight); // Full width of the viewport
+            titleBarSize = new Vector2(viewport.Size.X, titleBarHeight * scale); // Full width of the viewport
             mousePos = Mouse.Global;
             cursorPos = titleBarPos;
 
             ImRect rect = new(titleBarPos, titleBarPos + titleBarSize);
 
             context.NewFrame(rect);
+            context.DpiScale = scale;
             context.DrawList = draw;
             context.Window = Window;
 
@@ -548,8 +548,8 @@
             builder.Draw(context);
 
             // Adjust the cursor position to avoid drawing ImGui elements under the custom title bar
-            viewport.WorkPos.Y += titleBarHeight;
-            viewport.WorkSize.Y -= titleBarHeight;
+            viewport.WorkPos.Y += titleBarHeight * scale;
+            viewport.WorkSize.Y -= titleBarHeight * scale;
         }
 
         private static uint RGBALerp(Vector4 colorA, Vector4 colorB, float s)
@@ -626,7 +626,7 @@
         {
             int w, h;
             SDL.GetWindowSize(win, &w, &h);
-            builder.ComputePadding(out var left, out var right);
+            builder.ComputePadding(context, out var left, out var right);
             if (area->X > left && area->X < w - right)
             {
                 return SDLHitTestResult.Draggable;
@@ -705,7 +705,8 @@
                 // see https://stackoverflow.com/questions/28524463/how-to-get-the-default-caption-bar-height-of-a-window-in-windows/28524464#28524464
                 uint dpi = WinApi.GetDpiForWindow(hwnd);
                 float dpiScale = dpi / 96.0f;
-                int titleBarHeight = (int)MathF.Ceiling((WinApi.GetSystemMetrics(SystemMetrics.CyCaption) + WinApi.GetSystemMetrics(SystemMetrics.CyFrame)) * dpiScale + WinApi.GetSystemMetrics(SystemMetrics.CxPaddedBorder));
+                int titleBarHeight = (int)MathF.Ceiling((WinApi.GetSystemMetrics(SystemMetrics.CyCaption) + WinApi.GetSystemMetrics(SystemMetrics.CyFrame)) //* dpiScale 
+                    + WinApi.GetSystemMetrics(SystemMetrics.CxPaddedBorder));
 
                 if (WinApi.IsZoomed(hwnd)) // fix for maximized windows.
                 {

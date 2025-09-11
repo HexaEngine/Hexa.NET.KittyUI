@@ -960,7 +960,7 @@
 
         private SDLHitTestResult HitTestCallback(SDLWindow* win, SDLPoint* area, void* data)
         {
-            var titlebarHeight = titlebar!.Height;
+            var titlebarHeight = titlebar!.Height * ContentScale;
             int mouseGrabPadding = 4;
 
             if (state != WindowState.Normal) // remove padding on maximized state.
@@ -1006,7 +1006,7 @@
             {
                 return SDLHitTestResult.ResizeRight;
             }
-            else if (area->Y < titlebarHeight)
+            else if (area->Y < titlebarHeight )
             {
                 return titlebar.HitTest(win, area, data);
             }
