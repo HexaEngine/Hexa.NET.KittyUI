@@ -1,5 +1,7 @@
 ﻿namespace Hexa.NET.KittyUI.Input.Events
 {
+    using System.Numerics;
+
     /// <summary>
     /// Provides data for mouse button input events.
     /// </summary>
@@ -39,5 +41,10 @@
         /// Gets the number of clicks associated with the event.
         /// </summary>
         public int Clicks { get; internal set; }
+
+        /// <summary>
+        /// Gets the mouse position on the window.
+        /// </summary>
+        public Vector2 Position { get; set; }
     }
 }

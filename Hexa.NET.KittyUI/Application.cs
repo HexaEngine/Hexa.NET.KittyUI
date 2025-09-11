@@ -8,12 +8,13 @@
     using Hexa.NET.KittyUI.Windows;
     using Hexa.NET.KittyUI.Windows.Events;
     using Hexa.NET.Logging;
-    using Hexa.NET.SDL2;
+    using Hexa.NET.SDL3;
     using System.Collections.Generic;
     using static Hexa.NET.KittyUI.Extensions.SdlErrorHandlingExtensions;
 
     public static unsafe class Application
     {
+        private static bool earlyInitialized = false;
         private static bool initialized = false;
         private static bool exiting = false;
         private static readonly Dictionary<uint, IRenderWindow> windowIdToWindow = new();
@@ -75,10 +76,12 @@
 
         public static LogFileWriter? FileLogWriter { get; set; }
 
-        public static uint InitFlags { get; set; } = SDL.SDL_INIT_GAMECONTROLLER + SDL.SDL_INIT_JOYSTICK;
-
-        private static void Init(IRenderWindow mainWindow, AppBuilder builder)
+        public static SDLInitFlags InitFlags { get; set; } = SDLInitFlags.Events | SDLInitFlags.Video | SDLInitFlags.Joystick | SDLInitFlags.Gamepad;
+        
+        internal static void EarlyInit()
         {
+            if (earlyInitialized) return;
+
             if (LoggingEnabled)
             {
                 FileLogWriter = new("logs");
@@ -86,6 +89,27 @@
                 LoggerFactory.AddGlobalWriter(FileLogWriter);
             }
 
+            SDL.SetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+            SDL.SetHint(SDL.SDL_HINT_AUTO_UPDATE_JOYSTICKS, "1");
+            SDL.SetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI_PS4, "1"); // HintJoystickHidapiPS4
+            SDL.SetHint(SDL.SDL_HINT_JOYSTICK_RAWINPUT, "0");
+            SDL.SetHint(SDL.SDL_HINT_MOUSE_NORMAL_SPEED_SCALE, "1");
+            SDL.SetHint(SDL.SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
+
+            SDL.Init(InitFlags);
+
+            SdlCheckError();
+
+            Keyboard.Init();
+            Mouse.Init();
+            Gamepads.Init();
+            TouchDevices.Init();
+
+            earlyInitialized = true;
+        }
+
+        private static void Init(IRenderWindow mainWindow, AppBuilder builder)
+        {
             if (ImGuiDebugTools.Enabled)
             {
                 ImGuiDebugTools.Init();
@@ -96,25 +120,6 @@
 #if DEBUG
             GraphicsDebugging = true;
 #endif
-
-            SDL.SetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
-            SDL.SetHint(SDL.SDL_HINT_AUTO_UPDATE_JOYSTICKS, "1");
-            SDL.SetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI_PS4, "1"); // HintJoystickHidapiPS4
-            SDL.SetHint(SDL.SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1"); // HintJoystickHidapiPS4Rumble
-            SDL.SetHint(SDL.SDL_HINT_JOYSTICK_RAWINPUT, "0");
-            SDL.SetHint(SDL.SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1"); // HintWindowsDisableThreadNaming
-            SDL.SetHint(SDL.SDL_HINT_MOUSE_NORMAL_SPEED_SCALE, "1");
-            SDL.SetHint(SDL.SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
-            SDL.SetHint(SDL.SDL_HINT_IME_SHOW_UI, "1");
-
-            SDL.Init(InitFlags);
-
-            SdlCheckError();
-
-            Keyboard.Init();
-            Mouse.Init();
-            Gamepads.Init();
-            TouchDevices.Init();
 
             if ((SubSystems & SubSystems.Audio) != 0)
             {
@@ -209,7 +214,7 @@
             while (!exiting)
             {
                 SDL.PumpEvents();
-                while (SDL.PollEvent(&evnt) == (int)SDLBool.True)
+                while (SDL.PollEvent(&evnt))
                 {
                     for (int i = 0; i < hooks.Count; i++)
                     {
@@ -245,9 +250,6 @@
         {
             switch (type)
             {
-                case SDLEventType.Firstevent:
-                    break;
-
                 case SDLEventType.Quit:
                     if (!supressQuitApp)
                     {
@@ -256,32 +258,29 @@
                     supressQuitApp = false;
                     break;
 
-                case SDLEventType.AppTerminating:
+                case SDLEventType.Terminating:
                     exiting = true;
                     break;
 
-                case SDLEventType.AppLowmemory:
+                case SDLEventType.LowMemory:
                     break;
 
-                case SDLEventType.AppWillenterbackground:
+                case SDLEventType.WillEnterBackground:
                     break;
 
-                case SDLEventType.AppDidenterbackground:
+                case SDLEventType.DidEnterBackground:
                     break;
 
-                case SDLEventType.AppWillenterforeground:
+                case SDLEventType.WillEnterForeground:
                     break;
 
-                case SDLEventType.AppDidenterforeground:
+                case SDLEventType.DidEnterForeground:
                     break;
 
-                case SDLEventType.Localechanged:
+                case SDLEventType.LocaleChanged:
                     break;
 
-                case SDLEventType.Displayevent:
-                    break;
-
-                case SDLEventType.Windowevent:
+                case >= SDLEventType.WindowFirst and <= SDLEventType.WindowLast:
                     {
                         var even = evnt.Window;
                         if (even.WindowID == mainWindow.WindowID)
@@ -292,10 +291,8 @@
 
                     break;
 
-                case SDLEventType.Syswmevent:
-                    break;
 
-                case SDLEventType.Keydown:
+                case SDLEventType.KeyDown:
                     {
                         var even = evnt.Key;
                         Keyboard.OnKeyDown(even);
@@ -304,7 +301,7 @@
                     }
                     break;
 
-                case SDLEventType.Keyup:
+                case SDLEventType.KeyUp:
                     {
                         var even = evnt.Key;
                         Keyboard.OnKeyUp(even);
@@ -313,10 +310,10 @@
                     }
                     break;
 
-                case SDLEventType.Textediting:
+                case SDLEventType.TextEditing:
                     break;
 
-                case SDLEventType.Textinput:
+                case SDLEventType.TextInput:
                     {
                         var even = evnt.Text;
                         Keyboard.OnTextInput(even);
@@ -325,10 +322,10 @@
                     }
                     break;
 
-                case SDLEventType.Keymapchanged:
+                case SDLEventType.KeymapChanged:
                     break;
 
-                case SDLEventType.Mousemotion:
+                case SDLEventType.MouseMotion:
                     {
                         var even = evnt.Motion;
                         Mouse.OnMotion(even);
@@ -337,7 +334,7 @@
                     }
                     break;
 
-                case SDLEventType.Mousebuttondown:
+                case SDLEventType.MouseButtonDown:
                     {
                         var even = evnt.Button;
                         Mouse.OnButtonDown(even);
@@ -346,7 +343,7 @@
                     }
                     break;
 
-                case SDLEventType.Mousebuttonup:
+                case SDLEventType.MouseButtonUp:
                     {
                         var even = evnt.Button;
                         Mouse.OnButtonUp(even);
@@ -355,7 +352,7 @@
                     }
                     break;
 
-                case SDLEventType.Mousewheel:
+                case SDLEventType.MouseWheel:
                     {
                         var even = evnt.Wheel;
                         Mouse.OnWheel(even);
@@ -364,126 +361,126 @@
                     }
                     break;
 
-                case SDLEventType.Joyaxismotion:
+                case SDLEventType.JoystickAxisMotion:
                     {
                         var even = evnt.Jaxis;
                         Joysticks.OnAxisMotion(even);
                     }
                     break;
 
-                case SDLEventType.Joyballmotion:
+                case SDLEventType.JoystickBallMotion:
                     {
                         var even = evnt.Jball;
                         Joysticks.OnBallMotion(even);
                     }
                     break;
 
-                case SDLEventType.Joyhatmotion:
+                case SDLEventType.JoystickHatMotion:
                     {
                         var even = evnt.Jhat;
                         Joysticks.OnHatMotion(even);
                     }
                     break;
 
-                case SDLEventType.Joybuttondown:
+                case SDLEventType.JoystickButtonDown:
                     {
                         var even = evnt.Jbutton;
                         Joysticks.OnButtonDown(even);
                     }
                     break;
 
-                case SDLEventType.Joybuttonup:
+                case SDLEventType.JoystickButtonUp:
                     {
                         var even = evnt.Jbutton;
                         Joysticks.OnButtonUp(even);
                     }
                     break;
 
-                case SDLEventType.Joydeviceadded:
+                case SDLEventType.JoystickAdded:
                     {
                         var even = evnt.Jdevice;
                         Joysticks.AddJoystick(even);
                     }
                     break;
 
-                case SDLEventType.Joydeviceremoved:
+                case SDLEventType.JoystickRemoved:
                     {
                         var even = evnt.Jdevice;
                         Joysticks.RemoveJoystick(even);
                     }
                     break;
 
-                case SDLEventType.Controlleraxismotion:
+                case SDLEventType.GamepadAxisMotion:
                     {
-                        var even = evnt.Caxis;
+                        var even = evnt.Gaxis;
                         Gamepads.OnAxisMotion(even);
                     }
                     break;
 
-                case SDLEventType.Controllerbuttondown:
+                case SDLEventType.GamepadButtonDown:
                     {
-                        var even = evnt.Cbutton;
+                        var even = evnt.Gbutton;
                         Gamepads.OnButtonDown(even);
                     }
                     break;
 
-                case SDLEventType.Controllerbuttonup:
+                case SDLEventType.GamepadButtonUp:
                     {
-                        var even = evnt.Cbutton;
+                        var even = evnt.Gbutton;
                         Gamepads.OnButtonUp(even);
                     }
                     break;
 
-                case SDLEventType.Controllerdeviceadded:
+                case SDLEventType.GamepadAdded:
                     {
-                        var even = evnt.Cdevice;
+                        var even = evnt.Gdevice;
                         Gamepads.AddController(even);
                     }
                     break;
 
-                case SDLEventType.Controllerdeviceremoved:
+                case SDLEventType.GamepadRemoved:
                     {
-                        var even = evnt.Cdevice;
+                        var even = evnt.Gdevice;
                         Gamepads.RemoveController(even);
                     }
                     break;
 
-                case SDLEventType.Controllerdeviceremapped:
+                case SDLEventType.GamepadRemapped:
                     {
-                        var even = evnt.Cdevice;
+                        var even = evnt.Gdevice;
                         Gamepads.OnRemapped(even);
                     }
                     break;
 
-                case SDLEventType.Controllertouchpaddown:
+                case SDLEventType.GamepadTouchpadDown:
                     {
-                        var even = evnt.Ctouchpad;
+                        var even = evnt.Gtouchpad;
                         Gamepads.OnTouchPadDown(even);
                     }
                     break;
 
-                case SDLEventType.Controllertouchpadmotion:
+                case SDLEventType.GamepadTouchpadMotion:
                     {
-                        var even = evnt.Ctouchpad;
+                        var even = evnt.Gtouchpad;
                         Gamepads.OnTouchPadMotion(even);
                     }
                     break;
 
-                case SDLEventType.Controllertouchpadup:
+                case SDLEventType.GamepadTouchpadUp:
                     {
-                        var even = evnt.Ctouchpad;
+                        var even = evnt.Gtouchpad;
                         Gamepads.OnTouchPadUp(even);
                     }
                     break;
 
-                case SDLEventType.Controllersensorupdate:
+                case SDLEventType.GamepadSensorUpdate:
                     {
-                        var even = evnt.Csensor;
+                        var even = evnt.Gsensor;
                         Gamepads.OnSensorUpdate(even);
                     }
                     break;
 
-                case SDLEventType.Fingerdown:
+                case SDLEventType.FingerDown:
                     {
                         var even = evnt.Tfinger;
                         TouchDevices.FingerDown(even);
@@ -492,7 +489,7 @@
                     }
                     break;
 
-                case SDLEventType.Fingerup:
+                case SDLEventType.FingerUp:
                     {
                         var even = evnt.Tfinger;
                         TouchDevices.FingerUp(even);
@@ -501,7 +498,7 @@
                     }
                     break;
 
-                case SDLEventType.Fingermotion:
+                case SDLEventType.FingerMotion:
                     {
                         var even = evnt.Tfinger;
                         TouchDevices.FingerMotion(even);
@@ -510,43 +507,31 @@
                     }
                     break;
 
-                case SDLEventType.Dollargesture:
+              
+                case SDLEventType.ClipboardUpdate:
                     break;
 
-                case SDLEventType.Dollarrecord:
-                    break;
-
-                case SDLEventType.Multigesture:
-                    break;
-
-                case SDLEventType.Clipboardupdate:
-                    break;
-
-                case SDLEventType.Dropfile:
+                case SDLEventType.DropFile:
                     {
                         var even = evnt.Drop;
                         if (even.WindowID == mainWindow.WindowID)
                         {
                             //((SdlWindow)mainWindow).ProcessDropFile(even);
                         }
-
-                        SDL.Free(evnt.Drop.File);
                     }
                     break;
 
-                case SDLEventType.Droptext:
+                case SDLEventType.DropText:
                     {
                         var even = evnt.Drop;
                         if (even.WindowID == mainWindow.WindowID)
                         {
                             //((SdlWindow)mainWindow).ProcessDropText(even);
                         }
-
-                        SDL.Free(evnt.Drop.File);
                     }
                     break;
 
-                case SDLEventType.Dropbegin:
+                case SDLEventType.DropBegin:
                     {
                         var even = evnt.Drop;
                         if (even.WindowID == mainWindow.WindowID)
@@ -556,7 +541,7 @@
                     }
                     break;
 
-                case SDLEventType.Dropcomplete:
+                case SDLEventType.DropComplete:
                     {
                         var even = evnt.Drop;
                         if (even.WindowID == mainWindow.WindowID)
@@ -566,13 +551,13 @@
                     }
                     break;
 
-                case SDLEventType.Audiodeviceadded:
+                case SDLEventType.AudioDeviceAdded:
                     break;
 
-                case SDLEventType.Audiodeviceremoved:
+                case SDLEventType.AudioDeviceRemoved:
                     break;
 
-                case SDLEventType.Sensorupdate:
+                case SDLEventType.SensorUpdate:
                     break;
 
                 case SDLEventType.RenderTargetsReset:
@@ -581,12 +566,11 @@
                 case SDLEventType.RenderDeviceReset:
                     break;
 
-                case SDLEventType.Userevent:
-                    break;
-
-                case SDLEventType.Lastevent:
+                case SDLEventType.User:
                     break;
             }
         }
+
+       
     }
 }

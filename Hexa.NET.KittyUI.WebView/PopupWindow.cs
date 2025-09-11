@@ -12,7 +12,7 @@
 
     using Hexa.NET.KittyUI.D3D11;
     using Hexa.NET.KittyUI.Windows;
-    using Hexa.NET.SDL2;
+    using Hexa.NET.SDL3;
     using Hexa.NET.KittyUI.Graphics;
 
     public unsafe class PopupWindow : CoreWindow

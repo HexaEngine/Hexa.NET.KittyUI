@@ -1,8 +1,7 @@
 ﻿namespace Hexa.NET.KittyUI.Input
 {
     using Hexa.NET.KittyUI.Input.Events;
-    using Hexa.NET.SDL2;
-    using static Hexa.NET.KittyUI.Extensions.SdlErrorHandlingExtensions;
+    using Hexa.NET.SDL3;
 
     /// <summary>
     /// Provides functionality to manage touch devices.
@@ -47,13 +46,14 @@
         /// <summary>
         /// Initializes the touch device management system.
         /// </summary>
-        internal static void Init()
+        internal static unsafe void Init()
         {
-            var touchDeviceCount = SDL.GetNumTouchDevices();
+            int touchDeviceCount;
+            long* devices = SDL.GetTouchDevices(&touchDeviceCount);
 
             for (int i = 0; i < touchDeviceCount; i++)
             {
-                AddTouchDeviceFromIndex(i);
+                AddTouchDevice(devices[i]);
             }
         }
 
@@ -67,18 +67,9 @@
             return idToTouch[touchDeviceId];
         }
 
-        internal static TouchDevice? AddTouchDeviceFromIndex(int index)
+        internal static TouchDevice AddTouchDevice(int index)
         {
-            long touchId = SDL.GetTouchDevice(index);
-            
-            if (touchId == 0)
-            {
-                SdlLogger.Warn($"Touch device index {index}, id ({touchId}) is invalid, ignoring call.");
-                SdlLogWarn();
-                return null;
-            }
-
-            TouchDevice dev = new(touchId, index);
+            TouchDevice dev = new(index);
             touchDevices.Add(dev);
             idToTouch.Add(dev.Id, dev);
             touchDeviceEventArgs.TouchDeviceId = dev.Id;
@@ -86,36 +77,14 @@
             return dev;
         }
 
-        internal static TouchDevice? AddTouchDeviceFromId(long touchId)
+        internal static TouchDevice AddTouchDevice(long touchId)
         {
-            if (touchId == 0)
-            {
-                // do not log here to avoid log spam.
-                return null;
-            }
-
-            var index = FindIndex(touchId);
-
-            TouchDevice dev = new(touchId, index);
+            TouchDevice dev = new(touchId);
             touchDevices.Add(dev);
             idToTouch.Add(touchId, dev);
             touchDeviceEventArgs.TouchDeviceId = dev.Id;
             TouchDeviceAdded?.Invoke(dev, touchDeviceEventArgs);
             return dev;
-        }
-
-        internal static int FindIndex(long id)
-        {
-            var touchDeviceCount = SDL.GetNumTouchDevices();
-            for (int i = 0; i < touchDeviceCount; i++)
-            {
-                long currentDeviceId = SDL.GetTouchDevice(i);
-                if (currentDeviceId == id)
-                {
-                    return i;
-                }
-            }
-            return -1;
         }
 
         internal static bool RemoveTouchDevice(long touchId)
@@ -131,35 +100,31 @@
             return false;
         }
 
-        internal static TouchDevice? AddOrGetTouch(long id)
+        internal static TouchDevice AddOrGetTouch(long id)
         {
-            if (id == 0) return null;
             if (idToTouch.TryGetValue(id, out TouchDevice? dev))
             {
                 return dev;
             }
-            return AddTouchDeviceFromId(id);
+            return AddTouchDevice(id);
         }
 
         internal static void FingerUp(SDLTouchFingerEvent evnt)
         {
-            var result = AddOrGetTouch(evnt.TouchId)?.OnFingerUp(evnt);
-            if (!result.HasValue) return;
-            TouchUp?.Invoke(result.Value.Item1, result.Value.Item2);
+            var result = AddOrGetTouch(evnt.TouchID).OnFingerUp(evnt);
+            TouchUp?.Invoke(result.Item1, result.Item2);
         }
 
         internal static void FingerDown(SDLTouchFingerEvent evnt)
         {
-            var result = AddOrGetTouch(evnt.TouchId)?.OnFingerDown(evnt);
-            if (!result.HasValue) return;
-            TouchDown?.Invoke(result.Value.Item1, result.Value.Item2);
+            var result = AddOrGetTouch(evnt.TouchID).OnFingerDown(evnt);
+            TouchDown?.Invoke(result.Item1, result.Item2);
         }
 
         internal static void FingerMotion(SDLTouchFingerEvent evnt)
         {
-            var result = AddOrGetTouch(evnt.TouchId)?.OnFingerMotion(evnt);
-            if (!result.HasValue) return;
-            TouchMotion?.Invoke(result.Value.Item1, result.Value.Item2);
+            var result = AddOrGetTouch(evnt.TouchID).OnFingerMotion(evnt);
+            TouchMotion?.Invoke(result.Item1, result.Item2);
         }
     }
 }

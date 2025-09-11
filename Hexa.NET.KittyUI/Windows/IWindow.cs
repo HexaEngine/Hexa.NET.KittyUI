@@ -146,7 +146,7 @@
         /// <summary>
         /// Event triggered when a character input is received from the keyboard.
         /// </summary>
-        event EventHandler<KeyboardCharEventArgs>? KeyboardCharInput;
+        event EventHandler<TextInputEventArgs>? KeyboardCharInput;
 
         /// <summary>
         /// Event triggered when a keyboard input is received.
@@ -266,7 +266,7 @@
         /// Gets the underlying native window pointer.
         /// </summary>
         /// <returns>A pointer to the native window.</returns>
-        unsafe SDL2.SDLWindow* GetWindow();
+        unsafe SDL3.SDLWindow* GetWindow();
 
         /// <summary>
         /// Clears the input state for the window.

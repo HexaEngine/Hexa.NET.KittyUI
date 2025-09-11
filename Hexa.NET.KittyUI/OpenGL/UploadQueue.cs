@@ -11,7 +11,7 @@
 #endif
 
     using Hexa.NET.KittyUI.Windows;
-    using Hexa.NET.SDL2;
+    using Hexa.NET.SDL3;
     using Hexa.NET.Utilities;
     using System.Collections.Concurrent;
     using System.Threading;
@@ -33,7 +33,7 @@
         public UploadQueue(HexaGen.Runtime.IGLContext mainContext, IWindow window)
         {
             mainContext.MakeCurrent();
-            SDL.GLSetAttribute(SDLGLattr.GlShareWithCurrentContext, 1);
+            SDL.GLSetAttribute(SDLGLAttr.ShareWithCurrentContext, 1);
             context = window.OpenGLCreateContext();
 
             mainContext.MakeCurrent();

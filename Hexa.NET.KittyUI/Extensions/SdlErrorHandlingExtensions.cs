@@ -1,7 +1,7 @@
 ﻿namespace Hexa.NET.KittyUI.Extensions
 {
     using Hexa.NET.Logging;
-    using Hexa.NET.SDL2;
+    using Hexa.NET.SDL3;
     using HexaGen.Runtime;
     using System.Runtime.CompilerServices;
 
@@ -121,6 +121,16 @@
             return ptr;
 #else
             return ptr;
+#endif
+        }
+
+        public static void SdlThrowIfFalse(this bool result)
+        {
+#if DEBUG
+            if (!result)
+            {
+                Logger.ThrowIfNotNull(SDL.GetErrorAsException());
+            }
 #endif
         }
     }

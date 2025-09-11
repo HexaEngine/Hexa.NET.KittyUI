@@ -1,6 +1,6 @@
 ﻿namespace Hexa.NET.KittyUI.WebView
 {
-    using Hexa.NET.SDL2;
+    using Hexa.NET.SDL3;
     using System;
 
     public static class CefHelper

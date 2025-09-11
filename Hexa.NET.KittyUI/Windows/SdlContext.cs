@@ -1,7 +1,7 @@
 ﻿namespace Hexa.NET.KittyUI.Windows
 {
     using Hexa.NET.Mathematics;
-    using Hexa.NET.SDL2;
+    using Hexa.NET.SDL3;
     using HexaGen.Runtime;
 
     public unsafe class SdlContext : IGLContext
@@ -36,7 +36,7 @@
             get
             {
                 var ret = stackalloc int[2];
-                SDL.GLGetDrawableSize(Window, ret, &ret[1]);
+                SDL.GetWindowSizeInPixels(Window, ret, &ret[1]);
                 return *(Point2*)ret;
             }
         }
@@ -45,7 +45,7 @@
         {
             if (_ctx != default)
             {
-                SDL.GLDeleteContext(_ctx);
+                SDL.GLDestroyContext(_ctx);
                 _ctx = default;
             }
         }
@@ -114,7 +114,7 @@
 
         public bool IsExtensionSupported(string extensionName)
         {
-            return SDL.GLExtensionSupported(extensionName) == SDLBool.True;
+            return SDL.GLExtensionSupported(extensionName) == true;
         }
     }
 }

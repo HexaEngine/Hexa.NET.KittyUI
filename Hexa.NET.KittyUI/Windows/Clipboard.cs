@@ -1,6 +1,6 @@
 ﻿namespace Hexa.NET.KittyUI.Windows
 {
-    using Hexa.NET.SDL2;
+    using Hexa.NET.SDL3;
 
     public static unsafe class Clipboard
     {

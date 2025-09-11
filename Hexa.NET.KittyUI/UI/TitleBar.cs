@@ -7,7 +7,7 @@
     using Hexa.NET.KittyUI.Native.X11;
     using Hexa.NET.KittyUI.Windows;
     using Hexa.NET.Mathematics;
-    using Hexa.NET.SDL2;
+    using Hexa.NET.SDL3;
     using System;
     using System.Numerics;
     using System.Runtime.InteropServices;
@@ -420,7 +420,7 @@
         private Vector2 titleBarPos;
         private Vector2 titleBarSize;
         private int titleBarHeight = 30;
-        private Point2 mousePos;
+        private Vector2 mousePos;
         private Vector2 cursorPos;
         private float buttonSize = 50;
 

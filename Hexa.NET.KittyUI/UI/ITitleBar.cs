@@ -1,5 +1,5 @@
 using Hexa.NET.KittyUI.Windows;
-using Hexa.NET.SDL2;
+using Hexa.NET.SDL3;
 
 namespace Hexa.NET.KittyUI.UI;
 

@@ -1,7 +1,7 @@
 ﻿namespace Hexa.NET.KittyUI.Input
 {
     using Hexa.NET.KittyUI.Input.Events;
-    using Hexa.NET.SDL2;
+    using Hexa.NET.SDL3;
     using System.Runtime.CompilerServices;
 
     /// <summary>
