@@ -1,15 +1,13 @@
 ﻿namespace Hexa.NET.KittyUI.Input
 {
-    using Hexa.NET.KittyUI.Input.Events;
+    using System.Numerics;
 
     /// <summary>
     /// Represents a finger in an input system.
     /// </summary>
-    public unsafe class Finger
+    public readonly unsafe struct Finger
     {
         private readonly SDL3.SDLFinger* finger;
-        private readonly long id;
-        private FingerState state;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Finger"/> class.
@@ -18,65 +16,38 @@
         public Finger(SDL3.SDLFinger* finger)
         {
             this.finger = finger;
-            id = finger->Id;
-            state = Pressure > 0 ? FingerState.Down : FingerState.Up;
         }
+
+        public bool IsNull => finger == null;
 
         /// <summary>
         /// Gets the unique identifier for the finger.
         /// </summary>
-        public long Id => id;
+        public readonly long Id => finger->Id;
 
         /// <summary>
         /// Gets the current state of the finger.
         /// </summary>
-        public FingerState State => state;
+        public readonly FingerState State => finger->Pressure > 0 ? FingerState.Down : FingerState.Up;
 
         /// <summary>
         /// Gets the X-coordinate of the finger's position.
         /// </summary>
-        public float X => finger->X;
+        public readonly float X => finger->X;
 
         /// <summary>
         /// Gets the Y-coordinate of the finger's position.
         /// </summary>
-        public float Y => finger->Y;
+        public readonly float Y => finger->Y;
+
+        /// <summary>
+        /// Gets the position represented as a two-dimensional vector.
+        /// </summary>
+        public readonly Vector2 Position => new(X, Y);
 
         /// <summary>
         /// Gets the pressure applied by the finger.
         /// </summary>
-        public float Pressure => finger->Pressure;
-
-        /// <summary>
-        /// Occurs when the finger is released (up).
-        /// </summary>
-        public event EventHandler<TouchEventArgs>? TouchUp;
-
-        /// <summary>
-        /// Occurs when the finger is pressed (down).
-        /// </summary>
-        public event EventHandler<TouchEventArgs>? TouchDown;
-
-        /// <summary>
-        /// Occurs when the finger's position is updated.
-        /// </summary>
-        public event EventHandler<TouchMotionEventArgs>? TouchMotion;
-
-        internal void OnFingerUp(TouchEventArgs touchEventArgs)
-        {
-            state = FingerState.Up;
-            TouchUp?.Invoke(this, touchEventArgs);
-        }
-
-        internal void OnFingerDown(TouchEventArgs touchEventArgs)
-        {
-            state = FingerState.Down;
-            TouchDown?.Invoke(this, touchEventArgs);
-        }
-
-        internal void OnFingerMotion(TouchMotionEventArgs touchMotionEventArgs)
-        {
-            TouchMotion?.Invoke(this, touchMotionEventArgs);
-        }
+        public readonly float Pressure => finger->Pressure;
     }
 }

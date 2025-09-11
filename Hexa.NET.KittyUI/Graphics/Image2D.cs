@@ -14,7 +14,7 @@
 
         public abstract nint Handle { get; protected set; }
 
-        public static implicit operator ImTextureID(Image2D image) => new(image.Handle);
+        public static implicit operator ImTextureRef(Image2D image) => new(null, image.Handle);
 
         public int Width => (int)Metadata.Width;
 

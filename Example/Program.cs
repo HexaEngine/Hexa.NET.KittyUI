@@ -23,6 +23,10 @@ namespace TestApp
         private string? file;
         private Image2D? image;
 
+       public MainWindow()
+        {
+            IsEmbedded = true;
+        }
         public override string Name => "Main Window";
 
         public override unsafe void DrawContent()
@@ -50,7 +54,7 @@ namespace TestApp
             if (ImGui.Button("Load Texture"))
             {
                 LoadTexture("icon.png");
-                //LoadWebTexture();
+                LoadWebTexture();
             }
 
             if (image != null)

@@ -102,6 +102,7 @@
         Rect BorderSize { get; }
 
         ITitleBar? TitleBar { get; set; }
+        float ContentScale { get; }
 
         /// <summary>
         /// Event triggered when the window is closing.

@@ -126,8 +126,6 @@
                 }
                 builders.Add(builder);
             }
-
-            io.Fonts.Build();
         }
 
         internal void BuildStyle(ImGuiStylePtr style)

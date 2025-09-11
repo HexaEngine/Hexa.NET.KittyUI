@@ -3,6 +3,7 @@
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Backends.SDL3;
     using Hexa.NET.KittyUI;
+    using Hexa.NET.KittyUI.Windows;
     using System.Diagnostics;
     using System.Numerics;
 
@@ -19,20 +20,20 @@
             addons.Add(addon);
         }
 
-        public static void PushFont(string name)
+        public static void PushFont(string name, float fontSize)
         {
             if (aliasToFont.TryGetValue(name, out ImFontPtr fontPtr))
             {
-                ImGui.PushFont(fontPtr);
+                ImGui.PushFont(fontPtr, fontSize);
                 fontPushes++;
             }
         }
 
-        public static void PushFont(string name, bool condition)
+        public static void PushFont(string name, float fontSize, bool condition)
         {
             if (condition && aliasToFont.TryGetValue(name, out ImFontPtr fontPtr))
             {
-                ImGui.PushFont(fontPtr);
+                ImGui.PushFont(fontPtr, fontSize);
                 fontPushes++;
             }
         }
@@ -48,7 +49,7 @@
             fontPushes--;
         }
 
-        public unsafe ImGuiManager(AppBuilder appBuilder, Action rendererNewFrameCallback, Action<ImDrawDataPtr> rendererDrawCallback, ImGuiConfigFlags flags = ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad | ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable)
+        public unsafe ImGuiManager(CoreWindow window, AppBuilder appBuilder, Action rendererNewFrameCallback, Action<ImDrawDataPtr> rendererDrawCallback, ImGuiConfigFlags flags = ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad | ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable)
         {
             RendererNewFrameCallback = rendererNewFrameCallback;
             RendererDrawCallback = rendererDrawCallback;
@@ -69,17 +70,19 @@
             io.ConfigDragClickToInputText = true;
             io.ConfigDebugIsDebuggerPresent = Debugger.IsAttached;
 
+            var mainScale = window.ContentScale;
+            var style = ImGui.GetStyle();
+            style.ScaleAllSizes(mainScale); 
+            style.FontScaleDpi = mainScale;       
+            io.ConfigDpiScaleFonts = true;         
+            io.ConfigDpiScaleViewports = true; 
+
+
+
             appBuilder.BuildImGuiConfig(guiContext, io);
-
-            var fonts = io.Fonts;
-            fonts.FontBuilderFlags = (uint)ImFontAtlasFlags.NoPowerOfTwoHeight;
-            fonts.TexDesiredWidth = 2048;
-
             appBuilder.BuildFonts(io, aliasToFont);
 
-            fonts.Build();
-
-            var style = ImGui.GetStyle();
+      
 
             appBuilder.BuildStyle(style);
         }
@@ -186,7 +189,7 @@
             }
 
             RendererNewFrameCallback();
-            ImGuiImplSDL3.SDL3NewFrame();
+            ImGuiImplSDL3.NewFrame();
             ImGui.NewFrame();
 
             foreach (var addon in addons)

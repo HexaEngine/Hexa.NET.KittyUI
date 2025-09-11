@@ -69,19 +69,19 @@
 
                     var dev = D3D11GraphicsDevice.Device;
                     var ctx = D3D11GraphicsDevice.DeviceContext;
-                    imGuiRenderer = new(appBuilder, ImGuiImplD3D11.NewFrame, ImGuiImplD3D11.RenderDrawData);
+                    imGuiRenderer = new(this, appBuilder, ImGuiImplD3D11.NewFrame, ImGuiImplD3D11.RenderDrawData);
                     context = ImGui.GetCurrentContext();
                     ImGuiImplSDL3.SetCurrentContext(context);
-                    ImGuiImplSDL3.SDL3InitForD3D((SDLWindow*)GetWindow());
+                    ImGuiImplSDL3.InitForD3D((SDLWindow*)GetWindow());
                     ImGuiImplD3D11.SetCurrentContext(context);
                     ImGuiImplD3D11.Init((NET.ImGui.Backends.D3D11.ID3D11Device*)dev.Handle, (NET.ImGui.Backends.D3D11.ID3D11DeviceContext*)ctx.Handle);
                     break;
 
                 case GraphicsBackend.OpenGL:
-                    imGuiRenderer = new(appBuilder, ImGuiImplOpenGL3.NewFrame, ImGuiImplOpenGL3.RenderDrawData);
+                    imGuiRenderer = new(this, appBuilder, ImGuiImplOpenGL3.NewFrame, ImGuiImplOpenGL3.RenderDrawData);
                     context = ImGui.GetCurrentContext();
                     ImGuiImplSDL3.SetCurrentContext(context);
-                    ImGuiImplSDL3.SDL3InitForOpenGL((SDLWindow*)GetWindow(), (void*)GLContext.Handle);
+                    ImGuiImplSDL3.InitForOpenGL((SDLWindow*)GetWindow(), (void*)GLContext.Handle);
                     ImGuiImplOpenGL3.SetCurrentContext(context);
                     ImGuiImplOpenGL3.Init((byte*)null);
                     break;
@@ -96,7 +96,7 @@
 
         private unsafe bool SDLEventHook(SDL3.SDLEvent evnt)
         {
-            return ImGuiImplSDL3.SDL3ProcessEvent((SDLEvent*)&evnt);
+            return ImGuiImplSDL3.ProcessEvent((SDLEvent*)&evnt);
         }
 
         public virtual void Render()
@@ -241,7 +241,7 @@
                     break;
             }
 
-            ImGuiImplSDL3.SDL3Shutdown();
+            ImGuiImplSDL3.Shutdown();
             ImGuiImplSDL3.SetCurrentContext(null);
 
             imGuiRenderer?.Dispose();
