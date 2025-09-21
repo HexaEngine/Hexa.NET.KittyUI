@@ -67,7 +67,7 @@
                 if (node.Id == id)
                     return node;
             }
-            throw new();
+            throw new InvalidOperationException($"Node with ID {id} not found");
         }
 
         public T GetNode<T>() where T : Node
@@ -248,7 +248,7 @@
             while (walkstack.Count > 0)
             {
                 (int i, node) = walkstack.Pop();
-                if (i > node.Links.Count)
+                if (i >= node.Links.Count)
                     continue;
                 Link link = node.Links[i];
                 i++;

@@ -34,16 +34,16 @@
             SDL.GetMouseState(ref pos.X, ref pos.Y);
 
             uint state = (uint)SDL.GetMouseState(null, null);
-            uint maskLeft = unchecked(1 << (int)MouseButton.Left - 1);
-            uint maskMiddle = unchecked(1 << (int)MouseButton.Middle - 1);
-            uint maskRight = unchecked(1 << (int)MouseButton.Right - 1);
-            uint maskX1 = unchecked(1 << (int)MouseButton.X1 - 1);
-            uint maskX2 = unchecked(1 << (int)MouseButton.X2 - 1);
-            states.Add(MouseButton.Left, (MouseButtonState)(state & maskLeft));
-            states.Add(MouseButton.Middle, (MouseButtonState)(state & maskMiddle));
-            states.Add(MouseButton.Right, (MouseButtonState)(state & maskRight));
-            states.Add(MouseButton.X1, (MouseButtonState)(state & maskX1));
-            states.Add(MouseButton.X2, (MouseButtonState)(state & maskX2));
+            uint maskLeft = 1u << ((int)MouseButton.Left - 1);
+            uint maskMiddle = 1u << ((int)MouseButton.Middle - 1);
+            uint maskRight = 1u << ((int)MouseButton.Right - 1);
+            uint maskX1 = 1u << ((int)MouseButton.X1 - 1);
+            uint maskX2 = 1u << ((int)MouseButton.X2 - 1);
+            states.Add(MouseButton.Left, (state & maskLeft) != 0 ? MouseButtonState.Down : MouseButtonState.Up);
+            states.Add(MouseButton.Middle, (state & maskMiddle) != 0 ? MouseButtonState.Down : MouseButtonState.Up);
+            states.Add(MouseButton.Right, (state & maskRight) != 0 ? MouseButtonState.Down : MouseButtonState.Up);
+            states.Add(MouseButton.X1, (state & maskX1) != 0 ? MouseButtonState.Down : MouseButtonState.Up);
+            states.Add(MouseButton.X2, (state & maskX2) != 0 ? MouseButtonState.Down : MouseButtonState.Up);
         }
 
         /// <summary>

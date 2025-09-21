@@ -123,6 +123,12 @@
         {
             if (!disposedValue)
             {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    context?.Dispose();
+                }
+                // Dispose unmanaged resources
                 OpenAL.CloseDevice(Device);
                 disposedValue = true;
             }

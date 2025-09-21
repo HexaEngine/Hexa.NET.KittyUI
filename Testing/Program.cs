@@ -14,6 +14,7 @@
             Thread.Sleep(1);
             long elapsed = Stopwatch.GetTimestamp() - now;
             double elapsedMs = (double)elapsed / Stopwatch.Frequency * 1000;
+            Console.WriteLine($"Test timing: {elapsedMs:F3}ms");
         }
 
         private static void LinuxMemTest()

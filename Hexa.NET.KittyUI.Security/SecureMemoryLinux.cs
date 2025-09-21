@@ -159,7 +159,7 @@
             byte* key = stackalloc byte[AES_KEY_SIZE];
 
             // Retrieve the key from the keyring
-            var status = RetrieveKeyFromKeyring(key, AES_TAG_SIZE, renew: true);
+            var status = RetrieveKeyFromKeyring(key, AES_KEY_SIZE, renew: true);
 
             if (status != ResultCode.Success)
             {

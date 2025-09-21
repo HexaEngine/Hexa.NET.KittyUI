@@ -20,7 +20,7 @@
                     OpenAL.ALC_INVALID_DEVICE => new OpenALException("ALC_INVALID_DEVICE: a bad device was passed to an OpenAL function"),
                     OpenAL.ALC_INVALID_CONTEXT => new OpenALException("ALC_INVALID_CONTEXT: a bad context was passed to an OpenAL function"),
                     OpenAL.ALC_INVALID_ENUM => new OpenALException("ALC_INVALID_ENUM: an unknown enum value was passed to an OpenAL function"),
-                    OpenAL.ALC_OUT_OF_MEMORY => new OpenALException("ALC_OUT_OF_MEMORY: an unknown enum value was passed to an OpenAL function"),
+                    OpenAL.ALC_OUT_OF_MEMORY => new OpenALException("ALC_OUT_OF_MEMORY: out of memory error"),
                     _ => new OpenALException($"UNKNOWN ALC ERROR: {error}"),
                 };
             }

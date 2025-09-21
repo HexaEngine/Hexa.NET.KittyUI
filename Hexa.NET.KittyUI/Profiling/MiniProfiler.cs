@@ -27,16 +27,22 @@
 
         public double End(string name)
         {
+            if (!starts.TryGetValue(name, out long start))
+            {
+                throw new InvalidOperationException($"No timing started for '{name}'. Call Begin('{name}') first.");
+            }
             long end = Stopwatch.GetTimestamp();
-            long start = starts[name];
             starts.Remove(name);
             return (double)(end - start) / Stopwatch.Frequency;
         }
 
         public double EndMs(string name)
         {
+            if (!starts.TryGetValue(name, out long start))
+            {
+                throw new InvalidOperationException($"No timing started for '{name}'. Call Begin('{name}') first.");
+            }
             long end = Stopwatch.GetTimestamp();
-            long start = starts[name];
             starts.Remove(name);
             return (double)(end - start) / Stopwatch.Frequency * 1000;
         }
@@ -67,7 +73,13 @@
 
         public void ReportSumAvg(string name, DisplayOptions displayOption = DisplayOptions.Auto)
         {
-            (double sum, long count) = avgSamples[name];
+            if (!avgSamples.TryGetValue(name, out var samples) || samples.count == 0)
+            {
+                Debug.WriteLine($"{name}: No samples recorded");
+                return;
+            }
+
+            (double sum, long count) = samples;
             var avg = sum / count;
             avgSamples[name] = default;
 
@@ -78,7 +90,13 @@
 
         public void ReportImGuiSumAvg(string name, DisplayOptions displayOption = DisplayOptions.Auto)
         {
-            (double sum, long count) = avgSamples[name];
+            if (!avgSamples.TryGetValue(name, out var samples) || samples.count == 0)
+            {
+                ImGuiDebugTools.WriteLine($"{name}: No samples recorded");
+                return;
+            }
+
+            (double sum, long count) = samples;
             var avg = sum / count;
             avgSamples[name] = default;
 
