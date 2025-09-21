@@ -213,8 +213,9 @@
         {
             byte* textPtr = &text.Text_0;
             int i = 0;
+            const int maxLength = 32; // SDL text input buffer is typically 32 bytes
 
-            while (textPtr[i] != 0)
+            while (i < maxLength && textPtr[i] != 0)
             {
                 byte currentByte = textPtr[i];
 
@@ -226,48 +227,69 @@
                 }
                 else if ((currentByte & 0xE0) == 0xC0) // 2-byte character (110xxxxx)
                 {
-                    byte nextByte = textPtr[i + 1];
-                    if ((nextByte & 0xC0) == 0x80) // 10xxxxxx
+                    if (i + 1 < maxLength)
                     {
-                        int character = ((currentByte & 0x1F) << 6) | (nextByte & 0x3F);
-                        SendCharEvent(character);
-                        i += 2;
+                        byte nextByte = textPtr[i + 1];
+                        if ((nextByte & 0xC0) == 0x80) // 10xxxxxx
+                        {
+                            int character = ((currentByte & 0x1F) << 6) | (nextByte & 0x3F);
+                            SendCharEvent(character);
+                            i += 2;
+                        }
+                        else
+                        {
+                            i++;
+                        }
                     }
                     else
                     {
-                        i++;
+                        break; // Not enough bytes left
                     }
                 }
                 else if ((currentByte & 0xF0) == 0xE0) // 3-byte character (1110xxxx)
                 {
-                    // Get the next two bytes and combine them into a character
-                    byte nextByte1 = textPtr[i + 1];
-                    byte nextByte2 = textPtr[i + 2];
-                    if ((nextByte1 & 0xC0) == 0x80 && (nextByte2 & 0xC0) == 0x80)
+                    if (i + 2 < maxLength)
                     {
-                        int character = ((currentByte & 0x0F) << 12) | ((nextByte1 & 0x3F) << 6) | (nextByte2 & 0x3F);
-                        SendCharEvent(character);
-                        i += 3;
+                        // Get the next two bytes and combine them into a character
+                        byte nextByte1 = textPtr[i + 1];
+                        byte nextByte2 = textPtr[i + 2];
+                        if ((nextByte1 & 0xC0) == 0x80 && (nextByte2 & 0xC0) == 0x80)
+                        {
+                            int character = ((currentByte & 0x0F) << 12) | ((nextByte1 & 0x3F) << 6) | (nextByte2 & 0x3F);
+                            SendCharEvent(character);
+                            i += 3;
+                        }
+                        else
+                        {
+                            i++;
+                        }
                     }
                     else
                     {
-                        i++;
+                        break; // Not enough bytes left
                     }
                 }
                 else if ((currentByte & 0xF8) == 0xF0) // 4-byte character (11110xxx)
                 {
-                    byte nextByte1 = textPtr[i + 1];
-                    byte nextByte2 = textPtr[i + 2];
-                    byte nextByte3 = textPtr[i + 3];
-                    if ((nextByte1 & 0xC0) == 0x80 && (nextByte2 & 0xC0) == 0x80 && (nextByte3 & 0xC0) == 0x80)
+                    if (i + 3 < maxLength)
                     {
-                        int codepoint = ((currentByte & 0x07) << 18) | ((nextByte1 & 0x3F) << 12) | ((nextByte2 & 0x3F) << 6) | (nextByte3 & 0x3F);
-                        SendCharEvent(codepoint);
-                        i += 4;
+                        byte nextByte1 = textPtr[i + 1];
+                        byte nextByte2 = textPtr[i + 2];
+                        byte nextByte3 = textPtr[i + 3];
+                        if ((nextByte1 & 0xC0) == 0x80 && (nextByte2 & 0xC0) == 0x80 && (nextByte3 & 0xC0) == 0x80)
+                        {
+                            int codepoint = ((currentByte & 0x07) << 18) | ((nextByte1 & 0x3F) << 12) | ((nextByte2 & 0x3F) << 6) | (nextByte3 & 0x3F);
+                            SendCharEvent(codepoint);
+                            i += 4;
+                        }
+                        else
+                        {
+                            i++;
+                        }
                     }
                     else
                     {
-                        i++;
+                        break; // Not enough bytes left
                     }
                 }
                 else

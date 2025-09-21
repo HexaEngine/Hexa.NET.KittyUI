@@ -51,20 +51,49 @@
 
         private static void ThreadVoid()
         {
-            while (running)
+            try
             {
-                audioDevice.ProcessAudio();
-                Thread.Sleep(10);
+                while (running)
+                {
+                    try
+                    {
+                        audioDevice?.ProcessAudio();
+                        Thread.Sleep(10);
+                    }
+                    catch (ThreadInterruptedException)
+                    {
+                        break;
+                    }
+                    catch (Exception)
+                    {
+                        // Log error but continue processing
+                        Thread.Sleep(100); // Wait longer on error
+                    }
+                }
+            }
+            catch (ThreadInterruptedException)
+            {
+                // Thread was interrupted, exit gracefully
             }
         }
 
         public static void Dispose()
         {
             if (audioDevice == null) return;
+            
             running = false;
-            streamThread.Join();
-            audioContext.Dispose();
-            audioDevice.Dispose();
+            
+            if (streamThread != null)
+            {
+                streamThread.Join(5000); // Wait max 5 seconds for thread to exit
+                if (streamThread.IsAlive)
+                {
+                    streamThread.Interrupt(); // Force interrupt if still running
+                }
+            }
+            
+            audioContext?.Dispose();
+            audioDevice?.Dispose();
         }
     }
 }

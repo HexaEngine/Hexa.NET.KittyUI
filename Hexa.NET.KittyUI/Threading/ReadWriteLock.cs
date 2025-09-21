@@ -10,6 +10,9 @@
         private readonly int maxWriter;
         private readonly SemaphoreSlim readSemaphore;
         private readonly SemaphoreSlim writeSemaphore;
+        private readonly object syncLock = new();
+        private int currentReaders = 0;
+        private int currentWriters = 0;
         private bool disposedValue;
 
         public ReadWriteLock(int maxReader, int maxWriter)
@@ -43,10 +46,13 @@
         public void BeginRead()
         {
             readLock.Reset();
-
             writeLock.Wait();
-
             readSemaphore.Wait();
+            
+            lock (syncLock)
+            {
+                currentReaders++;
+            }
         }
 
         public IDisposable BeginReadBlock()
@@ -58,19 +64,27 @@
         public void EndRead()
         {
             readSemaphore.Release();
-            if (readSemaphore.CurrentCount == maxReader)
+            
+            lock (syncLock)
             {
-                readLock.Set();
+                currentReaders--;
+                if (currentReaders == 0)
+                {
+                    readLock.Set();
+                }
             }
         }
 
         public void BeginWrite()
         {
             writeLock.Reset();
-
             readLock.Wait();
-
             writeSemaphore.Wait();
+            
+            lock (syncLock)
+            {
+                currentWriters++;
+            }
         }
 
         public IDisposable BeginWriteBlock()
@@ -82,10 +96,14 @@
         public void EndWrite()
         {
             writeSemaphore.Release();
-
-            if (writeSemaphore.CurrentCount == maxWriter)
+            
+            lock (syncLock)
             {
-                writeLock.Set();
+                currentWriters--;
+                if (currentWriters == 0)
+                {
+                    writeLock.Set();
+                }
             }
         }
 
