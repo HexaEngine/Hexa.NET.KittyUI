@@ -66,7 +66,7 @@
                 if (absPosition + bufferSize > stream.Length)
                     dataSizeToCopy = stream.Length - absPosition;
                 stream.Position = absPosition;
-                stream.Read(buffer, 0, (int)dataSizeToCopy);
+                stream.ReadExactly(buffer, 0, (int)dataSizeToCopy);
                 position += (int)dataSizeToCopy;
 
                 if (dataSizeToCopy < bufferSize)
@@ -83,7 +83,7 @@
                         return;
                     }
                     stream.Position = Header.DataBegin;
-                    stream.Read(buffer, (int)dataSizeToCopy, (int)(bufferSize - dataSizeToCopy));
+                    stream.ReadExactly(buffer, (int)dataSizeToCopy, (int)(bufferSize - dataSizeToCopy));
                     position = (int)(bufferSize - dataSizeToCopy);
                 }
 
@@ -112,7 +112,7 @@
                 if (absPosition + bufferSize > stream.Length)
                     dataSizeToCopy = stream.Length - absPosition;
                 stream.Position = absPosition;
-                stream.Read(buffer, 0, (int)dataSizeToCopy);
+                stream.ReadExactly(buffer, 0, (int)dataSizeToCopy);
                 position += (int)dataSizeToCopy;
 
                 if (dataSizeToCopy < bufferSize)
@@ -129,7 +129,7 @@
                         return;
                     }
                     stream.Position = Header.DataBegin;
-                    stream.Read(buffer, (int)dataSizeToCopy, (int)(bufferSize - dataSizeToCopy));
+                    stream.ReadExactly(buffer, (int)dataSizeToCopy, (int)(bufferSize - dataSizeToCopy));
                     position = (int)(bufferSize - dataSizeToCopy);
                 }
 

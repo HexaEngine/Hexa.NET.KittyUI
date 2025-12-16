@@ -6,7 +6,7 @@
 //   at http://www.codeproject.com/Articles/5819/Ternary-Search-Tree-Dictionary-in-C-Faster-String
 //
 // Rewrite focused on
-// - removing fields from the TstDictionaryEntry class to reduce memory usage
+// - removing fields from the TernarySearchTreeDictionaryEntry class to reduce memory usage
 // - decreasing the number of nodes to reduce memory usage (used some of the
 //   ideas from http://hackthology.com/ternary-search-tries-for-fast-flexible-string-search-part-1.html)
 // - implementing the modern IDictionary<string, T> interface
@@ -44,7 +44,7 @@ namespace Hexa.NET.KittyUI.Collections
     {
         private readonly Func<char, char, int> _compare;
         private readonly IComparer<string> _comparer;
-        private TstDictionaryEntry<T>? _root;
+        private TernarySearchTreeDictionaryEntry<T>? _root;
         private long _version;
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         /// <summary>
-        /// Constructor that adds multiple elements into the <see cref="TstDictionary"/>
+        /// Constructor that adds multiple elements into the <see cref="TernarySearchTreeDictionary{T}"/>
         /// </summary>
         /// <param name="values">The elements to add</param>
         /// <remarks>
@@ -86,7 +86,7 @@ namespace Hexa.NET.KittyUI.Collections
         public TernarySearchTreeDictionary(IEnumerable<KeyValuePair<string, T>> values) : this(values, StringComparer.Ordinal) { }
 
         /// <summary>
-        /// Constructor that adds multiple elements into the <see cref="TstDictionary"/>
+        /// Constructor that adds multiple elements into the <see cref="TernarySearchTreeDictionary{T}"/>
         /// </summary>
         /// <param name="values">The elements to add</param>
         /// <param name="comparer">Comparer used to compare keys</param>
@@ -99,7 +99,7 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         /// <summary>
-        /// Returns the comparer used to compare keys in the <see cref="TstDictionary"/>
+        /// Returns the comparer used to compare keys in the <see cref="TernarySearchTreeDictionary{T}"/>
         /// </summary>
         public IComparer<string>? Comparer
         {
@@ -107,10 +107,10 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         /// <summary>
-        /// Gets the number of key-and-value pairs contained in the <see cref="TstDictionary"/>.
+        /// Gets the number of key-and-value pairs contained in the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </summary>
         /// <value>
-        /// The number of key-and-value pairs contained in the <see cref="TstDictionary"/>.
+        /// The number of key-and-value pairs contained in the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </value>
         /// <remarks>
         /// Complexity: O(N)
@@ -128,10 +128,10 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         /// <summary>
-        /// Gets an <see cref="ICollection"/> containing the keys in the <see cref="TstDictionary"/>.
+        /// Gets an <see cref="ICollection"/> containing the keys in the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </summary>
         /// <returns>
-        /// An <see cref="ICollection"/> containing the keys in the <see cref="TstDictionary"/>.
+        /// An <see cref="ICollection"/> containing the keys in the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </returns>
         public virtual ICollection<string> Keys
         {
@@ -146,10 +146,10 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         /// <summary>
-        /// Gets an <see cref="ICollection"/> containing the values in the <see cref="TstDictionary"/>.
+        /// Gets an <see cref="ICollection"/> containing the values in the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </summary>
         /// <returns>
-        /// An <see cref="ICollection"/> containing the values in the <see cref="TstDictionary"/>.
+        /// An <see cref="ICollection"/> containing the values in the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </returns>
         public virtual ICollection<T> Values
         {
@@ -167,7 +167,7 @@ namespace Hexa.NET.KittyUI.Collections
         /// Gets or sets the value associated with the specified key.
         /// </summary>
         /// <remarks>
-        /// [C#] In C#, this property is the indexer for the <see cref="TstDictionary"/> class.
+        /// [C#] In C#, this property is the indexer for the <see cref="TernarySearchTreeDictionary{T}"/> class.
         /// </remarks>
         /// <param name="key">The key whose value to get or set.</param>
         /// <value>
@@ -183,7 +183,7 @@ namespace Hexa.NET.KittyUI.Collections
         {
             get
             {
-                if (!TryGetNode(key, null, out TstDictionaryEntry<T>? entry))
+                if (!TryGetNode(key, null, out TernarySearchTreeDictionaryEntry<T>? entry))
                     throw new KeyNotFoundException();
                 if (entry == null)
                     throw new KeyNotFoundException();
@@ -207,7 +207,7 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         /// <summary>
-        /// Adds an element with the specified key and value into the <see cref="TstDictionary"/>.
+        /// Adds an element with the specified key and value into the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </summary>
         /// <param name="key">The key of the element to add.</param>
         /// <param name="value">The value of the element to add. The value can be a null reference (Nothing in Visual Basic).</param>
@@ -216,17 +216,17 @@ namespace Hexa.NET.KittyUI.Collections
         /// </exception>
         /// <exception cref="ArgumentException"><paramref name="key"/> is an empty string</exception>
         /// <exception cref="ArgumentException">
-        /// An element with the same key already exists in the <see cref="TstDictionary"/>.
+        /// An element with the same key already exists in the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </exception>
-        /// <exception cref="NotSupportedException">The <see cref="TstDictionary"/> is read-only.</exception>
-        /// <exception cref="NotSupportedException">The <see cref="TstDictionary"/> has a fixed size.</exception>
+        /// <exception cref="NotSupportedException">The <see cref="TernarySearchTreeDictionary{T}"/> is read-only.</exception>
+        /// <exception cref="NotSupportedException">The <see cref="TernarySearchTreeDictionary{T}"/> has a fixed size.</exception>
         public virtual void Add(string key, T value)
         {
             Add(new KeyValuePair<string, T>(key, value));
         }
 
         /// <summary>
-        /// Adds an element with the specified key and value into the <see cref="TstDictionary"/>.
+        /// Adds an element with the specified key and value into the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </summary>
         /// <param name="item">The element to add.</param>
         /// <exception cref="ArgumentNullException">
@@ -234,7 +234,7 @@ namespace Hexa.NET.KittyUI.Collections
         /// </exception>
         /// <exception cref="ArgumentException"><paramref name="item"/>.<c>Key</c> is an empty string</exception>
         /// <exception cref="ArgumentException">
-        /// An element with the same key already exists in the <see cref="TstDictionary"/>.
+        /// An element with the same key already exists in the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </exception>
         public void Add(KeyValuePair<string, T> item)
         {
@@ -247,7 +247,7 @@ namespace Hexa.NET.KittyUI.Collections
 
             // creating root node if needed.
             if (_root == null)
-                _root = new TstDictionaryEntry<T>(item.Key[0]);
+                _root = new TernarySearchTreeDictionaryEntry<T>(item.Key[0]);
 
             // adding key
             var p = _root;
@@ -261,7 +261,7 @@ namespace Hexa.NET.KittyUI.Collections
                 {
                     if (p.LowChild == null)
                     {
-                        p.LowChild = new TstDictionaryEntry<T>(c);
+                        p.LowChild = new TernarySearchTreeDictionaryEntry<T>(c);
                         p.LowChild.Value = item;
                         return;
                     }
@@ -271,7 +271,7 @@ namespace Hexa.NET.KittyUI.Collections
                 {
                     if (p.HighChild == null)
                     {
-                        p.HighChild = new TstDictionaryEntry<T>(c);
+                        p.HighChild = new TernarySearchTreeDictionaryEntry<T>(c);
                         p.HighChild.Value = item;
                         return;
                     }
@@ -288,13 +288,13 @@ namespace Hexa.NET.KittyUI.Collections
 
                     if (p.EqChild == null && p.IsKey)
                     {
-                        p.EqChild = new TstDictionaryEntry<T>(i < p.Value.Key.Length ? p.Value.Key[i] : '\0');
+                        p.EqChild = new TernarySearchTreeDictionaryEntry<T>(i < p.Value.Key.Length ? p.Value.Key[i] : '\0');
                         p.EqChild.Value = p.Value;
                         p.Value = default;
                     }
                     else if (p.EqChild == null)
                     {
-                        p.EqChild = new TstDictionaryEntry<T>(item.Key[i]);
+                        p.EqChild = new TernarySearchTreeDictionaryEntry<T>(item.Key[i]);
                         p.EqChild.Value = item;
                         return;
                     }
@@ -306,7 +306,7 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         /// <summary>
-        /// Adds multiple elements into the <see cref="TstDictionary"/>
+        /// Adds multiple elements into the <see cref="TernarySearchTreeDictionary{T}"/>
         /// </summary>
         /// <param name="values">The elements to add</param>
         /// <remarks>This method attempts to create a balanced tree</remarks>
@@ -317,7 +317,7 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         /// <summary>
-        /// Removes all elements from the <see cref="TstDictionary"/>.
+        /// Removes all elements from the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </summary>
         public virtual void Clear()
         {
@@ -327,10 +327,10 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         /// <summary>
-        /// Determines whether the <see cref="TstDictionary"/> contains a specific key.
+        /// Determines whether the <see cref="TernarySearchTreeDictionary{T}"/> contains a specific key.
         /// </summary>
-        /// <param name="key">The key to locate in the <see cref="TstDictionary"/>.</param>
-        /// <returns>true if the <see cref="TstDictionary"/> contains an element with the specified key; otherwise, false.</returns>
+        /// <param name="key">The key to locate in the <see cref="TernarySearchTreeDictionary{T}"/>.</param>
+        /// <returns>true if the <see cref="TernarySearchTreeDictionary{T}"/> contains an element with the specified key; otherwise, false.</returns>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="key"/> is a null reference (Nothing in Visual Basic).
         /// </exception>
@@ -345,23 +345,23 @@ namespace Hexa.NET.KittyUI.Collections
             return de != null && de.IsKey;
         }
 
-        /// <summary>Returns an enumerator that iterates through the <see cref="TstDictionary" />.</summary>
-        /// <returns>A enumerator structure for the <see cref="TstDictionary" />.</returns>
+        /// <summary>Returns an enumerator that iterates through the <see cref="TernarySearchTreeDictionary{T}" />.</summary>
+        /// <returns>A enumerator structure for the <see cref="TernarySearchTreeDictionary{T}" />.</returns>
         public virtual IEnumerator<KeyValuePair<string, T>> GetEnumerator()
         {
-            return new TstDictionaryEnumerator<T>(this);
+            return new TernarySearchTreeDictionaryEnumerator<T>(this);
         }
 
         ///<summary>
-        /// Removes the element with the specified key from the <see cref="TstDictionary"/>.
+        /// Removes the element with the specified key from the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </summary>
         /// <param name="key">The key of the element to remove.</param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="key"/> is a null reference (Nothing in Visual Basic).
         /// </exception>
         /// <exception cref="ArgumentException"><paramref name="key"/> is an empty string</exception>
-        /// <exception cref="NotSupportedException">The <see cref="TstDictionary"/> is read-only.</exception>
-        /// <exception cref="NotSupportedException">The <see cref="TstDictionary"/> has a fixed size.</exception>
+        /// <exception cref="NotSupportedException">The <see cref="TernarySearchTreeDictionary{T}"/> is read-only.</exception>
+        /// <exception cref="NotSupportedException">The <see cref="TernarySearchTreeDictionary{T}"/> has a fixed size.</exception>
         public virtual bool Remove(string key)
         {
             if (key == null)
@@ -371,8 +371,8 @@ namespace Hexa.NET.KittyUI.Collections
             // updating version
             ++_version;
 
-            var stack = new Stack<TstDictionaryEntry<T>>();
-            if (!TryGetNode(key, stack, out TstDictionaryEntry<T>? p))
+            var stack = new Stack<TernarySearchTreeDictionaryEntry<T>>();
+            if (!TryGetNode(key, stack, out TernarySearchTreeDictionaryEntry<T>? p))
                 return false;
             stack.Pop();
 
@@ -410,9 +410,9 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         private void StartingWith(char split
-          , TstDictionaryEntry<T>? low
-          , TstDictionaryEntry<T>? eq
-          , TstDictionaryEntry<T>? high
+          , TernarySearchTreeDictionaryEntry<T>? low
+          , TernarySearchTreeDictionaryEntry<T>? eq
+          , TernarySearchTreeDictionaryEntry<T>? high
           , KeyValuePair<string, T> value
           , string key
           , int index
@@ -453,7 +453,7 @@ namespace Hexa.NET.KittyUI.Collections
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
 
-            if (!TryGetNode(key, null, out TstDictionaryEntry<T>? entry))
+            if (!TryGetNode(key, null, out TernarySearchTreeDictionaryEntry<T>? entry))
                 return false;
 
             if (entry == null)
@@ -466,11 +466,11 @@ namespace Hexa.NET.KittyUI.Collections
         /// <summary>
         /// Finds the tst node matching the key.
         /// </summary>
-        /// <returns>the <see cref="TstDictionaryEntry"/> mathcing the key, null if not found.</returns>
+        /// <returns>the <see cref="TernarySearchTreeDictionaryEntry"/> mathcing the key, null if not found.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
-        protected virtual TstDictionaryEntry<T>? Find(string key)
+        protected virtual TernarySearchTreeDictionaryEntry<T>? Find(string key)
         {
-            if (TryGetNode(key, null, out TstDictionaryEntry<T>? result))
+            if (TryGetNode(key, null, out TernarySearchTreeDictionaryEntry<T>? result))
                 return result;
             return null;
         }
@@ -478,9 +478,9 @@ namespace Hexa.NET.KittyUI.Collections
         /// <summary>
         /// Finds the node matching the key.
         /// </summary>
-        /// <returns>the <see cref="TstDictionaryEntry"/> mathcing the key, null if not found.</returns>
+        /// <returns>the <see cref="TernarySearchTreeDictionaryEntry"/> mathcing the key, null if not found.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
-        protected virtual bool TryGetNode(string key, Stack<TstDictionaryEntry<T>>? stack, out TstDictionaryEntry<T>? entry)
+        protected virtual bool TryGetNode(string key, Stack<TernarySearchTreeDictionaryEntry<T>>? stack, out TernarySearchTreeDictionaryEntry<T>? entry)
         {
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
@@ -557,9 +557,9 @@ namespace Hexa.NET.KittyUI.Collections
         #region Explicit Interfaces
 
         /// <summary>
-        /// Returns an <see cref="IDictionaryEnumerator"/> that can iterate through the <see cref="TstDictionary"/>.
+        /// Returns an <see cref="IDictionaryEnumerator"/> that can iterate through the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </summary>
-        /// <returns>An <see cref="IDictionaryEnumerator"/> for the <see cref="TstDictionary"/>.</returns>
+        /// <returns>An <see cref="IDictionaryEnumerator"/> for the <see cref="TernarySearchTreeDictionary{T}"/>.</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
@@ -576,10 +576,10 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         /// <summary>
-        /// Get a value indicating whether access to the <see cref="TstDictionary"/> is synchronized (thread-safe).
+        /// Get a value indicating whether access to the <see cref="TernarySearchTreeDictionary{T}"/> is synchronized (thread-safe).
         /// </summary>
         /// <value>
-        /// true if access to the <see cref="TstDictionary"/> is synchronized (thread-safe);
+        /// true if access to the <see cref="TernarySearchTreeDictionary{T}"/> is synchronized (thread-safe);
         /// otherwise, false. The default is false.
         /// </value>
         bool ICollection.IsSynchronized
@@ -588,10 +588,10 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         /// <summary>
-        /// Gets an object that can be used to synchronize access to the <see cref="TstDictionary"/>.
+        /// Gets an object that can be used to synchronize access to the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </summary>
         /// <value>
-        /// An object that can be used to synchronize access to the <see cref="TstDictionary"/>.
+        /// An object that can be used to synchronize access to the <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </value>
         object ICollection.SyncRoot
         {
@@ -599,11 +599,11 @@ namespace Hexa.NET.KittyUI.Collections
         }
 
         /// <summary>
-        /// Copies the <see cref="TstDictionary"/> elements to a one-dimensional Array instance at the specified index.
+        /// Copies the <see cref="TernarySearchTreeDictionary{T}"/> elements to a one-dimensional Array instance at the specified index.
         /// </summary>
         /// <param name="array">The one-dimensional <see cref="Array"/> that is the destination of the
         /// <see cref="DictionaryEntry"/>
-        /// objects copied from <see cref="TstDictionary"/>. The <see cref="Array"/> must have zero-based indexing.
+        /// objects copied from <see cref="TernarySearchTreeDictionary{T}"/>. The <see cref="Array"/> must have zero-based indexing.
         /// </param>
         /// <param name="arrayIndex">The zero-based index in <paramref name="array"/> at which copying begins.</param>
         /// <exception cref="ArgumentNullException"><paramref name="array"/> is a null reference</exception>
@@ -617,11 +617,11 @@ namespace Hexa.NET.KittyUI.Collections
         /// <paramref name="arrayIndex"/> is equal to or greater than the length of <paramref name="array"/>.
         /// </exception>
         /// <exception cref="ArgumentException">
-        /// The number of elements in the source <see cref="TstDictionary"/> is greater than
+        /// The number of elements in the source <see cref="TernarySearchTreeDictionary{T}"/> is greater than
         /// the available space from <paramref name="arrayIndex"/> to the end of the destination array.
         /// </exception>
         /// <exception cref="ArgumentException">
-        /// The type of the source <see cref="TstDictionary"/> cannot be cast automatically
+        /// The type of the source <see cref="TernarySearchTreeDictionary{T}"/> cannot be cast automatically
         /// to the type of the destination array.
         /// </exception>
         void ICollection.CopyTo(Array array, int arrayIndex)
@@ -683,19 +683,19 @@ namespace Hexa.NET.KittyUI.Collections
         #endregion Explicit Interfaces
 
         /// <summary>
-        /// Enumerates the elements of a <see cref="TstDictionary"/>.
+        /// Enumerates the elements of a <see cref="TernarySearchTreeDictionary{T}"/>.
         /// </summary>
-        protected sealed class TstDictionaryEnumerator<S> : IEnumerator<KeyValuePair<string, S>>
+        protected sealed class TernarySearchTreeDictionaryEnumerator<S> : IEnumerator<KeyValuePair<string, S>>
         {
-            private TernarySearchTreeDictionary<S>.TstDictionaryEntry<S>? _currentNode;
+            private TernarySearchTreeDictionary<S>.TernarySearchTreeDictionaryEntry<S>? _currentNode;
             private readonly TernarySearchTreeDictionary<S>? _dictionary;
-            private Stack<TernarySearchTreeDictionary<S>.TstDictionaryEntry<S>>? _stack;
+            private Stack<TernarySearchTreeDictionary<S>.TernarySearchTreeDictionaryEntry<S>>? _stack;
             private readonly long _version;
 
             /// <summary>Constructs an enumerator over <paramref name="tst"/></summary>
             /// <param name="tst">dictionary to enumerate.</param>
             /// <exception cref="ArgumentNullException">tst is null</exception>
-            public TstDictionaryEnumerator(TernarySearchTreeDictionary<S> tst)
+            public TernarySearchTreeDictionaryEnumerator(TernarySearchTreeDictionary<S> tst)
             {
                 _currentNode = null;
                 _dictionary = tst ?? throw new ArgumentNullException(nameof(tst));
@@ -751,7 +751,7 @@ namespace Hexa.NET.KittyUI.Collections
                 // we are at the beginning
                 if (_stack == null)
                 {
-                    _stack = new Stack<TernarySearchTreeDictionary<S>.TstDictionaryEntry<S>>();
+                    _stack = new Stack<TernarySearchTreeDictionary<S>.TernarySearchTreeDictionaryEntry<S>>();
                     _currentNode = null;
                     if (_dictionary?._root != null)
                     {
@@ -797,11 +797,11 @@ namespace Hexa.NET.KittyUI.Collections
         /// <summary>
         /// Defines a Ternary Search Tree node pair that can be set or retrieved.
         /// </summary>
-        protected class TstDictionaryEntry<S>
+        protected class TernarySearchTreeDictionaryEntry<S>
         {
-            private TstDictionaryEntry<S>? _eqChild;
-            private TstDictionaryEntry<S>? _highChild;
-            private TstDictionaryEntry<S>? _lowChild;
+            private TernarySearchTreeDictionaryEntry<S>? _eqChild;
+            private TernarySearchTreeDictionaryEntry<S>? _highChild;
+            private TernarySearchTreeDictionaryEntry<S>? _lowChild;
             private readonly char _splitChar;
             private KeyValuePair<string, S> _value;
 
@@ -810,7 +810,7 @@ namespace Hexa.NET.KittyUI.Collections
             /// </summary>
             /// <param name="parent">parent node</param>
             /// <param name="splitChar">split character</param>
-            public TstDictionaryEntry(char splitChar)
+            public TernarySearchTreeDictionaryEntry(char splitChar)
             {
                 _splitChar = splitChar;
                 _lowChild = null;
@@ -859,7 +859,7 @@ namespace Hexa.NET.KittyUI.Collections
             /// <value>
             /// The low child.
             /// </value>
-            public TstDictionaryEntry<S>? LowChild
+            public TernarySearchTreeDictionaryEntry<S>? LowChild
             {
                 get { return _lowChild; }
                 set { _lowChild = value; }
@@ -871,7 +871,7 @@ namespace Hexa.NET.KittyUI.Collections
             /// <value>
             /// The eq child.
             /// </value>
-            public TstDictionaryEntry<S>? EqChild
+            public TernarySearchTreeDictionaryEntry<S>? EqChild
             {
                 get { return _eqChild; }
                 set { _eqChild = value; }
@@ -883,7 +883,7 @@ namespace Hexa.NET.KittyUI.Collections
             /// <value>
             /// The high child.
             /// </value>
-            public TstDictionaryEntry<S>? HighChild
+            public TernarySearchTreeDictionaryEntry<S>? HighChild
             {
                 get { return _highChild; }
                 set { _highChild = value; }

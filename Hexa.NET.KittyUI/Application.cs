@@ -4,7 +4,6 @@
     using Hexa.NET.KittyUI.Debugging;
     using Hexa.NET.KittyUI.Graphics;
     using Hexa.NET.KittyUI.Input;
-    using Hexa.NET.KittyUI.OpenAL;
     using Hexa.NET.KittyUI.Windows;
     using Hexa.NET.KittyUI.Windows.Events;
     using Hexa.NET.Logging;
@@ -58,6 +57,8 @@
 
         public static bool LoggingEnabled { get; set; } = true;
 
+        public static string LogFolder { get; set; } = "logs";
+
         public static event Action? Exiting;
 
         public static void Run(IRenderWindow mainWindow, AppBuilder builder)
@@ -77,15 +78,15 @@
         public static LogFileWriter? FileLogWriter { get; set; }
 
         public static SDLInitFlags InitFlags { get; set; } = SDLInitFlags.Events | SDLInitFlags.Video | SDLInitFlags.Joystick | SDLInitFlags.Gamepad;
-        
+
         internal static void EarlyInit()
         {
             if (earlyInitialized) return;
 
             if (LoggingEnabled)
             {
-                FileLogWriter = new("logs");
-                CrashLogger.Initialize();
+                FileLogWriter = new(LogFolder);
+                CrashLogger.Initialize(LogFolder);
                 LoggerFactory.AddGlobalWriter(FileLogWriter);
             }
 
@@ -114,8 +115,6 @@
             {
                 ImGuiDebugTools.Init();
             }
-
-            OpenALAdapter.Init();
 
 #if DEBUG
             GraphicsDebugging = true;
@@ -290,7 +289,6 @@
                     }
 
                     break;
-
 
                 case SDLEventType.KeyDown:
                     {
@@ -507,7 +505,6 @@
                     }
                     break;
 
-              
                 case SDLEventType.ClipboardUpdate:
                     break;
 
@@ -570,7 +567,5 @@
                     break;
             }
         }
-
-       
     }
 }

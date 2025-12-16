@@ -50,7 +50,7 @@
                     {
                         GL.BindTexture(GLTextureTarget.Texture2D, textureId);
                     }
-                    
+
                     GL.PixelStorei(GLPixelStoreParameter.UnpackRowLength, result.Width);
                     if (result.Width != width || result.Height != height)
                     {
@@ -77,7 +77,7 @@
                 ImGui.SetMouseCursor(requestedCursor);
             }
 
-            draw.AddImage(textureId, bb.Min, bb.Max);
+            draw.AddImage(new(texId: textureId), bb.Min, bb.Max);
         }
 
         protected override void SetBufferSize(int oldWidth, int oldHeight, int width, int height)

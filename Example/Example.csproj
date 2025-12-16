@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net9.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<PublishAot>true</PublishAot>
@@ -11,13 +11,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\Hexa.NET.KittyUI.OpenAL\Hexa.NET.KittyUI.OpenAL.csproj" />
 		<ProjectReference Include="..\Hexa.NET.KittyUI\Hexa.NET.KittyUI.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="cimgui.pdb">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
 	  <None Update="icon.jpg">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>

@@ -724,7 +724,7 @@
             }
 
             Span<byte> headerBuffer = stackalloc byte[HeaderSize];
-            fs.Read(headerBuffer);
+            fs.ReadExactly(headerBuffer);
 
             var version = BinaryPrimitives.ReadInt32LittleEndian(headerBuffer);
             if (version != Version)
@@ -793,7 +793,7 @@
 
             cacheStream.Position = entry.Position;
             var span = entry.AsSpan();
-            cacheStream.Read(span);
+            cacheStream.ReadExactly(span);
 
             cacheFileSemaphore.Release();
         }

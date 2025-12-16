@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.8.34330.188
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11304.174 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hexa.NET.KittyUI", "Hexa.NET.KittyUI\Hexa.NET.KittyUI.csproj", "{81B48582-946A-4AAB-8BA8-79169582DFB7}"
 EndProject
@@ -20,6 +20,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hexa.NET.KittyUI.WebView", "Hexa.NET.KittyUI.WebView\Hexa.NET.KittyUI.WebView.csproj", "{15E26DE2-8B26-4F2D-AD16-DF92F3280A8C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleWebView", "ExampleWebView\ExampleWebView.csproj", "{77E2DE74-B298-4927-8E48-4F0182ECE8EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hexa.NET.KittyUI.ImPlot", "Hexa.NET.KittyUI.ImPlot\Hexa.NET.KittyUI.ImPlot.csproj", "{2F8FEF6A-45BF-402D-852B-C1B957E90DFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hexa.NET.KittyUI.ImNodes", "Hexa.NET.KittyUI.ImNodes\Hexa.NET.KittyUI.ImNodes.csproj", "{AA56B185-E6F8-4A03-9C7F-C528C4D125BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hexa.NET.KittyUI.ImGuizmo", "Hexa.NET.KittyUI.ImGuizmo\Hexa.NET.KittyUI.ImGuizmo.csproj", "{9B34C5E4-2801-4562-8ABA-D6696286C4D7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hexa.NET.KittyUI.OpenAL", "Hexa.NET.KittyUI.OpenAL\Hexa.NET.KittyUI.OpenAL.csproj", "{8519527B-E186-4726-952A-C1A97D8377F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -104,6 +112,38 @@ Global
 		{77E2DE74-B298-4927-8E48-4F0182ECE8EE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{77E2DE74-B298-4927-8E48-4F0182ECE8EE}.Release|x64.ActiveCfg = Release|x64
 		{77E2DE74-B298-4927-8E48-4F0182ECE8EE}.Release|x64.Build.0 = Release|x64
+		{2F8FEF6A-45BF-402D-852B-C1B957E90DFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F8FEF6A-45BF-402D-852B-C1B957E90DFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F8FEF6A-45BF-402D-852B-C1B957E90DFE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2F8FEF6A-45BF-402D-852B-C1B957E90DFE}.Debug|x64.Build.0 = Debug|Any CPU
+		{2F8FEF6A-45BF-402D-852B-C1B957E90DFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F8FEF6A-45BF-402D-852B-C1B957E90DFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F8FEF6A-45BF-402D-852B-C1B957E90DFE}.Release|x64.ActiveCfg = Release|Any CPU
+		{2F8FEF6A-45BF-402D-852B-C1B957E90DFE}.Release|x64.Build.0 = Release|Any CPU
+		{AA56B185-E6F8-4A03-9C7F-C528C4D125BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA56B185-E6F8-4A03-9C7F-C528C4D125BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA56B185-E6F8-4A03-9C7F-C528C4D125BC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AA56B185-E6F8-4A03-9C7F-C528C4D125BC}.Debug|x64.Build.0 = Debug|Any CPU
+		{AA56B185-E6F8-4A03-9C7F-C528C4D125BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA56B185-E6F8-4A03-9C7F-C528C4D125BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA56B185-E6F8-4A03-9C7F-C528C4D125BC}.Release|x64.ActiveCfg = Release|Any CPU
+		{AA56B185-E6F8-4A03-9C7F-C528C4D125BC}.Release|x64.Build.0 = Release|Any CPU
+		{9B34C5E4-2801-4562-8ABA-D6696286C4D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B34C5E4-2801-4562-8ABA-D6696286C4D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B34C5E4-2801-4562-8ABA-D6696286C4D7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9B34C5E4-2801-4562-8ABA-D6696286C4D7}.Debug|x64.Build.0 = Debug|Any CPU
+		{9B34C5E4-2801-4562-8ABA-D6696286C4D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B34C5E4-2801-4562-8ABA-D6696286C4D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B34C5E4-2801-4562-8ABA-D6696286C4D7}.Release|x64.ActiveCfg = Release|Any CPU
+		{9B34C5E4-2801-4562-8ABA-D6696286C4D7}.Release|x64.Build.0 = Release|Any CPU
+		{8519527B-E186-4726-952A-C1A97D8377F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8519527B-E186-4726-952A-C1A97D8377F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8519527B-E186-4726-952A-C1A97D8377F6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8519527B-E186-4726-952A-C1A97D8377F6}.Debug|x64.Build.0 = Debug|Any CPU
+		{8519527B-E186-4726-952A-C1A97D8377F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8519527B-E186-4726-952A-C1A97D8377F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8519527B-E186-4726-952A-C1A97D8377F6}.Release|x64.ActiveCfg = Release|Any CPU
+		{8519527B-E186-4726-952A-C1A97D8377F6}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -53,6 +53,12 @@
             return this;
         }
 
+        public AppBuilder SetLogFolder(string folder)
+        {
+            Application.LogFolder = folder;
+            return this;
+        }
+
         public AppBuilder EnableLogging(bool enabled)
         {
             Application.LoggingEnabled = enabled;
@@ -71,21 +77,9 @@
             return this;
         }
 
-        public AppBuilder EnableImNodes()
+        public AppBuilder AddImGuiAddon(ImGuiAddon addon)
         {
-            ImGuiManager.AddAddon(new ImNodesAddon());
-            return this;
-        }
-
-        public AppBuilder EnableImPlot()
-        {
-            ImGuiManager.AddAddon(new ImPlotAddon());
-            return this;
-        }
-
-        public AppBuilder EnableImGuizmo()
-        {
-            ImGuiManager.AddAddon(new ImGuizmoAddon());
+            ImGuiManager.AddAddon(addon);
             return this;
         }
 

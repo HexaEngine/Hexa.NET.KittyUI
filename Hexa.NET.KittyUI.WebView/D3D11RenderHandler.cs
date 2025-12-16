@@ -56,7 +56,7 @@
                 ImGui.SetMouseCursor(requestedCursor);
             }
 
-            draw.AddImage((ulong)srv.Handle, rect.Min, rect.Max);
+            draw.AddImage(new ImTextureRef(texId: srv.Handle), rect.Min, rect.Max);
         }
 
         private void Resize(CefDrawData result)

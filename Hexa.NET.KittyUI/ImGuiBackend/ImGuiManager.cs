@@ -72,19 +72,14 @@
 
             var mainScale = window.ContentScale;
             var style = ImGui.GetStyle();
+            appBuilder.BuildStyle(style);
             style.ScaleAllSizes(mainScale); 
             style.FontScaleDpi = mainScale;       
             io.ConfigDpiScaleFonts = true;         
             io.ConfigDpiScaleViewports = true; 
 
-
-
             appBuilder.BuildImGuiConfig(guiContext, io);
             appBuilder.BuildFonts(io, aliasToFont);
-
-      
-
-            appBuilder.BuildStyle(style);
         }
 
         public static void StyleKitty()

@@ -65,7 +65,7 @@
         public static string ReadString(this Stream stream, Encoding decoder, Endianness endianness)
         {
             Span<byte> buf = stackalloc byte[4];
-            stream.Read(buf);
+            stream.ReadExactly(buf);
             int len = 0;
             if (endianness == Endianness.LittleEndian)
             {
@@ -77,7 +77,7 @@
             }
 
             Span<byte> src = len < 2048 ? stackalloc byte[len] : new byte[len];
-            stream.Read(src);
+            stream.ReadExactly(src);
 
             int charCount = decoder.GetCharCount(src);
             Span<char> chars = charCount < 2048 ? stackalloc char[charCount] : new char[charCount];
@@ -103,7 +103,7 @@
         public static int ReadInt(this Stream stream, Endianness endianness)
         {
             Span<byte> buf = stackalloc byte[4];
-            stream.Read(buf);
+            stream.ReadExactly(buf);
             if (endianness == Endianness.LittleEndian)
             {
                 return BinaryPrimitives.ReadInt32LittleEndian(buf);
@@ -117,7 +117,7 @@
         public static uint ReadUInt(this Stream stream, Endianness endianness)
         {
             Span<byte> buf = stackalloc byte[4];
-            stream.Read(buf);
+            stream.ReadExactly(buf);
             if (endianness == Endianness.LittleEndian)
             {
                 return BinaryPrimitives.ReadUInt32LittleEndian(buf);
@@ -176,7 +176,7 @@
         public static long ReadInt64(this Stream stream, Endianness endianness)
         {
             Span<byte> buf = stackalloc byte[8];
-            stream.Read(buf);
+            stream.ReadExactly(buf);
             if (endianness == Endianness.LittleEndian)
             {
                 return BinaryPrimitives.ReadInt64LittleEndian(buf);
@@ -190,7 +190,7 @@
         public static ulong ReadUInt64(this Stream stream, Endianness endianness)
         {
             Span<byte> buf = stackalloc byte[8];
-            stream.Read(buf);
+            stream.ReadExactly(buf);
             if (endianness == Endianness.LittleEndian)
             {
                 return BinaryPrimitives.ReadUInt64LittleEndian(buf);
@@ -204,7 +204,7 @@
         public static byte[] Read(this Stream stream, long length)
         {
             var buffer = new byte[length];
-            stream.Read(buffer, 0, (int)length);
+            stream.ReadExactly(buffer, 0, (int)length);
             return buffer;
         }
 
@@ -214,7 +214,7 @@
             bool pool = compare.Length > 2048;
             byte[] array = null;
             Span<byte> buffer = pool ? (Span<byte>)(array = ArrayPool<byte>.Shared.Rent(compare.Length)) : (stackalloc byte[compare.Length]);
-            stream.Read(buffer);
+            stream.ReadExactly(buffer);
             var result = buffer.SequenceEqual(compare);
             if (pool)
             {
@@ -253,7 +253,7 @@
         public static byte[] ReadBytes(this Stream stream, int length)
         {
             byte[] bytes = new byte[length];
-            stream.Read(bytes, 0, length);
+            stream.ReadExactly(bytes, 0, length);
             return bytes;
         }
 
@@ -279,7 +279,7 @@
         public static Vector3 ReadVector3(this Stream stream, Endianness endianness)
         {
             Span<byte> src = stackalloc byte[12];
-            stream.Read(src);
+            stream.ReadExactly(src);
             Vector3 vector;
             if (endianness == Endianness.LittleEndian)
             {
@@ -315,7 +315,7 @@
         public static float ReadFloat(this Stream stream, Endianness endianness)
         {
             Span<byte> src = stackalloc byte[4];
-            stream.Read(src);
+            stream.ReadExactly(src);
             if (endianness == Endianness.LittleEndian)
             {
                 return ReadSingleLittleEndian(src);

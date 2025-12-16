@@ -1,7 +1,8 @@
-﻿namespace Hexa.NET.KittyUI.ImGuiBackend
+﻿namespace Hexa.NET.KittyUI.ImNodes
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImNodes;
+    using Hexa.NET.KittyUI.ImGuiBackend;
 
     public class ImNodesAddon : ImGuiAddon
     {

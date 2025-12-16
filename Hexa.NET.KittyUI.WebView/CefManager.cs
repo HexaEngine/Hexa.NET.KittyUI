@@ -22,10 +22,10 @@
 
         public static BrowserSettings GetDefaultBrowserSettings()
         {
-            var mode = Display.GetDesktopDisplayMode(0);
+            var mode = Displays.GetPrimaryDisplay();
             return new BrowserSettings
             {
-                WindowlessFrameRate = mode.RefreshRate,
+                WindowlessFrameRate = (int)mode.DesktopDisplayMode.RefreshRate,
                 Javascript = CefState.Enabled,
                 WebGl = CefState.Enabled,
                 Databases = CefState.Enabled,
@@ -45,16 +45,15 @@
                 LogSeverity = LogSeverity.Disable,
                 CachePath = Path.GetFullPath("cefcache"),
                 WindowlessRenderingEnabled = true,
-                PersistSessionCookies=true,
+                PersistSessionCookies = true,
                 RemoteDebuggingPort = 0,
-                
             };
 
             //settings.SetOffScreenRenderingBestPerformanceArgs();
 
             settings.CefCommandLineArgs.Add("disable-breakpad", "1");
-            settings.CefCommandLineArgs.Add("disable-metrics", "1"); 
-            settings.CefCommandLineArgs.Add("disable-metrics-reporting", "1"); 
+            settings.CefCommandLineArgs.Add("disable-metrics", "1");
+            settings.CefCommandLineArgs.Add("disable-metrics-reporting", "1");
 
             settings.EnableAudio();
             bool success = Cef.Initialize(settings);

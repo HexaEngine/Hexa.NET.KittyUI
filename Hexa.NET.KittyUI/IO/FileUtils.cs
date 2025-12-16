@@ -34,7 +34,7 @@
         {
             FileStream fs = File.OpenRead(path);
             FileBlob blob = new((nint)fs.Length);
-            fs.Read(blob.AsSpan());
+            fs.ReadExactly(blob.AsSpan());
             fs.Close();
             return blob;
         }

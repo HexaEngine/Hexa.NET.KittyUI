@@ -1,11 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using ExampleWebView;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Widgets;
 using Hexa.NET.KittyUI;
 using Hexa.NET.KittyUI.WebView;
 using Hexa.NET.Mathematics;
 using System.Numerics;
-using TestApp;
 
 Application.GraphicsDebugging = true;
 AppBuilder appBuilder = new();
@@ -17,7 +17,7 @@ appBuilder.AddWindow<MainWindow>();
 appBuilder.StyleColorsDark();
 appBuilder.Run();
 
-namespace TestApp
+namespace ExampleWebView
 {
     public class MainWindow : ImWindow
     {

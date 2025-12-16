@@ -71,6 +71,11 @@
             return idToDisplay[SDL.GetDisplayForWindow(window.GetWindow())];
         }
 
+        public static Display GetPrimaryDisplay()
+        {
+            return idToDisplay[SDL.GetPrimaryDisplay()];
+        }
+
         internal static void ProcessEvent(SDLDisplayEvent evnt)
         {
             switch (evnt.Type)

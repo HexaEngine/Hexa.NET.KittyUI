@@ -10,15 +10,15 @@
 		<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
 		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 
-		<AssemblyVersion>1.0.5</AssemblyVersion>
-		<PackageVersion>1.0.5</PackageVersion>
+		<AssemblyVersion>1.1.14</AssemblyVersion>
+		<PackageVersion>1.1.14</PackageVersion>
 		<Authors>Juna Meinhold</Authors>
-		<Copyright>Copyright (c) 2025 Juna Meinhold</Copyright>
+		<Copyright>Copyright (c) 2024 Juna Meinhold</Copyright>
 		<PackageProjectUrl>https://github.com/HexaEngine/Hexa.NET.KittyUI</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/HexaEngine/Hexa.NET.KittyUI</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<Description>A sub-module for Hexa.NET.KittyUI, adds a CEF WebView for ImGui integration.</Description>
-		<PackageTags>CEF WebView UI-Framework UI ImGui Widgets DirectX OpenGL C# .NET DotNet Sharp Windows macOS Linux</PackageTags>
+		<Description>OpenAL integration for Hexa.NET.KittyUI, providing cross-platform audio capabilities and 3D positional audio for ImGui-based applications.</Description>
+		<PackageTags>UI-Framework UI ImGui OpenAL Audio Sound 3D-Audio Widgets C# .NET DotNet Sharp Windows macOS Linux</PackageTags>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
@@ -31,35 +31,18 @@
 		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
-		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
-		<DefineConstants>$(DefineConstants);GLES</DefineConstants>
-	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Hexa.NET.OpenAL" Version="1.2.2" />
+	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CefSharp.OffScreen.NETCore" Version="135.0.170" />
+		<ProjectReference Include="..\Hexa.NET.KittyUI\Hexa.NET.KittyUI.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Content Include="../README.md" Pack="true" PackagePath="\" />
 		<Content Include="../LICENSE.txt" Pack="true" PackagePath="\" />
 		<Content Include="../icon.png" Pack="true" PackagePath="\" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Include="locales\*">
-			<Link>locales\%(RecursiveDir)%(Filename)%(Extension)</Link>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<PackagePath>locales</PackagePath>
-			<Pack>true</Pack>
-		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\Hexa.NET.KittyUI\Hexa.NET.KittyUI.csproj" />
 	</ItemGroup>
 
 </Project>

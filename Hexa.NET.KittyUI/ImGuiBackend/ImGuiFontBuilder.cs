@@ -105,7 +105,7 @@
         {
             var stream = assembly.GetManifestResourceStream(path) ?? throw new FileNotFoundException($"Embedded resource not found: {path}");
             byte[] buffer = new byte[stream.Length];
-            stream.Read(buffer, 0, buffer.Length);
+            stream.ReadExactly(buffer);
             ranges.Add(glyphRanges);
             fixed (byte* pFontData = buffer)
             {
@@ -119,7 +119,7 @@
         {
             var stream = assembly.GetManifestResourceStream(path) ?? throw new FileNotFoundException($"Embedded resource not found: {path}");
             byte[] buffer = new byte[stream.Length];
-            stream.Read(buffer, 0, buffer.Length);
+            stream.ReadExactly(buffer);
             fixed (byte* pFontData = buffer)
             {
                 font = fontAtlas.AddFontFromMemoryTTF(pFontData, buffer.Length, size, config);
@@ -137,7 +137,7 @@
         {
             var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(path) ?? throw new FileNotFoundException($"Embedded resource not found: {path}");
             byte[] buffer = new byte[stream.Length];
-            stream.Read(buffer, 0, buffer.Length);
+            stream.ReadExactly(buffer);
             fixed (byte* pFontData = buffer)
             {
                 font = fontAtlas.AddFontFromMemoryTTF(pFontData, buffer.Length, size, config);
@@ -155,7 +155,7 @@
         {
             var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(path) ?? throw new FileNotFoundException($"Embedded resource not found: {path}");
             byte[] buffer = new byte[stream.Length];
-            stream.Read(buffer, 0, buffer.Length);
+            stream.ReadExactly(buffer);
             ranges.Add(glyphRanges);
             fixed (byte* pFontData = buffer)
             {

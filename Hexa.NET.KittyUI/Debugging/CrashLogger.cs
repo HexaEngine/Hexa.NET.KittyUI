@@ -10,8 +10,11 @@
 
     public static class CrashLogger
     {
-        public static void Initialize()
+        private static string logFolder = "logs";
+
+        public static void Initialize(string logFolder)
         {
+            CrashLogger.logFolder = logFolder;
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;
         }
 
@@ -38,7 +41,7 @@
                 sb.AppendLine("Callstack:");
                 sb.AppendLine(exception.StackTrace?.Replace(Environment.NewLine, "\n\t"));
 
-                var fileInfo = new FileInfo($"logs/crash-{DateTime.Now:yyyy-dd-M--HH-mm-ss}.log");
+                var fileInfo = new FileInfo(Path.Combine(logFolder, $"crash-{DateTime.Now:yyyy-dd-M--HH-mm-ss}.log"));
                 fileInfo.Directory?.Create();
                 File.AppendAllText(fileInfo.FullName, sb.ToString());
             }

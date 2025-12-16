@@ -47,7 +47,7 @@
 
             this.renderHandler = renderHandler ??= CefManager.CreateRenderer();
 
-            var mode = Display.GetDesktopDisplayMode(0);
+            var mode = Displays.GetPrimaryDisplay();
 
             settings ??= CefManager.GetDefaultBrowserSettings();
 
@@ -71,7 +71,7 @@
 
             this.renderHandler = renderHandler ??= CefManager.CreateRenderer();
 
-            var mode = Display.GetDesktopDisplayMode(0);
+            var mode = Displays.GetPrimaryDisplay();
 
             settings ??= CefManager.GetDefaultBrowserSettings();
 
@@ -140,7 +140,7 @@
         {
             isHovered = false;
             var pos = GetMousePos();
-            host?.SendMouseMoveEvent(new(pos.X, pos.Y, eventFlags), true);
+            host?.SendMouseMoveEvent(new((int)pos.X, (int)pos.Y, eventFlags), true);
         }
 
         protected virtual void OnEnter()
@@ -159,42 +159,42 @@
 
             switch ((SDLEventType)evnt.Type)
             {
-                case SDLEventType.Mousemotion:
+                case SDLEventType.MouseMotion:
                     if (evnt.Motion.WindowID != windowId)
                         return false;
                     HandleMouseMove(evnt.Motion);
                     return true;
 
-                case SDLEventType.Mousewheel:
+                case SDLEventType.MouseWheel:
                     if (evnt.Wheel.WindowID != windowId)
                         return false;
                     HandleMouseWheel(evnt.Wheel);
                     return true;
 
-                case SDLEventType.Mousebuttondown:
-                case SDLEventType.Mousebuttonup:
+                case SDLEventType.MouseButtonDown:
+                case SDLEventType.MouseButtonUp:
                     if (evnt.Button.WindowID != windowId)
                         return false;
                     HandleMouseButton(evnt.Button);
                     return true;
 
-                case SDLEventType.Keydown:
-                case SDLEventType.Keyup:
+                case SDLEventType.KeyDown:
+                case SDLEventType.KeyUp:
                     if (evnt.Key.WindowID != windowId)
                         return false;
                     HandleKeyboard(evnt.Key);
                     return true;
 
-                case SDLEventType.Textinput:
+                case SDLEventType.TextInput:
                     if (evnt.Text.WindowID != windowId)
                         return false;
                     HandleTextInput(evnt.Text);
                     return true;
 
-                case SDLEventType.Dropbegin:
-                case SDLEventType.Dropcomplete:
-                case SDLEventType.Droptext:
-                case SDLEventType.Dropfile:
+                case SDLEventType.DropBegin:
+                case SDLEventType.DropComplete:
+                case SDLEventType.DropText:
+                case SDLEventType.DropFile:
                     if (evnt.Drop.WindowID != windowId)
                         return false;
                     HandleDragDrop(evnt.Drop);
@@ -211,7 +211,7 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe void HandleTextInput(SDLTextInputEvent text)
         {
-            byte* textPtr = &text.Text_0;
+            byte* textPtr = text.Text;
             int i = 0;
 
             while (textPtr[i] != 0)
@@ -295,7 +295,7 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void HandleKeyboard(SDLKeyboardEvent key)
         {
-            GetCefModifiers((SDLKeymod)key.Keysym.Mod);
+            GetCefModifiers(key.Mod);
             var flags = eventFlags;
 
             if (key.Repeat == 1)
@@ -305,9 +305,9 @@
 
             KeyEvent keyEvent = new()
             {
-                Type = key.Type == (int)SDLEventType.Keydown ? KeyEventType.KeyDown : KeyEventType.KeyUp,
-                NativeKeyCode = (int)key.Keysym.Scancode,
-                WindowsKeyCode = (int)CefHelper.MapSDLKeyCodeToVirtualKey((SDLKeyCode)key.Keysym.Sym),
+                Type = key.Type == SDLEventType.KeyDown ? KeyEventType.KeyDown : KeyEventType.KeyUp,
+                NativeKeyCode = (int)key.Scancode,
+                WindowsKeyCode = (int)CefHelper.MapSDLScancodeToVirtualKey(key.Scancode),
                 IsSystemKey = false,
                 Modifiers = flags,
             };
@@ -386,7 +386,7 @@
         private void HandleMouseButton(SDLMouseButtonEvent button)
         {
             var pos = GetMousePos();
-            MouseEvent mouseEvent = new(pos.X, pos.Y, CefEventFlags.None);
+            MouseEvent mouseEvent = new((int)pos.X, (int)pos.Y, CefEventFlags.None);
             MouseButtonType type = (MouseButton)button.Button switch
             {
                 MouseButton.Left => MouseButtonType.Left,
@@ -395,7 +395,7 @@
                 _ => 0
             };
 
-            bool isUp = button.Type == (int)SDLEventType.Mousebuttonup;
+            bool isUp = button.Type == SDLEventType.MouseButtonUp;
             if (isUp)
             {
                 if (type == MouseButtonType.Left)
@@ -438,16 +438,16 @@
         private void HandleMouseMove(SDLMouseMotionEvent motion)
         {
             var pos = GetMousePos();
-            MouseEvent mouseEvent = new(pos.X, pos.Y, eventFlags);
+            MouseEvent mouseEvent = new((int)pos.X, (int)pos.Y, eventFlags);
             host!.SendMouseMoveEvent(mouseEvent, mouseLeave: false);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe Point2 GetMousePos()
+        private unsafe Vector2 GetMousePos()
         {
-            int x, y;
+            float x, y;
             SDL.GetGlobalMouseState(&x, &y);
-            Point2 point = new(x - position.X, y - position.Y);
+            Vector2 point = new(x - position.X, y - position.Y);
             return point;
         }
 
@@ -459,12 +459,12 @@
             {
                 wheelDeltaAccumulatorX += wheel.X * scrollScale.X;
                 wheelDeltaAccumulatorY += wheel.Y * scrollScale.Y;
-                scrollPosition = new(pos.X, pos.Y);
+                scrollPosition = new((int)pos.X, (int)pos.Y);
             }
             else
             {
-                MouseEvent mouseEvent = new(pos.X, pos.Y, eventFlags);
-                host!.SendMouseWheelEvent(mouseEvent, wheel.X * scrollScale.X, wheel.Y * scrollScale.Y);
+                MouseEvent mouseEvent = new((int)pos.X, (int)pos.Y, eventFlags);
+                host!.SendMouseWheelEvent(mouseEvent, (int)(wheel.X * scrollScale.X), (int)(wheel.Y * scrollScale.Y));
             }
         }
 
@@ -525,6 +525,10 @@
                 return;
             }
 
+            var viewport = window.Viewport.ImGuiViewport;
+            windowId = (uint)viewport.PlatformHandle;
+            renderHandler.Window = SDL.GetWindowFromID(windowId);
+
             uint id = ImGui.GetID(strId);
 
             UpdateScroll(ref wheelDeltaAccumulatorX);
@@ -551,10 +555,6 @@
             bool focused = ImGui.IsItemFocused();
 
             bool clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
-
-            var viewport = ImGui.GetWindowViewport();
-
-            windowId = (uint)viewport.PlatformHandle;
 
             if (isHovered != hovered)
             {

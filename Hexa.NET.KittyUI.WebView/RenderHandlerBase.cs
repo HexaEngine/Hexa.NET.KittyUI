@@ -8,7 +8,7 @@
     using Hexa.NET.SDL3;
     using System.Collections.Concurrent;
 
-    public abstract class RenderHandlerBase : IRenderHandler
+    public abstract unsafe class RenderHandlerBase : IRenderHandler
     {
         protected readonly ConcurrentQueue<CefDrawData> drawQueue = new();
         protected ImGuiMouseCursor requestedCursor;
@@ -21,6 +21,8 @@
         public int Width => width;
 
         public int Height => height;
+
+        public SDLWindow* Window { get; set; }
 
         public void SetSize(int width, int height)
         {
@@ -139,19 +141,19 @@
 
         public abstract void OnPopupSize(Rect rect);
 
-        public virtual void OnVirtualKeyboardRequested(IBrowser browser, TextInputMode inputMode)
+        public virtual unsafe void OnVirtualKeyboardRequested(IBrowser browser, TextInputMode inputMode)
         {
             if (SDL.HasScreenKeyboardSupport() == true)
             {
                 if (inputMode == TextInputMode.None)
                 {
                     SDL.SetHint(SDL.SDL_HINT_ENABLE_SCREEN_KEYBOARD, "0");
-                    SDL.StopTextInput();
+                    SDL.StopTextInput(Window);
                 }
                 else
                 {
                     SDL.SetHint(SDL.SDL_HINT_ENABLE_SCREEN_KEYBOARD, "1");
-                    SDL.StartTextInput();
+                    SDL.StartTextInput(Window);
                 }
             }
         }
