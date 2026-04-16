@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ExampleImNodes": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

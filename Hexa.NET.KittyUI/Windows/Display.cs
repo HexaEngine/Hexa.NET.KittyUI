@@ -127,12 +127,12 @@
         /// <summary>
         /// Gets the current display mode.
         /// </summary>
-        public DisplayMode CurrentDisplayMode => *SDL.GetCurrentDisplayMode(id);
+        public DisplayMode CurrentDisplayMode => *SDL.GetCurrentDisplayMode(id).Handle;
 
         /// <summary>
         /// Gets the desktop display mode for a given display.
         /// </summary>
-        public DisplayMode DesktopDisplayMode => *SDL.GetDesktopDisplayMode(id);
+        public DisplayMode DesktopDisplayMode => *SDL.GetDesktopDisplayMode(id).Handle;
 
         /// <summary>
         /// Gets the current orientation of a display.

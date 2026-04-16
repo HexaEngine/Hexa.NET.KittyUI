@@ -4,9 +4,9 @@
 
     public interface INavigation
     {
-        void NavigateTo(string path);
+        void NavigateTo(string path, object? args = null);
 
-        void NavigateTo(IPage page);
+        void NavigateTo(IPage page, object? args = null);
 
         void NavigateBack();
 

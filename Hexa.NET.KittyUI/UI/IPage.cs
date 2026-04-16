@@ -6,9 +6,9 @@
     {
         string Title { get; }
 
-        void OnNavigatedTo(IPage? previousPage);
+        void OnNavigatedTo(IPage? previousPage, object? args);
 
-        void OnNavigatedFrom(IPage? nextPage);
+        void OnNavigatedFrom(IPage? nextPage, object? args);
 
         void DrawPage(ImGuiWindowFlags overwriteFlags);
 

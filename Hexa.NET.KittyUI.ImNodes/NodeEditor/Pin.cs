@@ -17,7 +17,7 @@
         public PinType Type;
         public uint MaxLinks;
 
-        private readonly List<Link> links = new();
+        private readonly List<Link> links = [];
 
 #pragma warning disable CS8618 // Non-nullable field 'parent' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
 

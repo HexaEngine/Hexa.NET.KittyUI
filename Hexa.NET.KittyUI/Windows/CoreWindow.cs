@@ -139,7 +139,7 @@
             {
                 SdlCheckError();
             }
-            window = SdlCheckError(SDL.CreateWindow(ptr, (int)(width * scale), (int)(height * scale), windowFlags));
+            window = SdlCheckError(SDL.CreateWindow(ptr, (int)(width * scale), (int)(height * scale), (ulong)windowFlags).Handle);
             SDL.SetWindowPosition(window, x, y);
             WindowID = SDL.GetWindowID(window).SdlThrowIf();
 
@@ -148,18 +148,18 @@
             SDL.GetWindowSize(window, &w, &h);
 
             cursors = (SDLCursor**)AllocArray((uint)SDLSystemCursor.Count);
-            cursors[(int)CursorType.Arrow] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Default));
-            cursors[(int)CursorType.IBeam] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Text));
-            cursors[(int)CursorType.Wait] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Wait));
-            cursors[(int)CursorType.Crosshair] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Crosshair));
-            cursors[(int)CursorType.WaitArrow] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Wait));
-            cursors[(int)CursorType.SizeNWSE] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.NwseResize));
-            cursors[(int)CursorType.SizeNESW] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.NeswResize));
-            cursors[(int)CursorType.SizeWE] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.EwResize));
-            cursors[(int)CursorType.SizeNS] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.NsResize));
-            cursors[(int)CursorType.SizeAll] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Crosshair));
-            cursors[(int)CursorType.No] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.NotAllowed));
-            cursors[(int)CursorType.Hand] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Pointer));
+            cursors[(int)CursorType.Arrow] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Default).Handle);
+            cursors[(int)CursorType.IBeam] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Text).Handle);
+            cursors[(int)CursorType.Wait] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Wait).Handle);
+            cursors[(int)CursorType.Crosshair] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Crosshair).Handle);
+            cursors[(int)CursorType.WaitArrow] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Wait).Handle);
+            cursors[(int)CursorType.SizeNWSE] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.NwseResize).Handle);
+            cursors[(int)CursorType.SizeNESW] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.NeswResize).Handle);
+            cursors[(int)CursorType.SizeWE] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.EwResize).Handle);
+            cursors[(int)CursorType.SizeNS] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.NsResize).Handle);
+            cursors[(int)CursorType.SizeAll] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Crosshair).Handle);
+            cursors[(int)CursorType.No] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.NotAllowed).Handle);
+            cursors[(int)CursorType.Hand] = SdlCheckError(SDL.CreateSystemCursor(SDLSystemCursor.Pointer).Handle);
 
             Width = w;
             Height = h;
@@ -1006,7 +1006,7 @@
             {
                 return SDLHitTestResult.ResizeRight;
             }
-            else if (area->Y < titlebarHeight )
+            else if (area->Y < titlebarHeight)
             {
                 return titlebar.HitTest(win, area, data);
             }

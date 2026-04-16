@@ -97,7 +97,7 @@
             SDL.SetHint(SDL.SDL_HINT_MOUSE_NORMAL_SPEED_SCALE, "1");
             SDL.SetHint(SDL.SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
 
-            SDL.Init(InitFlags);
+            SDL.Init((uint)InitFlags);
 
             SdlCheckError();
 

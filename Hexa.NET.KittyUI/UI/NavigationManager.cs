@@ -1,19 +1,46 @@
 ﻿namespace Hexa.NET.KittyUI.UI
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-
     public class NavigationManager : INavigation
     {
         private readonly Dictionary<string, IPage> _pages = new();
-        private readonly List<IPage> _navigationHistory = new();
-        private readonly Stack<IPage> _navigationForward = new();
-        private IPage? _currentPage;
+        private readonly List<NavigationItem> _navigationHistory = new();
+        private readonly Stack<NavigationItem> _navigationForward = new();
+        private NavigationItem? _currentPage;
         private IPage? _rootPage;
         private string _currentPath = "/";
 
-        public IPage? CurrentPage => _currentPage;
+        private struct NavigationItem(IPage page, object? args) : IEquatable<NavigationItem>
+        {
+            public IPage Page = page;
+            public object? Args = args;
+
+            public override bool Equals(object? obj)
+            {
+                return obj is NavigationItem item && Equals(item);
+            }
+
+            public bool Equals(NavigationItem other)
+            {
+                return EqualityComparer<IPage>.Default.Equals(Page, other.Page);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Page);
+            }
+
+            public static bool operator ==(NavigationItem left, NavigationItem right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(NavigationItem left, NavigationItem right)
+            {
+                return !(left == right);
+            }
+        }
+
+        public IPage? CurrentPage => _currentPage.HasValue ? _currentPage.Value.Page : null;
 
         public string CurrentPath => _currentPath;
 
@@ -22,6 +49,12 @@
         public bool CanGoForward => _navigationForward.Count > 0;
 
         public event EventHandler? OpenMenu;
+
+        public void ClearHistory()
+        {
+            _navigationHistory.Clear();
+            _navigationForward.Clear();
+        }
 
         public void RegisterPage(string path, IPage page)
         {
@@ -34,12 +67,12 @@
             page.Navigation = this;
         }
 
-        public void NavigateTo(string path)
+        public void NavigateTo(string path, object? args = null)
         {
             var resolvedPath = ResolvePath(path);
             if (_pages.TryGetValue(resolvedPath, out var page))
             {
-                NavigateTo(page);
+                NavigateTo(page, args);
                 _currentPath = resolvedPath;
             }
             else
@@ -48,32 +81,32 @@
             }
         }
 
-        public void NavigateTo(IPage page)
+        public void NavigateTo(IPage page, object? args = null)
         {
             if (_currentPage != null)
             {
-                _currentPage.OnNavigatedFrom(page);
-                _navigationHistory.Add(_currentPage);
+                _currentPage.Value.Page.OnNavigatedFrom(page, args);
+                _navigationHistory.Add(_currentPage.Value);
                 _navigationForward.Clear();
             }
-            page.OnNavigatedTo(_currentPage);
-            _currentPage = page;
+            page.OnNavigatedTo(CurrentPage, args);
+            _currentPage = new NavigationItem(page, args);
         }
 
         public void NavigateBackTo(IPage page)
         {
-            if (!_navigationHistory.Contains(page))
+            if (!_navigationHistory.Contains(new(page, null)))
             {
                 return;
             }
 
             var previousPage = _currentPage;
 
-            while (_navigationHistory.Count > 0 && _currentPage != page)
+            while (_navigationHistory.Count > 0 && CurrentPage != page)
             {
                 if (_currentPage != null)
                 {
-                    _navigationForward.Push(_currentPage);
+                    _navigationForward.Push(_currentPage.Value);
                 }
 
                 _currentPage = _navigationHistory[^1];

@@ -10,8 +10,8 @@
 		<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
 		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 
-		<AssemblyVersion>1.1.14</AssemblyVersion>
-		<PackageVersion>1.1.14</PackageVersion>
+		<AssemblyVersion>1.1.15</AssemblyVersion>
+		<PackageVersion>1.1.15</PackageVersion>
 		<Authors>Juna Meinhold</Authors>
 		<Copyright>Copyright (c) 2024 Juna Meinhold</Copyright>
 		<PackageProjectUrl>https://github.com/HexaEngine/Hexa.NET.KittyUI</PackageProjectUrl>
@@ -32,7 +32,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.8.5" />
+		<PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.8.4" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,4 +1,6 @@
-﻿namespace Hexa.NET.KittyUI.UI
+﻿using Hexa.NET.KittyUI.Debugging;
+
+namespace Hexa.NET.KittyUI.UI
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
@@ -189,7 +191,7 @@
         private unsafe bool Button(TitleBarContext context, byte* label, uint hoveredColor, uint activeColor, Vector2 size)
         {
             var id = ImGui.GetID(label);
-            var mousePos = Mouse.Global;
+            var mousePos =  ImGui.GetMousePos();
             // Draw a custom close button on the right side of the title bar
             var pos = context.Cursor;
 
@@ -492,7 +494,7 @@
             // Draw the custom title bar
             titleBarPos = viewport.Pos; // Start at the top of the viewport
             titleBarSize = new Vector2(viewport.Size.X, titleBarHeight * scale); // Full width of the viewport
-            mousePos = Mouse.Global;
+            mousePos = ImGui.GetMousePos();
             cursorPos = titleBarPos;
 
             ImRect rect = new(titleBarPos, titleBarPos + titleBarSize);
@@ -642,24 +644,32 @@
             {
                 InjectInterceptor(window.GetHWND());
             }
-            else
+            else if (OperatingSystem.IsLinux())
             {
                 var x11 = window.X11!.Value;
-                var atom = X11Api.XInternAtom(x11.Display, "_MOTIF_WM_HINTS", false);
-                nint actualType;
-                int actualFormat;
-                uint nitems;
-                int bytesAfter;
-                MotifWmHints hints;
-                byte* prop;
-                var result = (X11ResultCode)X11Api.XGetWindowProperty(x11.Display, x11.Window, atom, 0, sizeof(MotifWmHints) / 4, false, X11Api.AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &prop);
+                if (x11.Window != 0)
+                {
+                    var atom = X11Api.XInternAtom(x11.Display, "_MOTIF_WM_HINTS", false);
+                    nint actualType;
+                    int actualFormat;
+                    uint nitems;
+                    int bytesAfter;
+                    MotifWmHints hints;
+                    byte* prop;
+                    var result = (X11ResultCode)X11Api.XGetWindowProperty(x11.Display, x11.Window, atom, 0, sizeof(MotifWmHints) / 4, false, X11Api.AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &prop);
 
-                MotifWmHints* pHints = &hints;
+                    MotifWmHints* pHints = &hints;
 
-                pHints->Decorations = Decor.Border;
-                pHints->Flags = MotifWmFlags.Decorations;
+                    pHints->Decorations = Decor.Border;
+                    pHints->Flags = MotifWmFlags.Decorations;
 
-                result = (X11ResultCode)X11Api.XChangeProperty(x11.Display, x11.Window, atom, atom, 32, PropMode.Replace, (byte*)pHints, sizeof(MotifWmHints) / 4);
+                    result = (X11ResultCode)X11Api.XChangeProperty(x11.Display, x11.Window, atom, atom, 32, PropMode.Replace, (byte*)pHints, sizeof(MotifWmHints) / 4);
+                }
+                var wayland = window.Wayland!.Value;
+                if (wayland.Display != 0)
+                {
+                    SDL.SetWindowBordered(window.GetWindow(), false);
+                }
             }
         }
 

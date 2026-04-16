@@ -3,6 +3,7 @@ using Example;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Widgets;
 using Hexa.NET.KittyUI;
+using Hexa.NET.KittyUI.UI;
 using Hexa.NET.KittyUI.OpenAL;
 
 AppBuilder.Create()
@@ -11,6 +12,7 @@ AppBuilder.Create()
     .EnableDebugTools(true)
     .SetTitle("Test App")
     .AddWindow<MainWindow>()
+    .AddTitleBar<TitleBar>()
     .StyleColorsDark()
     .Run();
 

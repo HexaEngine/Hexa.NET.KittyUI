@@ -11,8 +11,8 @@
         private int id;
 
         private bool isEditing;
-        private readonly List<Pin> pins = new();
-        private readonly List<Link> links = new();
+        private readonly List<Pin> pins = [];
+        private readonly List<Link> links = [];
 
         public readonly bool Removable = true;
         public readonly bool IsStatic;
@@ -63,16 +63,22 @@
         [JsonIgnore]
         public bool IsHovered { get; set; }
 
-        public virtual void Initialize(NodeEditor editor)
+        internal void InitializeInternal(NodeEditor editor)
         {
             this.editor = editor;
             if (id == 0)
                 id = editor.GetUniqueId();
 
+            Initialize(editor);
+
             for (int i = 0; i < pins.Count; i++)
             {
                 pins[i].Initialize(editor, this);
             }
+        }
+
+        protected virtual void Initialize(NodeEditor editor)
+        {
         }
 
         public Pin GetInput(int id)
@@ -85,7 +91,7 @@
             return pin;
         }
 
-        public Pin GetOuput(int id)
+        public Pin GetOutput(int id)
         {
             Pin? pin = Find(id);
             if (pin == null || pin.Kind != PinKind.Output)

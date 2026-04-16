@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hexa.NET.KittyUI.ImNodes\Hexa.NET.KittyUI.ImNodes.csproj" />
+    <ProjectReference Include="..\Hexa.NET.KittyUI\Hexa.NET.KittyUI.csproj" />
+  </ItemGroup>
+
+</Project>

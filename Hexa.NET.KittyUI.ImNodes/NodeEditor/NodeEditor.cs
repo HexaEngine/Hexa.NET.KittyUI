@@ -11,8 +11,8 @@
         private string? state;
         private ImNodesEditorContextPtr context;
 
-        private readonly List<Node> nodes = new();
-        private readonly List<Link> links = new();
+        private readonly List<Node> nodes = [];
+        private readonly List<Link> links = [];
         private int idState;
 
         public NodeEditor()
@@ -45,7 +45,7 @@
 
                 for (int i = 0; i < nodes.Count; i++)
                 {
-                    nodes[i].Initialize(this);
+                    nodes[i].InitializeInternal(this);
                 }
                 for (int i = 0; i < links.Count; i++)
                 {
@@ -102,8 +102,8 @@
 
         public void AddNode(Node node)
         {
-            if (context.Handle == null)
-                node.Initialize(this);
+            if (context.Handle != null)
+                node.InitializeInternal(this);
             nodes.Add(node);
             NodeAdded?.Invoke(this, node);
         }
@@ -116,7 +116,7 @@
 
         public void AddLink(Link link)
         {
-            if (context.Handle == null)
+            if (context.Handle != null)
                 link.Initialize(this);
             links.Add(link);
             LinkAdded?.Invoke(this, link);
@@ -171,7 +171,7 @@
             int idpin2 = 0;
             if (ImNodes.IsLinkCreated(ref idNode1, ref idpin1, ref idNode2, ref idpin2))
             {
-                var pino = GetNode(idNode1).GetOuput(idpin1);
+                var pino = GetNode(idNode1).GetOutput(idpin1);
                 var pini = GetNode(idNode2).GetInput(idpin2);
                 if (pini.CanCreateLink(pino) && pino.CanCreateLink(pini))
                     CreateLink(pini, pino);
@@ -238,177 +238,6 @@
             this.nodes.Clear();
             ImNodes.EditorContextFree(context);
             context = null;
-        }
-
-        public static bool Validate(Pin startPin, Pin endPin)
-        {
-            Node node = startPin.Parent;
-            Stack<(int, Node)> walkstack = new();
-            walkstack.Push((0, node));
-            while (walkstack.Count > 0)
-            {
-                (int i, node) = walkstack.Pop();
-                if (i > node.Links.Count)
-                    continue;
-                Link link = node.Links[i];
-                i++;
-                walkstack.Push((i, node));
-                if (link.OutputNode == node)
-                {
-                    if (link.Output == endPin)
-                        return true;
-                    else
-                        walkstack.Push((0, link.InputNode));
-                }
-            }
-
-            return false;
-        }
-
-        public static Node[] TreeTraversal(Node root, bool includeStatic)
-        {
-            Stack<Node> stack1 = new();
-            Stack<Node> stack2 = new();
-
-            Node node = root;
-            stack1.Push(node);
-            while (stack1.Count != 0)
-            {
-                node = stack1.Pop();
-                if (stack2.Contains(node))
-                {
-                    RemoveFromStack(stack2, node);
-                }
-                stack2.Push(node);
-
-                for (int i = 0; i < node.Links.Count; i++)
-                {
-                    if (node.Links[i].InputNode == node)
-                    {
-                        var src = node.Links[i].OutputNode;
-                        if (includeStatic && src.IsStatic || !src.IsStatic)
-                            stack1.Push(node.Links[i].OutputNode);
-                    }
-                }
-            }
-
-            return stack2.ToArray();
-        }
-
-        public static Node[][] TreeTraversal2(Node root, bool includeStatic)
-        {
-            Stack<(int, Node)> stack1 = new();
-            Stack<(int, Node)> stack2 = new();
-
-            int priority = 0;
-            Node node = root;
-            stack1.Push((priority, node));
-            int groups = 0;
-            while (stack1.Count != 0)
-            {
-                (priority, node) = stack1.Pop();
-                var n = FindStack(stack2, x => x.Item2 == node);
-                if (n.Item2 != null && n.Item1 < priority)
-                {
-                    RemoveFromStack(stack2, x => x.Item2 == node);
-                    stack2.Push((priority, node));
-                }
-                else if (n.Item2 == null)
-                {
-                    stack2.Push((priority, node));
-                }
-
-                for (int i = 0; i < node.Links.Count; i++)
-                {
-                    if (node.Links[i].InputNode == node)
-                    {
-                        var src = node.Links[i].OutputNode;
-                        if (includeStatic && src.IsStatic || !src.IsStatic)
-                            stack1.Push((priority + 1, node.Links[i].OutputNode));
-                    }
-                }
-
-                if (groups < priority)
-                    groups = priority;
-            }
-            groups++;
-            Node[][] nodes = new Node[groups][];
-
-            var pNodes = stack2.ToArray();
-
-            for (int i = 0; i < groups; i++)
-            {
-                List<Node> group = new();
-                for (int j = 0; j < pNodes.Length; j++)
-                {
-                    if (pNodes[j].Item1 == i)
-                        group.Add(pNodes[j].Item2);
-                }
-                nodes[i] = group.ToArray();
-            }
-
-            return nodes;
-        }
-
-        public static void RemoveFromStack<T>(Stack<T> values, T value) where T : class
-        {
-            Stack<T> swap = new();
-            while (values.Count > 0)
-            {
-                var val = values.Pop();
-                if (val.Equals(value))
-                    break;
-                swap.Push(val);
-            }
-            while (swap.Count > 0)
-            {
-                values.Push(swap.Pop());
-            }
-        }
-
-        public static void RemoveFromStack2<T>(Stack<T> values, T value) where T : IEquatable<T>
-        {
-            Stack<T> swap = new();
-            while (values.Count > 0)
-            {
-                var val = values.Pop();
-                if (val.Equals(value))
-                    break;
-                swap.Push(val);
-            }
-            while (swap.Count > 0)
-            {
-                values.Push(swap.Pop());
-            }
-        }
-
-        public static void RemoveFromStack<T>(Stack<T> values, Func<T, bool> compare)
-        {
-            Stack<T> swap = new();
-            while (values.Count > 0)
-            {
-                var val = values.Pop();
-                if (compare(val))
-                    break;
-                swap.Push(val);
-            }
-            while (swap.Count > 0)
-            {
-                values.Push(swap.Pop());
-            }
-        }
-
-        public static T FindStack<T>(Stack<T> values, Func<T, bool> compare)
-        {
-            for (int i = 0; i < values.Count; i++)
-            {
-                var value = values.ElementAt(i);
-                if (compare(value))
-                    return value;
-            }
-#pragma warning disable CS8603 // Possible null reference return.
-            return default;
-#pragma warning restore CS8603 // Possible null reference return.
         }
     }
 }
