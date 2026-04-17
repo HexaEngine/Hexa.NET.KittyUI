@@ -5,15 +5,18 @@ using Hexa.NET.ImGui.Widgets;
 using Hexa.NET.KittyUI;
 using Hexa.NET.KittyUI.UI;
 using Hexa.NET.KittyUI.OpenAL;
+using Hexa.NET.KittyUI.Web;
 
-AppBuilder.Create()
+var app = AppBuilder.Create()
     .WithOpenAL()
     .EnableLogging(true)
     .EnableDebugTools(true)
-    .SetTitle("Test App")
-    .AddWindow<MainWindow>()
-    .AddTitleBar<TitleBar>()
     .StyleColorsDark()
+    .Build();
+
+app.SetTitle("Test App")
+    .AddWindow<MainWindow>()
+    .UseTitleBar<TitleBar>()
     .Run();
 
 namespace Example
@@ -30,6 +33,8 @@ namespace Example
         public override unsafe void DrawContent()
         {
             ImGui.Text("Hello, World!"u8);
+            HttpClient client;
+            client.DownloadAsyncCached
         }
     }
 }

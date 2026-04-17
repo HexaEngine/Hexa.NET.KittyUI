@@ -11,11 +11,11 @@ Application.GraphicsDebugging = true;
 AppBuilder appBuilder = new();
 appBuilder.EnableLogging(true);
 appBuilder.EnableDebugTools(true);
-appBuilder.SetTitle("Test App");
-//appBuilder.SetGraphicsBackend(Hexa.NET.KittyUI.Graphics.GraphicsBackend.OpenGL);
-appBuilder.AddWindow<MainWindow>();
 appBuilder.StyleColorsDark();
-appBuilder.Run();
+var app = appBuilder.Build();
+app.SetTitle("Test App");
+app.AddWindow<MainWindow>();
+app.Run();
 
 namespace ExampleWebView
 {

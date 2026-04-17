@@ -22,7 +22,7 @@
 
 #nullable disable
         private static IRenderWindow mainWindow;
-        private static AppBuilder builder;
+        private static AppHost appHost;
 
         private static IAudioDevice audioDevice;
         private static bool supressQuitApp;
@@ -61,16 +61,17 @@
 
         public static event Action? Exiting;
 
-        public static void Run(IRenderWindow mainWindow, AppBuilder builder)
+        public static void Run(IRenderWindow mainWindow, AppHost appHost)
         {
-            Init(mainWindow, builder);
+            Init(mainWindow, appHost);
 
             Application.mainWindow = mainWindow;
-            Application.builder = builder;
+            Application.appHost = appHost;
             mainWindow.Closed += MainWindowClosed;
-            builder.Dispose();
             mainWindow.Show();
             PlatformRun();
+
+            appHost.Dispose();
 
             FileLogWriter?.Dispose();
         }
@@ -109,7 +110,7 @@
             earlyInitialized = true;
         }
 
-        private static void Init(IRenderWindow mainWindow, AppBuilder builder)
+        private static void Init(IRenderWindow mainWindow, AppHost appHost)
         {
             if (ImGuiDebugTools.Enabled)
             {
@@ -128,7 +129,7 @@
 
             for (int i = 0; i < windows.Count; i++)
             {
-                windows[i].Initialize(builder);
+                windows[i].Initialize(appHost);
             }
 
             initialized = true;
@@ -168,7 +169,7 @@
             windows.Add(window);
             windowIdToWindow.Add(window.WindowID, window);
             if (initialized)
-                window.Initialize(builder);
+                window.Initialize(appHost);
         }
 
         /// <summary>

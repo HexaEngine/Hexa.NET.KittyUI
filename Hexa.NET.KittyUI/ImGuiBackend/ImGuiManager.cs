@@ -49,7 +49,7 @@
             fontPushes--;
         }
 
-        public unsafe ImGuiManager(CoreWindow window, AppBuilder appBuilder, Action rendererNewFrameCallback, Action<ImDrawDataPtr> rendererDrawCallback, ImGuiConfigFlags flags = ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad | ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable)
+        public unsafe ImGuiManager(CoreWindow window, AppHost appHost, Action rendererNewFrameCallback, Action<ImDrawDataPtr> rendererDrawCallback, ImGuiConfigFlags flags = ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.NavEnableGamepad | ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable)
         {
             RendererNewFrameCallback = rendererNewFrameCallback;
             RendererDrawCallback = rendererDrawCallback;
@@ -72,14 +72,15 @@
 
             var mainScale = window.ContentScale;
             var style = ImGui.GetStyle();
-            appBuilder.BuildStyle(style);
-            style.ScaleAllSizes(mainScale); 
-            style.FontScaleDpi = mainScale;       
-            io.ConfigDpiScaleFonts = true;         
-            io.ConfigDpiScaleViewports = true; 
+            var appOptions = appHost.Options;
+            appOptions.BuildStyle(style);
+            style.ScaleAllSizes(mainScale);
+            style.FontScaleDpi = mainScale;
+            io.ConfigDpiScaleFonts = true;
+            io.ConfigDpiScaleViewports = true;
 
-            appBuilder.BuildImGuiConfig(guiContext, io);
-            appBuilder.BuildFonts(io, aliasToFont);
+            appOptions.BuildImGuiConfig(guiContext, io);
+            appOptions.BuildFonts(io, aliasToFont);
         }
 
         public static void StyleKitty()

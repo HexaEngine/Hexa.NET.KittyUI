@@ -51,7 +51,7 @@
             ImGui.EndDisabled();
         }
 
-        public void RegisterPage(string path, IPage page)
+        public void RegisterPage(string path, Page page)
         {
             navigation.RegisterPage(path, page);
         }

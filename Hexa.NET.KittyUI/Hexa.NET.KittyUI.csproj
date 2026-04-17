@@ -10,8 +10,8 @@
 		<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
 		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 
-		<AssemblyVersion>1.1.16</AssemblyVersion>
-		<PackageVersion>1.1.16</PackageVersion>
+		<AssemblyVersion>1.2.0</AssemblyVersion>
+		<PackageVersion>1.2.0</PackageVersion>
 		<Authors>Juna Meinhold</Authors>
 		<Copyright>Copyright (c) 2024 Juna Meinhold</Copyright>
 		<PackageProjectUrl>https://github.com/HexaEngine/Hexa.NET.KittyUI</PackageProjectUrl>
@@ -78,7 +78,9 @@
 		<PackageReference Include="Hexa.NET.SDL3" Version="1.2.17" />
 		<PackageReference Include="Hexa.NET.D3DCompiler" Version="1.0.6" />
 		<PackageReference Include="Hexa.NET.D3D11" Version="1.0.6" />
-		<PackageReference Include="Hexa.NET.DXGI" Version="1.0.6" />	
+		<PackageReference Include="Hexa.NET.DXGI" Version="1.0.6" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.6" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.6" />	
 		<PackageReference Include="System.IO.Hashing" Version="9.0.9" />
 	</ItemGroup>
 

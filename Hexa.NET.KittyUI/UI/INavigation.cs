@@ -6,15 +6,15 @@
     {
         void NavigateTo(string path, object? args = null);
 
-        void NavigateTo(IPage page, object? args = null);
+        void NavigateTo(Page page, object? args = null);
 
         void NavigateBack();
 
         void NavigateToRoot();
 
-        IEnumerable<IPage> GetHistoryStack();
+        IEnumerable<Page> GetHistoryStack();
 
-        void NavigateBackTo(IPage page);
+        void NavigateBackTo(Page page);
 
         void ShowMenu();
 

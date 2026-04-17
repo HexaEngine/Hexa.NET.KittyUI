@@ -4,7 +4,7 @@
     using Hexa.NET.ImGui.Widgets;
     using System.Numerics;
 
-    public abstract class Page : IPage
+    public abstract class Page
     {
         protected bool IsDocked;
 
@@ -46,19 +46,17 @@
             }
         }
 
-        INavigation IPage.Navigation { get => navigation; set => navigation = value; }
-
-        public INavigation Navigation => navigation;
+        public INavigation Navigation { get => navigation; internal set => navigation = value; }
 
         public event SizeChangedEventHandler? SizeChanged;
 
         public event PositionChangedEventHandler? PositionChanged;
 
-        public virtual void OnNavigatedFrom(IPage? nextPage)
+        public virtual void OnNavigatedFrom(Page? nextPage, object? args)
         {
         }
 
-        public virtual void OnNavigatedTo(IPage? previousPage)
+        public virtual void OnNavigatedTo(Page? previousPage, object? args)
         {
         }
 

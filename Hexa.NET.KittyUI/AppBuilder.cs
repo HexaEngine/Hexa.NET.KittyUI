@@ -7,8 +7,11 @@
     using Hexa.NET.KittyUI.ImGuiBackend;
     using Hexa.NET.KittyUI.UI;
     using Hexa.NET.KittyUI.Windows;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
 
     public delegate void ImGuiFontBuilderCallback(ImGuiFontBuilder builder);
 
@@ -18,38 +21,29 @@
 
     public unsafe class AppBuilder
     {
-        internal readonly List<(ImGuiFontBuilderCallback, string? alias)> fontBuilders = new();
-        internal readonly List<ImGuiFontBuilder> builders = new();
-        internal readonly List<ImGuiStyleBuilderCallback> styleBuilders = [];
-        internal readonly List<ImGuiConfigureCallback> configureCallbacks = [];
-        private string title = "Kitty";
-        private TitleBar? titlebar;
+        internal readonly ServiceCollection services = new();
+        private readonly AppHostOptions appHostOptions = new();
+
+        public AppBuilder()
+        {
+        }
 
         public static AppBuilder Create()
         {
             return new AppBuilder();
         }
 
-        public void Run(IRenderWindow window)
-        {
-            window.Title = title;
-            window.TitleBar = titlebar;
-            Application.Run(window, this);
-        }
-
-        public void Run()
-        {
-            Window window = new()
-            {
-                Title = title,
-                TitleBar = titlebar,
-            };
-            Application.Run(window, this);
-        }
+        public ServiceCollection Services => services;
 
         public AppBuilder EnableSubSystem(SubSystems subSystem)
         {
-            Application.SubSystems = subSystem;
+            appHostOptions.SubSystems |= subSystem;
+            return this;
+        }
+
+        public AppBuilder DisableSubSystem(SubSystems subSystem)
+        {
+            appHostOptions.SubSystems &= ~subSystem;
             return this;
         }
 
@@ -83,80 +77,98 @@
             return this;
         }
 
-        public AppBuilder SetTitle(string title)
-        {
-            this.title = title;
-            return this;
-        }
-
-        public AppBuilder AddTitleBar(TitleBar titlebar)
-        {
-            this.titlebar = titlebar;
-            return this;
-        }
-
-        public AppBuilder AddTitleBar<T>() where T : TitleBar, new()
-        {
-            T titlebar = new();
-            return AddTitleBar(titlebar);
-        }
-
-        internal void BuildFonts(ImGuiIOPtr io, Dictionary<string, ImFontPtr> aliasToFont)
-        {
-            if (fontBuilders.Count == 0)
-            {
-                AddDefaultFont();
-            }
-
-            for (int i = 0; i < fontBuilders.Count; i++)
-            {
-                (ImGuiFontBuilderCallback fontBuilder, string? alias) = fontBuilders[i];
-                ImGuiFontBuilder builder = new(io.Fonts);
-                fontBuilder(builder);
-
-                if (alias != null)
-                {
-                    aliasToFont.Add(alias, builder.Font);
-                }
-                builders.Add(builder);
-            }
-        }
-
-        internal void BuildStyle(ImGuiStylePtr style)
-        {
-            if (styleBuilders.Count == 0)
-            {
-                StyleDefault();
-            }
-
-            for (int i = 0; i < styleBuilders.Count; i++)
-            {
-                styleBuilders[i](style);
-            }
-        }
-
-        internal void BuildImGuiConfig(ImGuiContextPtr context, ImGuiIOPtr io)
-        {
-            foreach (var callback in configureCallbacks)
-            {
-                callback(context, io);
-            }
-        }
-
-        internal void Dispose()
-        {
-            for (int i = 0; i < builders.Count; i++)
-            {
-                builders[i].Destroy();
-            }
-            builders.Clear();
-        }
-
         public AppBuilder AddDefaultFont()
         {
-            fontBuilders.Add((DefaultCallback, null));
+            appHostOptions.AddDefaultFont();
             return this;
         }
+
+        public AppBuilder AddFont(ImGuiFontBuilderCallback action)
+        {
+            appHostOptions.FontBuilders.Add((action, null));
+            return this;
+        }
+
+        public AppBuilder AddFont(string alias, ImGuiFontBuilderCallback action)
+        {
+            appHostOptions.FontBuilders.Add((action, alias));
+            return this;
+        }
+
+        public AppBuilder Style(ImGuiStyleBuilderCallback action)
+        {
+            appHostOptions.StyleBuilders.Add(action);
+            return this;
+        }
+
+        public AppBuilder ImGuiConfigure(ImGuiConfigureCallback callback)
+        {
+            appHostOptions.ConfigureCallbacks.Add(callback);
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the style to buildin custom style.
+        /// </summary>
+        /// <returns></returns>
+        public AppBuilder StyleDefault()
+        {
+            appHostOptions.StyleBuilders.Add(x => ImGuiManager.StyleKitty());
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the style to <see cref="ImGui.StyleColorsDark()"/>
+        /// </summary>
+        /// <returns></returns>
+        public AppBuilder StyleColorsDark()
+        {
+            appHostOptions.StyleBuilders.Add(x => ImGui.StyleColorsDark());
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the style to <see cref="ImGui.StyleColorsLight()"/>
+        /// </summary>
+        /// <returns></returns>
+        public AppBuilder StyleColorsLight()
+        {
+            appHostOptions.StyleBuilders.Add(x => ImGui.StyleColorsLight());
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the style to <see cref="ImGui.StyleColorsClassic()"/>
+        /// </summary>
+        /// <returns></returns>
+        public AppBuilder StyleColorsClassic()
+        {
+            appHostOptions.StyleBuilders.Add(x => ImGui.StyleColorsClassic());
+            return this;
+        }
+
+        public AppHost Build()
+        {
+            AppHost host = new(appHostOptions, services);
+            return host;
+        }
+    }
+
+    public class AppHostOptions : IDisposable
+    {
+        public List<(ImGuiFontBuilderCallback, string? alias)> FontBuilders { get; } = [];
+
+        public List<ImGuiFontBuilder> Fonts { get; } = [];
+
+        public List<ImGuiStyleBuilderCallback> StyleBuilders { get; } = [];
+
+        public List<ImGuiConfigureCallback> ConfigureCallbacks { get; } = [];
+
+        public string Title { get; set; } = "Kitty";
+
+        public TitleBar? Titlebar { get; set; }
+
+        public SubSystems SubSystems { get; set; }
 
         private void DefaultCallback(ImGuiFontBuilder builder)
         {
@@ -171,97 +183,109 @@
             builder.AddFontFromEmbeddedResource("Hexa.NET.KittyUI.assets.fonts.MaterialSymbolsRounded.ttf", 18, glyphMaterialRanges);
         }
 
-        public AppBuilder AddFont(ImGuiFontBuilderCallback action)
+        public void AddDefaultFont()
         {
-            fontBuilders.Add((action, null));
-            return this;
+            FontBuilders.Add((DefaultCallback, null));
         }
 
-        public AppBuilder AddFont(string alias, ImGuiFontBuilderCallback action)
+        public void BuildFonts(ImGuiIOPtr io, Dictionary<string, ImFontPtr> aliasToFont)
         {
-            fontBuilders.Add((action, alias));
-            return this;
-        }
+            if (FontBuilders.Count == 0)
+            {
+                AddDefaultFont();
+            }
 
-        public AppBuilder Style(ImGuiStyleBuilderCallback action)
-        {
-            styleBuilders.Add(action);
-            return this;
-        }
+            for (int i = 0; i < FontBuilders.Count; i++)
+            {
+                (ImGuiFontBuilderCallback fontBuilder, string? alias) = FontBuilders[i];
+                ImGuiFontBuilder builder = new(io.Fonts);
+                fontBuilder(builder);
 
-        public AppBuilder ImGuiConfigure(ImGuiConfigureCallback callback)
-        {
-            configureCallbacks.Add(callback);
-            return this;
+                if (alias != null)
+                {
+                    aliasToFont.Add(alias, builder.Font);
+                }
+                Fonts.Add(builder);
+            }
         }
 
         /// <summary>
         /// Sets the style to buildin custom style.
         /// </summary>
         /// <returns></returns>
-        public AppBuilder StyleDefault()
+        public void StyleDefault()
         {
-            styleBuilders.Add(x => ImGuiManager.StyleKitty());
-            return this;
+            StyleBuilders.Add(x => ImGuiManager.StyleKitty());
         }
 
-        /// <summary>
-        /// Sets the style to <see cref="ImGui.StyleColorsDark()"/>
-        /// </summary>
-        /// <returns></returns>
-        public AppBuilder StyleColorsDark()
+        public void BuildStyle(ImGuiStylePtr style)
         {
-            styleBuilders.Add(x => ImGui.StyleColorsDark());
-            return this;
-        }
-
-        /// <summary>
-        /// Sets the style to <see cref="ImGui.StyleColorsLight()"/>
-        /// </summary>
-        /// <returns></returns>
-        public AppBuilder StyleColorsLight()
-        {
-            styleBuilders.Add(x => ImGui.StyleColorsLight());
-            return this;
-        }
-
-        /// <summary>
-        /// Sets the style to <see cref="ImGui.StyleColorsClassic()"/>
-        /// </summary>
-        /// <returns></returns>
-        public AppBuilder StyleColorsClassic()
-        {
-            styleBuilders.Add(x => ImGui.StyleColorsClassic());
-            return this;
-        }
-
-        public AppBuilder AddWindow<T>() where T : IImGuiWindow, new()
-        {
-            T window = new();
-            window.Show();
-            return this;
-        }
-
-        public AppBuilder AddWindow(IImGuiWindow window)
-        {
-            window.Show();
-            return this;
-        }
-
-        public AppBuilder UseAppShell(string title, Action<ShellBuilder> action)
-        {
-            ShellBuilder builder = new(title);
-            action(builder);
-            builder.Shell.Show();
-            SetTitle(title);
-
-            builder.Shell.Navigation.NavigateToRoot();
-
-            if (titlebar != null)
+            if (StyleBuilders.Count == 0)
             {
-                titlebar.Navigation = builder.Shell.Navigation;
+                StyleDefault();
             }
 
+            for (int i = 0; i < StyleBuilders.Count; i++)
+            {
+                StyleBuilders[i](style);
+            }
+        }
+
+        public void BuildImGuiConfig(ImGuiContextPtr context, ImGuiIOPtr io)
+        {
+            foreach (var callback in ConfigureCallbacks)
+            {
+                callback(context, io);
+            }
+        }
+
+        public void Dispose()
+        {
+            foreach (var font in Fonts)
+            {
+                font.Destroy();
+            }
+            Fonts.Clear();
+            FontBuilders.Clear();
+            StyleBuilders.Clear();
+            ConfigureCallbacks.Clear();
+            Titlebar = null;
+            GC.SuppressFinalize(this);
+        }
+    }
+
+    public class AppHost : IDisposable
+    {
+        private readonly AppHostOptions options;
+        private readonly ServiceProvider serviceProvider;
+        private string title = "Kitty";
+        private TitleBar? titlebar;
+
+        public AppHost(AppHostOptions options, ServiceCollection services)
+        {
+            this.options = options;
+            this.serviceProvider = services.BuildServiceProvider();
+        }
+
+        public AppHostOptions Options => options;
+
+        public IServiceProvider Services => serviceProvider;
+
+        public T CreateInstance<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>()
+        {
+            return ActivatorUtilities.CreateInstance<T>(serviceProvider);
+        }
+
+        public AppHost AddWindow<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() where T : IImGuiWindow
+        {
+            var window = CreateInstance<T>();
+            window.Show();
+            return this;
+        }
+
+        public AppHost AddWindow(IImGuiWindow window)
+        {
+            window.Show();
             return this;
         }
 
@@ -310,11 +334,83 @@
             }
         }
 
-        public AppBuilder AddWindow(string name, Action draw)
+        public AppHost AddWindow(string name, Action draw)
         {
             WrappedWindow window = new(name, draw);
             window.Show();
             return this;
+        }
+
+        public AppHost UseAppShell(string title, Action<ShellBuilder> action)
+        {
+            ShellBuilder builder = new(this, title);
+            action(builder);
+            builder.Shell.Show();
+            SetTitle(title);
+
+            builder.Shell.Navigation.NavigateToRoot();
+
+            if (titlebar != null)
+            {
+                titlebar.Navigation = builder.Shell.Navigation;
+            }
+
+            return this;
+        }
+
+        public AppHost SetTitle(string title)
+        {
+            this.title = title;
+            return this;
+        }
+
+        public AppHost UseTitleBar(TitleBar titlebar)
+        {
+            this.titlebar = titlebar;
+            return this;
+        }
+
+        public AppHost UseTitleBar<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() where T : TitleBar
+        {
+            T titlebar = CreateInstance<T>();
+            return UseTitleBar(titlebar);
+        }
+
+        public void Run(IRenderWindow window)
+        {
+            window.Title = title;
+            window.TitleBar = titlebar;
+            Application.Run(window, this);
+        }
+
+        public void Run<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() where T : IRenderWindow
+        {
+            var window = CreateInstance<T>();
+            window.Title = title;
+            window.TitleBar = titlebar;
+            Run(window);
+        }
+
+        public void Run()
+        {
+            Window window = new()
+            {
+                Title = title,
+                TitleBar = titlebar,
+            };
+            Run(window);
+        }
+
+        private void Run(Window window)
+        {
+            Application.SubSystems = options.SubSystems;
+            Application.Run(window, this);
+        }
+
+        public void Dispose()
+        {
+            serviceProvider.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

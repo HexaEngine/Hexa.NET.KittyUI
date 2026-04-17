@@ -1,30 +1,32 @@
-﻿namespace Hexa.NET.KittyUI.UI
+﻿using System.Diagnostics;
+
+namespace Hexa.NET.KittyUI.UI
 {
     public class NavigationManager : INavigation
     {
-        private readonly Dictionary<string, IPage> _pages = new();
-        private readonly List<NavigationItem> _navigationHistory = new();
+        private readonly Dictionary<string, Page> _pages = [];
+        private readonly List<NavigationItem> _navigationHistory = [];
         private readonly Stack<NavigationItem> _navigationForward = new();
         private NavigationItem? _currentPage;
-        private IPage? _rootPage;
+        private Page? _rootPage;
         private string _currentPath = "/";
 
-        private struct NavigationItem(IPage page, object? args) : IEquatable<NavigationItem>
+        private struct NavigationItem(Page page, object? args) : IEquatable<NavigationItem>
         {
-            public IPage Page = page;
+            public Page Page = page;
             public object? Args = args;
 
-            public override bool Equals(object? obj)
+            public readonly override bool Equals(object? obj)
             {
                 return obj is NavigationItem item && Equals(item);
             }
 
-            public bool Equals(NavigationItem other)
+            public readonly bool Equals(NavigationItem other)
             {
-                return EqualityComparer<IPage>.Default.Equals(Page, other.Page);
+                return EqualityComparer<Page>.Default.Equals(Page, other.Page);
             }
 
-            public override int GetHashCode()
+            public readonly override int GetHashCode()
             {
                 return HashCode.Combine(Page);
             }
@@ -40,7 +42,7 @@
             }
         }
 
-        public IPage? CurrentPage => _currentPage.HasValue ? _currentPage.Value.Page : null;
+        public Page? CurrentPage => _currentPage.HasValue ? _currentPage.Value.Page : null;
 
         public string CurrentPath => _currentPath;
 
@@ -56,7 +58,7 @@
             _navigationForward.Clear();
         }
 
-        public void RegisterPage(string path, IPage page)
+        public void RegisterPage(string path, Page page)
         {
             _rootPage ??= page;
             var normalizedPath = NormalizePath(path);
@@ -81,7 +83,7 @@
             }
         }
 
-        public void NavigateTo(IPage page, object? args = null)
+        public void NavigateTo(Page page, object? args = null)
         {
             if (_currentPage != null)
             {
@@ -93,7 +95,7 @@
             _currentPage = new NavigationItem(page, args);
         }
 
-        public void NavigateBackTo(IPage page)
+        public void NavigateBackTo(Page page)
         {
             if (!_navigationHistory.Contains(new(page, null)))
             {
@@ -118,9 +120,10 @@
                 return;
             }
 
-            _currentPage!.OnNavigatedFrom(previousPage);
-            previousPage?.OnNavigatedTo(_currentPage);
-            _currentPath = GetPathForPage(_currentPage);
+            var currPage = _currentPage!.Value;
+            currPage.Page.OnNavigatedFrom(previousPage?.Page, previousPage?.Args);
+            previousPage?.Page.OnNavigatedTo(currPage.Page, currPage.Args);
+            _currentPath = GetPathForPage(currPage.Page);
         }
 
         public void NavigateBack()
@@ -129,16 +132,16 @@
             {
                 if (_currentPage != null)
                 {
-                    _navigationForward.Push(_currentPage);
+                    _navigationForward.Push(_currentPage.Value);
                 }
 
                 var previousPage = _navigationHistory[^1];
                 _navigationHistory.RemoveAt(_navigationHistory.Count - 1);
-                _currentPage?.OnNavigatedFrom(previousPage);
-                previousPage.OnNavigatedTo(_currentPage);
+                _currentPage?.Page.OnNavigatedFrom(previousPage.Page, previousPage.Args);
+                previousPage.Page.OnNavigatedTo(_currentPage?.Page, _currentPage?.Args);
 
                 _currentPage = previousPage;
-                _currentPath = GetPathForPage(_currentPage); // Update current path
+                _currentPath = GetPathForPage(_currentPage.Value.Page); // Update current path
             }
         }
 
@@ -148,11 +151,11 @@
             {
                 if (_currentPage != null)
                 {
-                    _navigationHistory.Add(_currentPage);
+                    _navigationHistory.Add(_currentPage.Value);
                 }
 
                 var previousPage = _navigationForward.Pop();
-                previousPage.OnNavigatedTo(_currentPage);
+                previousPage.Page.OnNavigatedTo(_currentPage?.Page, _currentPage?.Args);
                 _currentPage = previousPage;
             }
         }
@@ -176,9 +179,9 @@
             }
         }
 
-        private static string NormalizePath(string path)
+        private static string NormalizePath(ReadOnlySpan<char> path)
         {
-            ReadOnlySpan<char> p = path.AsSpan().TrimEnd('/');
+            ReadOnlySpan<char> p = path.TrimEnd('/');
             if (p.Length > 0 && p[0] != '/')
             {
                 return $"/{p}"; // root the path.
@@ -187,16 +190,16 @@
             return p.ToString();
         }
 
-        private string ResolvePath(string path)
+        private string ResolvePath(ReadOnlySpan<char> path)
         {
-            if (path.StartsWith('/'))
+            if (path.StartsWith("/"))
             {
                 // Absolute path
                 return NormalizePath(path);
             }
             else
             {
-                ReadOnlySpan<char> p = path.AsSpan().Trim();
+                ReadOnlySpan<char> p = path.Trim();
 
                 int level = 0;
                 while (p.Length > 0)
@@ -245,7 +248,7 @@
             }
         }
 
-        private string GetPathForPage(IPage page)
+        private string GetPathForPage(Page page)
         {
             foreach (var kvp in _pages)
             {
@@ -257,16 +260,16 @@
             return "/";
         }
 
-        public IEnumerable<IPage> GetHistoryStack()
+        public IEnumerable<Page> GetHistoryStack()
         {
             foreach (var item in _navigationHistory)
             {
-                yield return item;
+                yield return item.Page;
             }
 
             if (_currentPage != null)
             {
-                yield return _currentPage;
+                yield return _currentPage.Value.Page;
             }
         }
 

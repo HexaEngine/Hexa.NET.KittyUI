@@ -12,7 +12,7 @@
     {
         IThreadDispatcher Dispatcher { get; }
 
-        void Initialize(AppBuilder appBuilder);
+        void Initialize(AppHost appHost);
 
         void Render();
 

@@ -1,10 +1,13 @@
 ﻿using Hexa.NET.ImGui;
 using Hexa.NET.KittyUI;
 using Hexa.NET.KittyUI.UI;
+using Microsoft.Extensions.DependencyInjection;
 
-AppBuilder builder = new();
-builder.AddTitleBar(new TitleBar());
-builder.UseAppShell
+AppBuilder builder = AppBuilder.Create();
+builder.Services.AddSingleton<FooService>();
+var app = builder.Build();
+app.UseTitleBar<TitleBar>();
+app.UseAppShell
     ("Test Shell App",
         shellBuilder =>
             shellBuilder
@@ -13,8 +16,19 @@ builder.UseAppShell
     )
 .Run();
 
+public class FooService
+{
+}
+
 public class MainPage : Page
 {
+    private readonly FooService fooService;
+
+    public MainPage(FooService fooService)
+    {
+        this.fooService = fooService;
+    }
+
     public override string Title { get; } = "Main Page";
 
     public override void DrawContent()

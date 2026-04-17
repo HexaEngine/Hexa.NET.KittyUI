@@ -54,7 +54,7 @@
             get => limiter.TargetFPS; set => limiter.TargetFPS = value;
         }
 
-        public virtual unsafe void Initialize(AppBuilder appBuilder)
+        public virtual unsafe void Initialize(AppHost appHost)
         {
             renderDispatcher = new(Thread.CurrentThread);
 
@@ -69,7 +69,7 @@
 
                     var dev = D3D11GraphicsDevice.Device;
                     var ctx = D3D11GraphicsDevice.DeviceContext;
-                    imGuiRenderer = new(this, appBuilder, ImGuiImplD3D11.NewFrame, ImGuiImplD3D11.RenderDrawData);
+                    imGuiRenderer = new(this, appHost, ImGuiImplD3D11.NewFrame, ImGuiImplD3D11.RenderDrawData);
                     context = ImGui.GetCurrentContext();
                     ImGuiImplSDL3.SetCurrentContext(context);
                     ImGuiImplSDL3.InitForD3D((SDLWindow*)GetWindow());
@@ -78,7 +78,7 @@
                     break;
 
                 case GraphicsBackend.OpenGL:
-                    imGuiRenderer = new(this, appBuilder, ImGuiImplOpenGL3.NewFrame, ImGuiImplOpenGL3.RenderDrawData);
+                    imGuiRenderer = new(this, appHost, ImGuiImplOpenGL3.NewFrame, ImGuiImplOpenGL3.RenderDrawData);
                     context = ImGui.GetCurrentContext();
                     ImGuiImplSDL3.SetCurrentContext(context);
                     ImGuiImplSDL3.InitForOpenGL((SDLWindow*)GetWindow(), (void*)GLContext.Handle);
@@ -226,7 +226,6 @@
 
             WidgetManager.Dispose();
             renderDispatcher.Dispose();
-
 
             switch (Backend)
             {
