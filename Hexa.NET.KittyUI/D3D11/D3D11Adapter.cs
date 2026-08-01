@@ -4,14 +4,31 @@
     using Hexa.NET.DXGI;
     using Hexa.NET.KittyUI.Windows;
     using Hexa.NET.Logging;
-    using Hexa.NET.SDL3;
     using HexaGen.Runtime;
     using HexaGen.Runtime.COM;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Text;
     using InfoQueueFilter = Hexa.NET.DXGI.InfoQueueFilter;
-    using Window = SDL3.SDLWindow;
+
+    public delegate void SwapChainCreationInterceptor(ref SwapChainCreationContext ctx);
+
+    public ref struct SwapChainCreationContext
+    {
+        public ref SwapChainDesc1 SwapChainDesc;
+        public ref SwapChainFullscreenDesc SwapChainFullscreenDesc;
+        public nint HWND;
+        public ComPtr<IDXGIFactory7> IDXGIFactory;
+        public ComPtr<IDXGIAdapter4> IDXGIAdapter;
+        public ComPtr<IDXGIOutput6> RestrictToOutput;
+        public DXGISwapChain? SwapChain;
+
+        public ComPtr<IDXGISwapChain1> CreateSwapChain()
+        {
+            IDXGIFactory.CreateSwapChainForHwnd(D3D11GraphicsDevice.Device.As<IUnknown>(), HWND, ref SwapChainDesc, ref SwapChainFullscreenDesc, RestrictToOutput.As<IDXGIOutput>(), out ComPtr<IDXGISwapChain1> swapChain).ThrowIf();
+            return swapChain;
+        }
+    }
 
     public static unsafe class D3D11Adapter
     {
@@ -21,6 +38,12 @@
         internal static ComPtr<IDXGIFactory7> IDXGIFactory;
         internal static ComPtr<IDXGIAdapter4> IDXGIAdapter;
         internal static ComPtr<IDXGIOutput6> IDXGIOutput;
+
+        public static ComPtr<IDXGIFactory7> Factory => IDXGIFactory;
+
+        public static ComPtr<IDXGIAdapter4> Adapter => IDXGIAdapter;
+
+        public static ComPtr<IDXGIOutput6> Output => IDXGIOutput;
 
         internal static ComPtr<IDXGIDebug> IDXGIDebug;
         internal static ComPtr<IDXGIInfoQueue> IDXGIInfoQueue;
@@ -158,6 +181,10 @@
 
         public static SwapChainFlag SwapChainFlags { get; set; }
 
+        public static SwapEffect SwapEffect { get; set; } = SwapEffect.FlipSequential;
+
+        public static SwapChainCreationInterceptor? SwapChainCreationInterceptor { get; set; }
+
         [SupportedOSPlatform("windows")]
         public static DXGISwapChain CreateSwapChainForWindow(CoreWindow window)
         {
@@ -170,7 +197,7 @@
                 BufferUsage = (uint)DXGI.DXGI_USAGE_RENDER_TARGET_OUTPUT,
                 SampleDesc = new(1, 0),
                 Scaling = Scaling.Stretch,
-                SwapEffect = SwapEffect.FlipSequential,
+                SwapEffect = SwapEffect,
                 Flags = (uint)(SwapChainFlag.AllowModeSwitch | SwapChainFlag.AllowTearing | SwapChainFlags)
             };
 
@@ -182,10 +209,21 @@
                 ScanlineOrdering = ModeScanlineOrder.Unspecified,
             };
 
-            nint hwnd = window.GetHWND();
-            IDXGIFactory.CreateSwapChainForHwnd(D3D11GraphicsDevice.Device.As<IUnknown>(), hwnd, &desc, &fullscreenDesc, IDXGIOutput.As<IDXGIOutput>(), out ComPtr<IDXGISwapChain1> swapChain);
+            SwapChainCreationContext ctx = new()
+            {
+                SwapChainDesc = ref desc,
+                SwapChainFullscreenDesc = ref fullscreenDesc,
+                HWND = window.GetHWND(),
+                RestrictToOutput = IDXGIOutput,
+                IDXGIAdapter = IDXGIAdapter,
+                IDXGIFactory = IDXGIFactory,
+            };
 
-            return new DXGISwapChain(swapChain, (SwapChainFlag)desc.Flags);
+            SwapChainCreationInterceptor?.Invoke(ref ctx);
+
+            if (ctx.SwapChain != null) return ctx.SwapChain;
+
+            return new DXGISwapChain(ctx.CreateSwapChain(), (SwapChainFlag)desc.Flags);
         }
 
         private static ComPtr<IDXGIAdapter4> GetHardwareAdapter(string? name)

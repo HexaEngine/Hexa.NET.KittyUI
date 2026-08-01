@@ -172,7 +172,7 @@
             InitGraphics(backend);
         }
 
-        private void InitGraphics(GraphicsBackend backend)
+        protected virtual void InitGraphics(GraphicsBackend backend)
         {
             switch (backend)
             {

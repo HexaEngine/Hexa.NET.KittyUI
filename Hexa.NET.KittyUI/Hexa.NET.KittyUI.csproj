@@ -10,8 +10,8 @@
 		<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
 		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 
-		<AssemblyVersion>1.2.0</AssemblyVersion>
-		<PackageVersion>1.2.0</PackageVersion>
+		<AssemblyVersion>1.2.1</AssemblyVersion>
+		<PackageVersion>1.2.1</PackageVersion>
 		<Authors>Juna Meinhold</Authors>
 		<Copyright>Copyright (c) 2024 Juna Meinhold</Copyright>
 		<PackageProjectUrl>https://github.com/HexaEngine/Hexa.NET.KittyUI</PackageProjectUrl>

@@ -81,7 +81,7 @@
             }
         }
 
-        public void Resize(int width, int height)
+        public virtual void Resize(int width, int height)
         {
             var oldWidth = Width;
             var oldHeight = Height;
